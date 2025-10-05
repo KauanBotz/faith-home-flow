@@ -9,7 +9,6 @@ import SetupAdmin from "./pages/SetupAdmin";
 import Dashboard from "./pages/Dashboard";
 import Membros from "./pages/Membros";
 import Presenca from "./pages/Presenca";
-import Relatorio from "./pages/Relatorio";
 import Perfil from "./pages/Perfil";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -17,6 +16,7 @@ import AdminCasas from "./pages/admin/Casas";
 import AdminCasaDetail from "./pages/admin/CasaDetail";
 import AdminMembros from "./pages/admin/Membros";
 import AdminRelatorios from "./pages/admin/Relatorios";
+import Relatorio from "./pages/Relatorio";
 
 const queryClient = new QueryClient();
 
