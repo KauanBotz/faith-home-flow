@@ -98,11 +98,18 @@ const Login = () => {
               <Sparkles className="w-4 h-4 ml-2" />
             </Button>
 
-            <div className="text-center text-sm pt-4 border-t">
-              <span className="text-muted-foreground">Ainda não tem cadastro? </span>
-              <Link to="/cadastro" className="text-primary font-semibold hover:underline">
-                Criar Casa de Fé
-              </Link>
+            <div className="text-center text-sm pt-4 border-t space-y-2">
+              <div>
+                <span className="text-muted-foreground">Ainda não tem cadastro? </span>
+                <Link to="/cadastro" className="text-primary font-semibold hover:underline">
+                  Criar Casa de Fé
+                </Link>
+              </div>
+              <div>
+                <Link to="/setup-admin" className="text-muted-foreground text-xs hover:underline">
+                  Criar usuário admin
+                </Link>
+              </div>
             </div>
           </form>
         </Card>
