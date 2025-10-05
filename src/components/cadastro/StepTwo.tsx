@@ -13,7 +13,6 @@ interface StepTwoProps {
 }
 
 const campusOptions = [
-  "MINC Pampulha",
   "MINC Lagoa Santa",
   "MINC São José da Lapa",
   "MINC Ribeirão das Neves",
@@ -21,7 +20,6 @@ const campusOptions = [
   "MINC São Paulo",
   "MINC Juiz de Fora",
   "MINC Online",
-  "MINC Sinop",
 ];
 
 const redeOptions = [
@@ -30,14 +28,6 @@ const redeOptions = [
   "Avance (MINC Pampulha)",
   "Nexo (MINC Pampulha)",
   "Plug (MINC Pampulha)",
-  "MINC Lagoa Santa",
-  "MINC São José da Lapa",
-  "MINC Ribeirão das Neves",
-  "MINC Rio",
-  "MINC São Paulo",
-  "MINC Juiz de Fora",
-  "MINC Online",
-  "MINC Sinop",
 ];
 
 const diasDaSemana = [

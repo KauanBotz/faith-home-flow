@@ -354,8 +354,12 @@ const AdminRelatorios = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todos</SelectItem>
-                  <SelectItem value="MINC Pampulha">MINC Pampulha</SelectItem>
                   <SelectItem value="MINC Lagoa Santa">MINC Lagoa Santa</SelectItem>
+                  <SelectItem value="MINC São José da Lapa">MINC São José da Lapa</SelectItem>
+                  <SelectItem value="MINC Ribeirão das Neves">MINC Ribeirão das Neves</SelectItem>
+                  <SelectItem value="MINC Rio">MINC Rio</SelectItem>
+                  <SelectItem value="MINC São Paulo">MINC São Paulo</SelectItem>
+                  <SelectItem value="MINC Juiz de Fora">MINC Juiz de Fora</SelectItem>
                   <SelectItem value="MINC Online">MINC Online</SelectItem>
                 </SelectContent>
               </Select>
@@ -369,9 +373,11 @@ const AdminRelatorios = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todas">Todas</SelectItem>
-                  <SelectItem value="Gerar (MINC Pampulha)">Gerar</SelectItem>
-                  <SelectItem value="Ative (MINC Pampulha)">Ative</SelectItem>
-                  <SelectItem value="Avance (MINC Pampulha)">Avance</SelectItem>
+                  <SelectItem value="Gerar (MINC Pampulha)">Gerar (MINC Pampulha)</SelectItem>
+                  <SelectItem value="Ative (MINC Pampulha)">Ative (MINC Pampulha)</SelectItem>
+                  <SelectItem value="Avance (MINC Pampulha)">Avance (MINC Pampulha)</SelectItem>
+                  <SelectItem value="Nexo (MINC Pampulha)">Nexo (MINC Pampulha)</SelectItem>
+                  <SelectItem value="Plug (MINC Pampulha)">Plug (MINC Pampulha)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
