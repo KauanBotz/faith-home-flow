@@ -71,44 +71,33 @@ const Dashboard = () => {
           setPresencasData(presencasData || []);
         }
 
-        // Verificar relatório pendente - apenas para a última reunião que passou
-        const hoje = new Date();
-        const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
-        const diasReuniao = casaData.dias_semana || [];
-        
-        // Encontrar o dia de reunião mais recente que já passou
-        let dataUltimaReuniao: Date | null = null;
-        
-        for (const diaReuniao of diasReuniao) {
-          const diaIndex = diasSemana.indexOf(diaReuniao);
-          if (diaIndex === -1) continue;
+        // Verificar relatórios pendentes: presenças marcadas sem relatório correspondente
+        const { data: presencas } = await supabase
+          .from("presencas")
+          .select("data_reuniao")
+          .in("membro_id", membroIds)
+          .order("data_reuniao", { ascending: false });
+
+        if (presencas && presencas.length > 0) {
+          // Pegar datas únicas
+          const datasPresenca = [...new Set(presencas.map(p => p.data_reuniao))];
           
-          const diaAtual = hoje.getDay();
-          let diasDesdeReuniao = diaAtual - diaIndex;
-          if (diasDesdeReuniao <= 0) diasDesdeReuniao += 7;
-          
-          const dataReuniao = new Date(hoje);
-          dataReuniao.setDate(hoje.getDate() - diasDesdeReuniao);
-          
-          if (!dataUltimaReuniao || dataReuniao > dataUltimaReuniao) {
-            dataUltimaReuniao = dataReuniao;
-          }
-        }
-        
-        // Verificar se existe relatório para a última reunião
-        if (dataUltimaReuniao) {
-          const { data: relatorio } = await supabase
+          // Verificar quais datas têm relatório
+          const { data: relatorios } = await supabase
             .from("relatorios")
-            .select("id, notas")
-            .eq("casa_fe_id", casaData.id)
-            .eq("data_reuniao", dataUltimaReuniao.toISOString().split('T')[0])
-            .maybeSingle();
+            .select("data_reuniao")
+            .eq("casa_fe_id", casaData.id);
+
+          const datasComRelatorio = relatorios?.map(r => r.data_reuniao) || [];
           
-          if (!relatorio || !relatorio.notas || relatorio.notas.trim() === "") {
-            setRelatoriosPendentes(1);
-          } else {
-            setRelatoriosPendentes(0);
-          }
+          // Contar quantas datas têm presença mas não têm relatório
+          const pendentes = datasPresenca.filter(
+            data => !datasComRelatorio.includes(data)
+          ).length;
+          
+          setRelatoriosPendentes(pendentes);
+        } else {
+          setRelatoriosPendentes(0);
         }
       }
     } catch (error: any) {

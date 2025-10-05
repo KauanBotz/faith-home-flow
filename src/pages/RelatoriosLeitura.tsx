@@ -3,24 +3,20 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { ArrowLeft, FileText, Calendar, Search } from "lucide-react";
+import { ArrowLeft, FileText, Calendar } from "lucide-react";
 import { toast } from "sonner";
-import { format, startOfWeek, endOfWeek, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const RelatoriosLeitura = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [relatorios, setRelatorios] = useState<any[]>([]);
   const [casaFe, setCasaFe] = useState<any>(null);
-  const [semanaInicio, setSemanaInicio] = useState(format(startOfWeek(new Date(), { weekStartsOn: 0 }), "yyyy-MM-dd"));
-  const [semanaFim, setSemanaFim] = useState(format(endOfWeek(new Date(), { weekStartsOn: 0 }), "yyyy-MM-dd"));
+  const [relatorios, setRelatorios] = useState<any[]>([]);
 
   useEffect(() => {
     loadData();
-  }, [semanaInicio, semanaFim]);
+  }, []);
 
   const loadData = async () => {
     try {
@@ -30,58 +26,30 @@ const RelatoriosLeitura = () => {
         return;
       }
 
-      const { data: casaData } = await supabase
+      const { data: casaData, error: casaError } = await supabase
         .from("casas_fe")
         .select("*")
         .eq("user_id", user.id)
         .single();
 
-      if (!casaData) {
-        toast.error("Casa de Fé não encontrada");
-        navigate("/dashboard");
-        return;
-      }
-
+      if (casaError) throw casaError;
       setCasaFe(casaData);
 
-      const { data: relatoriosData, error } = await supabase
+      // Buscar todos os relatórios da casa de fé
+      const { data: relatoriosData, error: relatoriosError } = await supabase
         .from("relatorios")
         .select("*")
         .eq("casa_fe_id", casaData.id)
-        .gte("data_reuniao", semanaInicio)
-        .lte("data_reuniao", semanaFim)
         .order("data_reuniao", { ascending: false });
 
-      if (error) throw error;
+      if (relatoriosError) throw relatoriosError;
       setRelatorios(relatoriosData || []);
     } catch (error: any) {
-      console.error("Error loading relatórios:", error);
+      console.error("Error loading data:", error);
       toast.error("Erro ao carregar relatórios");
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleSemanaAnterior = () => {
-    const inicio = parseISO(semanaInicio);
-    const novoInicio = new Date(inicio);
-    novoInicio.setDate(inicio.getDate() - 7);
-    const novoFim = new Date(novoInicio);
-    novoFim.setDate(novoInicio.getDate() + 6);
-    
-    setSemanaInicio(format(novoInicio, "yyyy-MM-dd"));
-    setSemanaFim(format(novoFim, "yyyy-MM-dd"));
-  };
-
-  const handleProximaSemana = () => {
-    const inicio = parseISO(semanaInicio);
-    const novoInicio = new Date(inicio);
-    novoInicio.setDate(inicio.getDate() + 7);
-    const novoFim = new Date(novoInicio);
-    novoFim.setDate(novoInicio.getDate() + 6);
-    
-    setSemanaInicio(format(novoInicio, "yyyy-MM-dd"));
-    setSemanaFim(format(novoFim, "yyyy-MM-dd"));
   };
 
   if (loading) {
@@ -98,15 +66,12 @@ const RelatoriosLeitura = () => {
   return (
     <div className="min-h-screen gradient-subtle pb-20">
       <header className="bg-card shadow-soft sticky top-0 z-10 border-b">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center gap-4">
+        <div className="max-w-3xl mx-auto px-4 py-4 flex items-center gap-4">
           <Button variant="outline" size="icon" onClick={() => navigate("/dashboard")}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex-1">
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <FileText className="w-6 h-6" />
-              Relatórios por Semana
-            </h1>
+            <h1 className="text-2xl font-bold">Histórico de Relatórios</h1>
             <p className="text-sm text-muted-foreground">
               {casaFe?.nome_lider} - {casaFe?.campus}
             </p>
@@ -114,93 +79,58 @@ const RelatoriosLeitura = () => {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 py-6">
-        {/* Filtro de Semana */}
-        <Card className="p-6 mb-6 shadow-medium">
-          <div className="flex items-center gap-2 mb-4">
-            <Calendar className="w-5 h-5 text-primary" />
-            <h2 className="text-lg font-bold">Selecione a Semana</h2>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={handleSemanaAnterior}>
-              ← Semana Anterior
+      <main className="max-w-3xl mx-auto px-4 py-6">
+        {relatorios.length === 0 ? (
+          <Card className="p-8 text-center shadow-medium">
+            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
+              <FileText className="w-10 h-10 text-muted-foreground" />
+            </div>
+            <h2 className="text-2xl font-bold mb-2">Nenhum Relatório</h2>
+            <p className="text-muted-foreground mb-6">
+              Você ainda não enviou nenhum relatório de reunião.
+            </p>
+            <Button onClick={() => navigate("/relatorio")} className="gradient-primary">
+              Enviar Primeiro Relatório
             </Button>
-            
-            <div className="flex-1 flex items-center justify-center gap-4">
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <Label className="text-sm text-muted-foreground">De</Label>
-                <p className="font-semibold">
-                  {format(parseISO(semanaInicio), "dd/MM/yyyy", { locale: ptBR })}
-                </p>
-              </div>
-              <span className="text-muted-foreground">até</span>
-              <div>
-                <Label className="text-sm text-muted-foreground">Até</Label>
-                <p className="font-semibold">
-                  {format(parseISO(semanaFim), "dd/MM/yyyy", { locale: ptBR })}
-                </p>
+                <h2 className="text-xl font-bold">Total de Relatórios</h2>
+                <p className="text-sm text-muted-foreground">{relatorios.length} relatórios enviados</p>
               </div>
             </div>
 
-            <Button variant="outline" onClick={handleProximaSemana}>
-              Próxima Semana →
-            </Button>
-          </div>
-        </Card>
-
-        {/* Lista de Relatórios */}
-        <div className="space-y-4">
-          {relatorios.length === 0 ? (
-            <Card className="p-12 text-center shadow-medium">
-              <FileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-              <h3 className="text-xl font-bold mb-2">Nenhum relatório encontrado</h3>
-              <p className="text-muted-foreground">
-                Não há relatórios para esta semana
-              </p>
-            </Card>
-          ) : (
-            relatorios.map((relatorio) => (
+            {relatorios.map((relatorio) => (
               <Card key={relatorio.id} className="p-6 shadow-medium hover:shadow-glow transition-all">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-2xl gradient-primary flex items-center justify-center">
-                      <FileText className="w-7 h-7 text-white" />
+                <div className="flex items-start gap-4">
+                  <div className="w-14 h-14 rounded-2xl gradient-primary flex items-center justify-center flex-shrink-0">
+                    <FileText className="w-7 h-7 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <h3 className="text-lg font-bold flex items-center gap-2">
+                          <Calendar className="w-4 h-4" />
+                          {format(new Date(relatorio.data_reuniao + "T00:00:00"), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          Enviado em {format(new Date(relatorio.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-xl font-bold">
-                        {format(parseISO(relatorio.data_reuniao), "EEEE, dd 'de' MMMM", { locale: ptBR })}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        Enviado em {format(parseISO(relatorio.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                      </p>
+                    
+                    <div className="bg-muted/30 rounded-lg p-4 mt-3">
+                      <p className="text-sm font-medium mb-2">Notas da Reunião:</p>
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">{relatorio.notas}</p>
                     </div>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      navigate("/relatorio");
-                    }}
-                  >
-                    Editar
-                  </Button>
-                </div>
-
-                <div className="bg-muted/30 rounded-xl p-4">
-                  <Label className="text-sm font-semibold mb-2 block">Notas da Reunião</Label>
-                  {relatorio.notas ? (
-                    <p className="text-sm whitespace-pre-wrap">{relatorio.notas}</p>
-                  ) : (
-                    <p className="text-sm text-muted-foreground italic">
-                      Nenhuma nota foi adicionada a este relatório
-                    </p>
-                  )}
                 </div>
               </Card>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );

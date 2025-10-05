@@ -15,9 +15,9 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import AdminCasas from "./pages/admin/Casas";
 import AdminCasaDetail from "./pages/admin/CasaDetail";
 import AdminMembros from "./pages/admin/Membros";
-import AdminRelatorios from "./pages/admin/Relatorios";
 import Relatorio from "./pages/Relatorio";
 import RelatoriosLeitura from "./pages/RelatoriosLeitura";
+import AdminRelatorios from "./pages/admin/Relatorios";
 
 const queryClient = new QueryClient();
 
