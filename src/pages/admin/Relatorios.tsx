@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Download, FileSpreadsheet, FileText, Calendar as CalendarIcon, TrendingUp, Users, Home, CheckCircle2, Clock } from "lucide-react";
+import { ArrowLeft, Download, FileSpreadsheet, FileText, Calendar as CalendarIcon, TrendingUp, Users, Home, CheckCircle2, Clock, Heart, UserCheck } from "lucide-react";
 import { toast } from "sonner";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, AreaChart, Area, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import jsPDF from "jspdf";
@@ -35,7 +35,8 @@ const AdminRelatorios = () => {
     totalCasas: 0,
     totalMembros: 0,
     taxaPresenca: 0,
-    totalConversoes: 0,
+    totalAceitouJesus: 0,
+    totalReconciliou: 0,
   });
 
   useEffect(() => {
@@ -130,13 +131,15 @@ const AdminRelatorios = () => {
       ? (totalPresencas / presencasFiltradas.length) * 100 
       : 0;
 
-    const totalConversoes = membrosFiltrados.filter(m => m.aceitou_jesus).length;
+    const totalAceitouJesus = membrosFiltrados.filter(m => m.aceitou_jesus).length;
+    const totalReconciliou = membrosFiltrados.filter(m => m.reconciliou_jesus).length;
 
     setStats({
       totalCasas: casasFiltradas.length,
       totalMembros: membrosFiltrados.length,
       taxaPresenca: Math.round(taxaPresenca),
-      totalConversoes,
+      totalAceitouJesus,
+      totalReconciliou,
     });
   };
 
@@ -184,16 +187,24 @@ const AdminRelatorios = () => {
   };
 
   const getDadosConversoes = () => {
-    const conversaoData: Record<string, number> = {};
+    const conversaoData: Record<string, { aceitouJesus: number, reconciliou: number }> = {};
     
     membros.forEach(m => {
-      if (m.aceitou_jesus) {
-        const mes = new Date(m.created_at).toLocaleDateString('pt-BR', { month: 'short' });
-        conversaoData[mes] = (conversaoData[mes] || 0) + 1;
+      const mes = new Date(m.created_at).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+      if (!conversaoData[mes]) {
+        conversaoData[mes] = { aceitouJesus: 0, reconciliou: 0 };
       }
+      if (m.aceitou_jesus) conversaoData[mes].aceitouJesus++;
+      if (m.reconciliou_jesus) conversaoData[mes].reconciliou++;
     });
 
-    return Object.entries(conversaoData).map(([mes, total]) => ({ mes, total }));
+    return Object.entries(conversaoData)
+      .map(([mes, dados]) => ({ 
+        mes, 
+        aceitouJesus: dados.aceitouJesus,
+        reconciliou: dados.reconciliou 
+      }))
+      .slice(-6); // Últimos 6 meses
   };
 
   const getDadosPorHorario = () => {
@@ -247,7 +258,8 @@ const AdminRelatorios = () => {
     doc.text(`Total de Casas: ${stats.totalCasas}`, 14, 55);
     doc.text(`Total de Membros: ${stats.totalMembros}`, 14, 62);
     doc.text(`Taxa de Presença: ${stats.taxaPresenca}%`, 14, 69);
-    doc.text(`Total de Conversões: ${stats.totalConversoes}`, 14, 76);
+    doc.text(`Aceitaram Jesus: ${stats.totalAceitouJesus}`, 14, 76);
+    doc.text(`Reconciliaram: ${stats.totalReconciliou}`, 14, 83);
 
     // Tabela de casas
     const casasTableData = casas.map(c => [
@@ -258,7 +270,7 @@ const AdminRelatorios = () => {
     ]);
 
     autoTable(doc, {
-      startY: 90,
+      startY: 97,
       head: [["Líder", "Campus", "Rede", "Membros"]],
       body: casasTableData,
     });
@@ -270,7 +282,7 @@ const AdminRelatorios = () => {
   const handleExportExcel = () => {
     // Simples CSV para Excel
     const csvData = [
-      ["Líder", "Campus", "Rede", "Endereço", "Membros", "Taxa Presença"],
+      ["Líder", "Campus", "Rede", "Endereço", "Membros", "Taxa Presença", "Aceitaram Jesus", "Reconciliaram"],
       ...casas.map(c => {
         const casaMembros = membros.filter(m => m.casa_fe_id === c.id);
         const casaPresencas = presencas.filter(p => 
@@ -280,6 +292,9 @@ const AdminRelatorios = () => {
           ? Math.round((casaPresencas.filter(p => p.presente).length / casaPresencas.length) * 100)
           : 0;
         
+        const aceitouJesus = casaMembros.filter(m => m.aceitou_jesus).length;
+        const reconciliou = casaMembros.filter(m => m.reconciliou_jesus).length;
+        
         return [
           c.nome_lider,
           c.campus,
@@ -287,6 +302,8 @@ const AdminRelatorios = () => {
           c.endereco,
           casaMembros.length,
           `${taxa}%`,
+          aceitouJesus,
+          reconciliou,
         ];
       }),
     ];
@@ -423,7 +440,7 @@ const AdminRelatorios = () => {
         </Card>
 
         {/* Métricas Principais */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
           <Card className="p-6 shadow-soft">
             <div className="flex items-center justify-between mb-2">
               <Home className="w-8 h-8 text-primary" />
@@ -453,11 +470,20 @@ const AdminRelatorios = () => {
 
           <Card className="p-6 shadow-soft">
             <div className="flex items-center justify-between mb-2">
-              <CheckCircle2 className="w-8 h-8 text-primary" />
+              <Heart className="w-8 h-8 text-primary" />
               <TrendingUp className="w-5 h-5 text-success" />
             </div>
-            <p className="text-3xl font-bold">{stats.totalConversoes}</p>
-            <p className="text-sm text-muted-foreground">Conversões</p>
+            <p className="text-3xl font-bold">{stats.totalAceitouJesus}</p>
+            <p className="text-sm text-muted-foreground">Aceitaram Jesus</p>
+          </Card>
+
+          <Card className="p-6 shadow-soft">
+            <div className="flex items-center justify-between mb-2">
+              <UserCheck className="w-8 h-8 text-success" />
+              <TrendingUp className="w-5 h-5 text-success" />
+            </div>
+            <p className="text-3xl font-bold">{stats.totalReconciliou}</p>
+            <p className="text-sm text-muted-foreground">Reconciliaram</p>
           </Card>
         </div>
 
@@ -530,8 +556,8 @@ const AdminRelatorios = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <Card className="p-6 shadow-medium">
             <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-primary" />
-              Conversões por Mês
+              <Heart className="w-5 h-5 text-primary" />
+              Conversões e Reconciliações por Mês
             </h3>
             <ResponsiveContainer width="100%" height={300}>
               <AreaChart data={getDadosConversoes()}>
@@ -539,7 +565,23 @@ const AdminRelatorios = () => {
                 <XAxis dataKey="mes" />
                 <YAxis />
                 <Tooltip />
-                <Area type="monotone" dataKey="total" stroke="#FF6B35" fill="#FF6B35" fillOpacity={0.6} />
+                <Legend />
+                <Area 
+                  type="monotone" 
+                  dataKey="aceitouJesus" 
+                  stroke="hsl(var(--primary))" 
+                  fill="hsl(var(--primary))" 
+                  fillOpacity={0.6}
+                  name="Aceitaram Jesus"
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="reconciliou" 
+                  stroke="hsl(var(--success))" 
+                  fill="hsl(var(--success))" 
+                  fillOpacity={0.6}
+                  name="Reconciliaram"
+                />
               </AreaChart>
             </ResponsiveContainer>
           </Card>

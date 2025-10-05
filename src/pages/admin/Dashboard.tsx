@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Home, Users, Calendar, AlertCircle, LogOut, BarChart3, TrendingUp, Activity } from "lucide-react";
+import { Home, Users, Calendar, AlertCircle, LogOut, BarChart3, TrendingUp, Activity, Heart, UserCheck } from "lucide-react";
 import { toast } from "sonner";
 
 interface CasaFe {
@@ -28,7 +28,9 @@ const AdminDashboard = () => {
   const [membrosCount, setMembrosCount] = useState(0);
   const [casasRecentes, setCasasRecentes] = useState<CasaFe[]>([]);
   const [casasPendentesRelatorio, setCasasPendentesRelatorio] = useState<CasaPendente[]>([]);
-  const [crescimento, setCrescimento] = useState({ casas: 0, membros: 0 });
+  const [crescimento, setCrescimento] = useState({ casas: 0, membros: 0, aceitouJesus: 0, reconciliou: 0 });
+  const [aceitouJesusCount, setAceitouJesusCount] = useState(0);
+  const [reconciliouCount, setReconciliouCount] = useState(0);
 
   useEffect(() => {
     checkAdminAuth();
@@ -64,12 +66,18 @@ const AdminDashboard = () => {
         .from("casas_fe")
         .select("*", { count: "exact", head: true });
 
-      const { count: membrosTotal } = await supabase
+      const { data: membrosData, count: membrosTotal } = await supabase
         .from("membros")
-        .select("*", { count: "exact", head: true });
+        .select("*", { count: "exact" });
 
       setCasasCount(casasTotal || 0);
       setMembrosCount(membrosTotal || 0);
+
+      // Contar aceitou jesus e reconciliou
+      const aceitouCount = (membrosData || []).filter(m => m.aceitou_jesus).length;
+      const reconciliouCount = (membrosData || []).filter(m => m.reconciliou_jesus).length;
+      setAceitouJesusCount(aceitouCount);
+      setReconciliouCount(reconciliouCount);
 
       const { data: casas } = await supabase
         .from("casas_fe")
@@ -140,7 +148,28 @@ const AdminDashboard = () => {
       const crescimentoCasas = casasTotal ? Math.round((casasRecentes || 0) / casasTotal * 100) : 0;
       const crescimentoMembros = membrosTotal ? Math.round((membrosRecentes || 0) / membrosTotal * 100) : 0;
 
-      setCrescimento({ casas: crescimentoCasas, membros: crescimentoMembros });
+      // Crescimento de conversões (últimos 30 dias)
+      const { count: aceitouRecentes } = await supabase
+        .from("membros")
+        .select("*", { count: "exact", head: true })
+        .eq("aceitou_jesus", true)
+        .gte("created_at", thirtyDaysAgo.toISOString());
+
+      const { count: reconciliouRecentes } = await supabase
+        .from("membros")
+        .select("*", { count: "exact", head: true })
+        .eq("reconciliou_jesus", true)
+        .gte("created_at", thirtyDaysAgo.toISOString());
+
+      const crescimentoAceitou = aceitouCount ? Math.round((aceitouRecentes || 0) / aceitouCount * 100) : 0;
+      const crescimentoReconciliou = reconciliouCount ? Math.round((reconciliouRecentes || 0) / reconciliouCount * 100) : 0;
+
+      setCrescimento({ 
+        casas: crescimentoCasas, 
+        membros: crescimentoMembros,
+        aceitouJesus: crescimentoAceitou,
+        reconciliou: crescimentoReconciliou
+      });
     } catch (error: any) {
       console.error("Error loading dashboard:", error);
       toast.error("Erro ao carregar dados");
@@ -190,7 +219,7 @@ const AdminDashboard = () => {
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Métricas Principais - Design Premium */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
           <Card className="p-6 shadow-medium hover:shadow-glow transition-all relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform" />
             <div className="relative">
@@ -260,6 +289,47 @@ const AdminDashboard = () => {
                   {casasPendentesRelatorio.length}
                 </p>
                 <p className="text-sm text-muted-foreground font-medium">Relatórios Pendentes</p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Métricas de Conversão */}
+        <div className="grid gap-6 md:grid-cols-2 mb-8">
+          <Card className="p-6 shadow-medium hover:shadow-glow transition-all relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform" />
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+                  <Heart className="w-7 h-7 text-primary" />
+                </div>
+                <div className="flex items-center gap-1 text-success text-sm font-semibold">
+                  <TrendingUp className="w-4 h-4" />
+                  +{crescimento.aceitouJesus}%
+                </div>
+              </div>
+              <div>
+                <p className="text-4xl font-bold mb-1">{aceitouJesusCount}</p>
+                <p className="text-sm text-muted-foreground font-medium">Total - Aceitaram Jesus</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6 shadow-medium hover:shadow-glow transition-all relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-success/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform" />
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-14 h-14 rounded-2xl bg-success/10 flex items-center justify-center">
+                  <UserCheck className="w-7 h-7 text-success" />
+                </div>
+                <div className="flex items-center gap-1 text-success text-sm font-semibold">
+                  <TrendingUp className="w-4 h-4" />
+                  +{crescimento.reconciliou}%
+                </div>
+              </div>
+              <div>
+                <p className="text-4xl font-bold mb-1">{reconciliouCount}</p>
+                <p className="text-sm text-muted-foreground font-medium">Total - Reconciliaram</p>
               </div>
             </div>
           </Card>

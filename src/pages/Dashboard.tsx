@@ -3,14 +3,19 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Home, Users, Calendar, LogOut, User, MapPin, Clock, Sparkles, TrendingUp, FileText } from "lucide-react";
+import { Home, Users, Calendar, LogOut, User, MapPin, Clock, Sparkles, TrendingUp, FileText, Heart, UserCheck, MessageCircle, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [casaFe, setCasaFe] = useState<any>(null);
   const [membrosCount, setMembrosCount] = useState(0);
+  const [aceitouJesusCount, setAceitouJesusCount] = useState(0);
+  const [reconciliouCount, setReconciliouCount] = useState(0);
+  const [membrosData, setMembrosData] = useState<any[]>([]);
+  const [presencasData, setPresencasData] = useState<any[]>([]);
 
   useEffect(() => {
     checkAuth();
@@ -39,12 +44,31 @@ const Dashboard = () => {
       setCasaFe(casaData);
 
       if (casaData) {
-        const { count } = await supabase
+        const { data: membrosData, count } = await supabase
           .from("membros")
-          .select("*", { count: "exact", head: true })
+          .select("*", { count: "exact" })
           .eq("casa_fe_id", casaData.id);
         
         setMembrosCount(count || 0);
+        setMembrosData(membrosData || []);
+
+        // Contar aceitou jesus e reconciliou
+        const aceitouCount = (membrosData || []).filter(m => m.aceitou_jesus).length;
+        const reconciliouCount = (membrosData || []).filter(m => m.reconciliou_jesus).length;
+        setAceitouJesusCount(aceitouCount);
+        setReconciliouCount(reconciliouCount);
+
+        // Buscar presenças
+        const membroIds = (membrosData || []).map(m => m.id);
+        if (membroIds.length > 0) {
+          const { data: presencasData } = await supabase
+            .from("presencas")
+            .select("*")
+            .in("membro_id", membroIds)
+            .order("data_reuniao", { ascending: false });
+          
+          setPresencasData(presencasData || []);
+        }
       }
     } catch (error: any) {
       console.error("Error loading dashboard:", error);
@@ -57,6 +81,35 @@ const Dashboard = () => {
     await supabase.auth.signOut();
     toast.success("Até logo!");
     navigate("/login");
+  };
+
+  const getMembrosFrequenciaData = () => {
+    return membrosData.map(membro => {
+      const presencasMembro = presencasData.filter(p => p.membro_id === membro.id);
+      const presencas = presencasMembro.filter(p => p.presente).length;
+      const faltas = presencasMembro.filter(p => !p.presente).length;
+      
+      return {
+        nome: membro.nome_completo.split(' ')[0],
+        presencas,
+        faltas,
+      };
+    }).sort((a, b) => b.presencas - a.presencas);
+  };
+
+  const getMembrosComStatus = () => {
+    return membrosData.map(membro => {
+      const presencasMembro = presencasData.filter(p => p.membro_id === membro.id);
+      const ultimasPresencas = presencasMembro.slice(0, 3); // Últimas 3 reuniões
+      const faltasRecentes = ultimasPresencas.filter(p => !p.presente).length;
+      const presencasTotal = presencasMembro.filter(p => p.presente).length;
+      
+      return {
+        ...membro,
+        presencasTotal,
+        faltasRecentes,
+      };
+    }).sort((a, b) => b.faltasRecentes - a.faltasRecentes);
   };
 
   if (loading) {
@@ -150,7 +203,7 @@ const Dashboard = () => {
         </Card>
 
         {/* Stats Cards */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
           <Card className="p-6 shadow-medium hover:shadow-glow transition-all relative overflow-hidden group cursor-pointer">
             <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform" />
             <div className="relative">
@@ -189,16 +242,99 @@ const Dashboard = () => {
             <div className="relative">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-                  <Home className="w-7 h-7 text-primary" />
+                  <Heart className="w-7 h-7 text-primary" />
                 </div>
               </div>
               <div>
-                <p className="text-4xl font-bold mb-1">1</p>
-                <p className="text-sm text-muted-foreground font-medium">Casa de Fé Ativa</p>
+                <p className="text-4xl font-bold mb-1">{aceitouJesusCount}</p>
+                <p className="text-sm text-muted-foreground font-medium">Aceitaram Jesus</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6 shadow-medium hover:shadow-glow transition-all relative overflow-hidden group cursor-pointer">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-success/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform" />
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-14 h-14 rounded-2xl bg-success/10 flex items-center justify-center">
+                  <UserCheck className="w-7 h-7 text-success" />
+                </div>
+              </div>
+              <div>
+                <p className="text-4xl font-bold mb-1">{reconciliouCount}</p>
+                <p className="text-sm text-muted-foreground font-medium">Reconciliaram</p>
               </div>
             </div>
           </Card>
         </div>
+
+        {/* Gráfico de Presença */}
+        <Card className="p-6 mb-8 shadow-medium">
+          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+            <TrendingUp className="w-6 h-6 text-primary" />
+            Frequência dos Membros
+          </h2>
+          
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={getMembrosFrequenciaData()}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="nome" angle={-45} textAnchor="end" height={120} />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="presencas" fill="hsl(var(--primary))" name="Presenças" />
+              <Bar dataKey="faltas" fill="hsl(var(--destructive))" name="Faltas" />
+            </BarChart>
+          </ResponsiveContainer>
+
+          {/* Lista de Membros com Status */}
+          <div className="mt-6 space-y-3">
+            <h3 className="font-bold text-lg">Membros</h3>
+            {getMembrosComStatus().map((membro) => (
+              <div
+                key={membro.id}
+                className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
+                  membro.faltasRecentes > 0
+                    ? "bg-destructive/5 border-destructive/20"
+                    : "bg-success/5 border-success/20"
+                }`}
+              >
+                <div className="flex items-center gap-4">
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold ${
+                    membro.faltasRecentes > 0
+                      ? "bg-destructive/20 text-destructive"
+                      : "bg-success/20 text-success"
+                  }`}>
+                    {membro.nome_completo.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="font-bold">{membro.nome_completo}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {membro.presencasTotal} presenças • {membro.faltasRecentes} faltas recentes
+                    </p>
+                  </div>
+                </div>
+                
+                {membro.faltasRecentes > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const mensagem = encodeURIComponent(`Olá ${membro.nome_completo.split(' ')[0]}, notamos sua ausência na Casa de Fé. Está tudo bem? Como podemos ajudar? 🙏`);
+                      window.open(`https://wa.me/55${membro.telefone.replace(/\D/g, '')}?text=${mensagem}`, '_blank');
+                    }}
+                    className="gap-2"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    WhatsApp
+                  </Button>
+                )}
+                {membro.faltasRecentes === 0 && (
+                  <CheckCircle className="w-6 h-6 text-success" />
+                )}
+              </div>
+            ))}
+          </div>
+        </Card>
 
         {/* Action Buttons */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
