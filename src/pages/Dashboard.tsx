@@ -71,38 +71,45 @@ const Dashboard = () => {
           setPresencasData(presencasData || []);
         }
 
-        // Verificar relatórios pendentes (reuniões passadas sem relatório)
+        // Verificar relatório pendente - apenas para a última reunião que passou
         const hoje = new Date();
         const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
         const diasReuniao = casaData.dias_semana || [];
         
-        let pendentes = 0;
+        // Encontrar o dia de reunião mais recente que já passou
+        let dataUltimaReuniao: Date | null = null;
+        
         for (const diaReuniao of diasReuniao) {
           const diaIndex = diasSemana.indexOf(diaReuniao);
           if (diaIndex === -1) continue;
           
           const diaAtual = hoje.getDay();
           let diasDesdeReuniao = diaAtual - diaIndex;
-          if (diasDesdeReuniao < 0) diasDesdeReuniao += 7;
+          if (diasDesdeReuniao <= 0) diasDesdeReuniao += 7;
           
-          if (diasDesdeReuniao > 0) {
-            const ultimaReuniao = new Date(hoje);
-            ultimaReuniao.setDate(hoje.getDate() - diasDesdeReuniao);
-            
-            const { data: relatorio } = await supabase
-              .from("relatorios")
-              .select("id, notas")
-              .eq("casa_fe_id", casaData.id)
-              .eq("data_reuniao", ultimaReuniao.toISOString().split('T')[0])
-              .maybeSingle();
-            
-            if (!relatorio || !relatorio.notas) {
-              pendentes++;
-            }
+          const dataReuniao = new Date(hoje);
+          dataReuniao.setDate(hoje.getDate() - diasDesdeReuniao);
+          
+          if (!dataUltimaReuniao || dataReuniao > dataUltimaReuniao) {
+            dataUltimaReuniao = dataReuniao;
           }
         }
         
-        setRelatoriosPendentes(pendentes);
+        // Verificar se existe relatório para a última reunião
+        if (dataUltimaReuniao) {
+          const { data: relatorio } = await supabase
+            .from("relatorios")
+            .select("id, notas")
+            .eq("casa_fe_id", casaData.id)
+            .eq("data_reuniao", dataUltimaReuniao.toISOString().split('T')[0])
+            .maybeSingle();
+          
+          if (!relatorio || !relatorio.notas || relatorio.notas.trim() === "") {
+            setRelatoriosPendentes(1);
+          } else {
+            setRelatoriosPendentes(0);
+          }
+        }
       }
     } catch (error: any) {
       console.error("Error loading dashboard:", error);

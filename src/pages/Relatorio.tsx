@@ -20,7 +20,7 @@ const Relatorio = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [dataReuniao]);
 
   const loadData = async () => {
     try {
@@ -39,7 +39,11 @@ const Relatorio = () => {
       if (error) throw error;
       setCasaFe(casaData);
 
-      // Verificar se já existe relatório para hoje
+      // Limpar relatório existente quando mudar de data
+      setRelatorioExistente(null);
+      setNotas("");
+
+      // Verificar se já existe relatório para a data selecionada
       const { data: relatorioData } = await supabase
         .from("relatorios")
         .select("*")
@@ -49,7 +53,7 @@ const Relatorio = () => {
 
       if (relatorioData) {
         setRelatorioExistente(relatorioData);
-        setNotas(relatorioData.notas || "");
+        toast.info("Já existe um relatório para esta data. Escolha outra data.");
       }
     } catch (error: any) {
       console.error("Error loading data:", error);
@@ -61,32 +65,26 @@ const Relatorio = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (relatorioExistente) {
+      toast.error("Já existe um relatório para esta data. Não é possível editar relatórios.");
+      return;
+    }
+
     setSending(true);
 
     try {
-      if (relatorioExistente) {
-        // Atualizar relatório existente
-        const { error } = await supabase
-          .from("relatorios")
-          .update({ notas })
-          .eq("id", relatorioExistente.id);
+      // Criar novo relatório
+      const { error } = await supabase
+        .from("relatorios")
+        .insert({
+          casa_fe_id: casaFe.id,
+          data_reuniao: dataReuniao,
+          notas,
+        });
 
-        if (error) throw error;
-        toast.success("Relatório atualizado com sucesso!");
-      } else {
-        // Criar novo relatório
-        const { error } = await supabase
-          .from("relatorios")
-          .insert({
-            casa_fe_id: casaFe.id,
-            data_reuniao: dataReuniao,
-            notas,
-          });
-
-        if (error) throw error;
-        toast.success("Relatório enviado com sucesso!");
-      }
-
+      if (error) throw error;
+      toast.success("Relatório enviado com sucesso!");
       navigate("/dashboard");
     } catch (error: any) {
       console.error("Error submitting relatório:", error);
@@ -132,7 +130,7 @@ const Relatorio = () => {
             <div>
               <h2 className="text-xl font-bold">Enviar Relatório</h2>
               <p className="text-sm text-muted-foreground">
-                {relatorioExistente ? "Atualize" : "Registre"} as informações da reunião
+                Registre as informações da reunião
               </p>
             </div>
           </div>
@@ -174,11 +172,17 @@ const Relatorio = () => {
               type="submit"
               size="lg"
               className="w-full h-14 gradient-primary hover:shadow-glow transition-smooth mt-6"
-              disabled={sending}
+              disabled={sending || relatorioExistente}
             >
               <Send className="w-5 h-5 mr-2" />
-              {sending ? "Enviando..." : relatorioExistente ? "Atualizar Relatório" : "Enviar Relatório"}
+              {relatorioExistente ? "Relatório já existe" : sending ? "Enviando..." : "Enviar Relatório"}
             </Button>
+            
+            {relatorioExistente && (
+              <p className="text-sm text-destructive text-center mt-2">
+                Já existe um relatório para esta data. Escolha outra data para criar um novo relatório.
+              </p>
+            )}
           </form>
         </Card>
       </main>
