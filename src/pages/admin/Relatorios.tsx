@@ -144,15 +144,41 @@ const AdminRelatorios = () => {
   };
 
   const getEvolucaoRelatorios = () => {
-    const meses: Record<string, number> = {};
-    relatoriosFiltrados.forEach(r => {
-      const mes = format(parseISO(r.data_reuniao), "MMM/yy", { locale: ptBR });
-      meses[mes] = (meses[mes] || 0) + 1;
+    // Agrupar por semana do último mês
+    const hoje = new Date();
+    const umMesAtras = subMonths(hoje, 1);
+    
+    const relatoriosUltimoMes = relatoriosFiltrados.filter(r => {
+      const dataRelatorio = parseISO(r.data_reuniao);
+      return dataRelatorio >= umMesAtras && dataRelatorio <= hoje;
     });
-    return Object.entries(meses)
-      .map(([mes, total]) => ({ mes, total }))
-      .sort((a, b) => a.mes.localeCompare(b.mes))
-      .slice(-6);
+    
+    // Agrupar por semana
+    const semanas: Record<string, { count: number; datas: Date[] }> = {};
+    
+    relatoriosUltimoMes.forEach(r => {
+      const data = parseISO(r.data_reuniao);
+      const inicioSemana = new Date(data);
+      inicioSemana.setDate(data.getDate() - data.getDay()); // Domingo da semana
+      const chave = format(inicioSemana, "dd/MM");
+      
+      if (!semanas[chave]) {
+        semanas[chave] = { count: 0, datas: [] };
+      }
+      semanas[chave].count++;
+      semanas[chave].datas.push(data);
+    });
+    
+    return Object.entries(semanas)
+      .map(([semana, dados]) => ({
+        semana: `Semana ${semana}`,
+        total: dados.count
+      }))
+      .sort((a, b) => {
+        const dataA = a.semana.split(' ')[1];
+        const dataB = b.semana.split(' ')[1];
+        return dataA.localeCompare(dataB);
+      });
   };
 
   const getFrequenciaPorCasa = () => {
@@ -553,7 +579,7 @@ const AdminRelatorios = () => {
           <Card className="p-6 shadow-medium">
             <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-accent" />
-              Evolução de Relatórios (6 meses)
+              Evolução de Relatórios (Último Mês)
             </h2>
             <ResponsiveContainer width="100%" height={300}>
               <AreaChart data={getEvolucaoRelatorios()}>
@@ -564,7 +590,7 @@ const AdminRelatorios = () => {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="mes" />
+                <XAxis dataKey="semana" angle={-45} textAnchor="end" height={80} />
                 <YAxis allowDecimals={false} />
                 <Tooltip content={<CustomTooltip />} />
                 <Area 
