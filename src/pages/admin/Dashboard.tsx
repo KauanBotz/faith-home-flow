@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Home, Users, Calendar, AlertCircle, LogOut, BarChart3, TrendingUp, Activity, Heart, UserCheck, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 
 interface CasaFe {
   id: string;
@@ -32,6 +33,8 @@ const AdminDashboard = () => {
   const [crescimento, setCrescimento] = useState({ casas: 0, membros: 0, aceitouJesus: 0, reconciliou: 0 });
   const [aceitouJesusCount, setAceitouJesusCount] = useState(0);
   const [reconciliouCount, setReconciliouCount] = useState(0);
+  const [casasPorCampus, setCasasPorCampus] = useState<any[]>([]);
+  const [evolucaoMembros, setEvolucaoMembros] = useState<any[]>([]);
 
   useEffect(() => {
     checkAdminAuth();
@@ -171,6 +174,59 @@ const AdminDashboard = () => {
         aceitouJesus: crescimentoAceitou,
         reconciliou: crescimentoReconciliou
       });
+
+      // Processar dados para gráficos
+      await loadChartData();
+    } catch (error: any) {
+      console.error("Error loading dashboard:", error);
+      toast.error("Erro ao carregar dados");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadChartData = async () => {
+    try {
+      // Casas por campus
+      const { data: todasCasas } = await supabase
+        .from("casas_fe")
+        .select("campus");
+      
+      if (todasCasas) {
+        const campusCount: Record<string, number> = {};
+        todasCasas.forEach((casa) => {
+          campusCount[casa.campus] = (campusCount[casa.campus] || 0) + 1;
+        });
+        
+        const casasPorCampusData = Object.entries(campusCount).map(([campus, count]) => ({
+          campus,
+          total: count
+        })).sort((a, b) => b.total - a.total);
+        
+        setCasasPorCampus(casasPorCampusData);
+      }
+
+      // Evolução de membros nos últimos 6 meses
+      const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      const hoje = new Date();
+      const evolucaoData = [];
+      
+      for (let i = 5; i >= 0; i--) {
+        const mesAtual = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
+        const proximoMes = new Date(hoje.getFullYear(), hoje.getMonth() - i + 1, 1);
+        
+        const { count: membrosNesseMes } = await supabase
+          .from("membros")
+          .select("*", { count: "exact", head: true })
+          .lte("created_at", proximoMes.toISOString());
+        
+        evolucaoData.push({
+          mes: meses[mesAtual.getMonth()],
+          membros: membrosNesseMes || 0
+        });
+      }
+      
+      setEvolucaoMembros(evolucaoData);
     } catch (error: any) {
       console.error("Error loading dashboard:", error);
       toast.error("Erro ao carregar dados");
@@ -333,6 +389,63 @@ const AdminDashboard = () => {
                 <p className="text-sm text-muted-foreground font-medium">Total - Reconciliaram</p>
               </div>
             </div>
+          </Card>
+        </div>
+
+        {/* Gráficos de Análise */}
+        <div className="grid gap-6 lg:grid-cols-2 mb-8">
+          {/* Gráfico de Casas por Campus */}
+          <Card className="p-6 shadow-medium">
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <Home className="w-6 h-6 text-primary" />
+              Casas por Campus
+            </h2>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={casasPorCampus}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis dataKey="campus" angle={-45} textAnchor="end" height={100} className="text-xs" />
+                <YAxis allowDecimals={false} className="text-xs" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px'
+                  }}
+                />
+                <Bar dataKey="total" fill="hsl(var(--primary))" name="Casas de Fé" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+
+          {/* Gráfico de Evolução de Membros */}
+          <Card className="p-6 shadow-medium">
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <TrendingUp className="w-6 h-6 text-accent" />
+              Evolução de Membros
+            </h2>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={evolucaoMembros}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis dataKey="mes" className="text-xs" />
+                <YAxis allowDecimals={false} className="text-xs" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px'
+                  }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="membros" 
+                  stroke="hsl(var(--accent))" 
+                  strokeWidth={3}
+                  name="Total de Membros"
+                  dot={{ fill: 'hsl(var(--accent))', r: 5 }}
+                  activeDot={{ r: 8 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </Card>
         </div>
 
