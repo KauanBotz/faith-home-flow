@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Plus, Phone, MapPin, Edit, Download, User } from "lucide-react";
+import { ArrowLeft, Plus, Phone, MapPin, Edit, Download, User, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -193,12 +193,26 @@ const Membros = () => {
                     )}
                   </div>
                   
-                  <Dialog open={isDialogOpen && editingMembro?.id === membro.id} onOpenChange={setIsDialogOpen}>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        const mensagem = encodeURIComponent(`Olá ${membro.nome_completo.split(' ')[0]}! Tudo bem? 😊`);
+                        window.open(`https://wa.me/55${membro.telefone.replace(/\D/g, '')}?text=${mensagem}`, '_blank');
+                      }}
+                      className="shrink-0"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                    </Button>
+                    
+                    <Dialog open={isDialogOpen && editingMembro?.id === membro.id} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
                       <Button 
                         variant="outline" 
                         size="icon"
                         onClick={() => setEditingMembro(membro)}
+                        className="shrink-0"
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
@@ -268,6 +282,7 @@ const Membros = () => {
                       </div>
                     </DialogContent>
                   </Dialog>
+                  </div>
                 </div>
               </Card>
             ))}

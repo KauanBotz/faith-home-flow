@@ -54,7 +54,6 @@ const Perfil = () => {
           nome_lider: casaFe.nome_lider,
           endereco: casaFe.endereco,
           telefone: casaFe.telefone,
-          geracao: casaFe.geracao,
         })
         .eq("id", casaFe.id);
 
@@ -139,28 +138,6 @@ const Perfil = () => {
                 className="mt-2 h-11"
                 required
               />
-            </div>
-
-            <div>
-              <Label htmlFor="geracao" className="text-base">Geração da Casa de Fé</Label>
-              <Select 
-                value={casaFe?.geracao || "Primeira"} 
-                onValueChange={(value) => setCasaFe({ ...casaFe, geracao: value })}
-              >
-                <SelectTrigger className="mt-2 h-11">
-                  <SelectValue placeholder="Selecione a geração" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Primeira">Primeira Casa de Fé</SelectItem>
-                  <SelectItem value="Segunda">Segunda Casa de Fé</SelectItem>
-                  <SelectItem value="Terceira">Terceira Casa de Fé</SelectItem>
-                  <SelectItem value="Quarta">Quarta Casa de Fé</SelectItem>
-                  <SelectItem value="Quinta">Quinta Casa de Fé</SelectItem>
-                  <SelectItem value="Sexta">Sexta Casa de Fé</SelectItem>
-                  <SelectItem value="Sétima">Sétima Casa de Fé</SelectItem>
-                  <SelectItem value="Oitava">Oitava Casa de Fé</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

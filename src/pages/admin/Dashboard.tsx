@@ -120,7 +120,7 @@ const AdminDashboard = () => {
               .eq("data_reuniao", ultimaReuniao.toISOString().split('T')[0])
               .maybeSingle();
             
-            if (!relatorio) {
+            if (!relatorio || !relatorio.notas) {
               pendentes.push({
                 ...casa,
                 dias_desde_reuniao: diasDesdeReuniao
