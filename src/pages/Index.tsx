@@ -39,8 +39,9 @@ const Index = () => {
             <span className="text-sm font-medium">MINC - Minha Igreja Na Cidade</span>
           </div>
           
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            Casas de Fé 🏠✨
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 flex items-center justify-center gap-3">
+            <Home className="w-12 h-12" />
+            Casas de Fé
           </h1>
           
           <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-2xl mx-auto">
@@ -55,7 +56,7 @@ const Index = () => {
               onClick={() => navigate("/cadastro")}
               className="text-lg"
             >
-              Criar Minha Casa de Fé 🙌
+              Criar Minha Casa de Fé
             </Button>
             <Button 
               variant="outline" 

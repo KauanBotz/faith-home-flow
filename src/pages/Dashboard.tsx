@@ -55,7 +55,7 @@ const Dashboard = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    toast.success("Até logo! 👋");
+    toast.success("Até logo!");
     navigate("/login");
   };
 

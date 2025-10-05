@@ -100,7 +100,7 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
       <div>
         <h2 className="text-2xl font-bold mb-2">Dados da Casa de Fé</h2>
         <p className="text-muted-foreground">
-          Onde vai acontecer a mágica? 🏠
+          Onde vai acontecer?
         </p>
       </div>
 
@@ -203,12 +203,18 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
               <CalendarComponent
-                mode="single"
-                selected={datasReunioes[0]}
-                onSelect={handleDateSelect}
+                mode="multiple"
+                selected={datasReunioes}
+                onSelect={(dates) => {
+                  if (dates) {
+                    setDatasReunioes(Array.isArray(dates) ? dates.sort((a, b) => a.getTime() - b.getTime()) : [dates]);
+                  } else {
+                    setDatasReunioes([]);
+                  }
+                }}
                 disabled={(date) => {
-                  const oct20 = new Date(2024, 9, 20); // October 20, 2024
-                  const nov14 = new Date(2024, 10, 14); // November 14, 2024
+                  const oct20 = new Date(2024, 9, 20);
+                  const nov14 = new Date(2024, 10, 14);
                   return date < oct20 || date > nov14;
                 }}
                 initialFocus
@@ -223,7 +229,9 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
                   {format(data, "dd/MM/yyyy", { locale: pt })}
                   <button
                     type="button"
-                    onClick={() => handleDateSelect(data)}
+                    onClick={() => {
+                      setDatasReunioes(datasReunioes.filter(d => d.getTime() !== data.getTime()));
+                    }}
                     className="hover:bg-primary/20 rounded-full p-0.5"
                   >
                     ×

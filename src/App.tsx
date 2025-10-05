@@ -11,6 +11,11 @@ import Membros from "./pages/Membros";
 import Presenca from "./pages/Presenca";
 import Perfil from "./pages/Perfil";
 import NotFound from "./pages/NotFound";
+import AdminDashboard from "./pages/admin/Dashboard";
+import AdminCasas from "./pages/admin/Casas";
+import AdminCasaDetail from "./pages/admin/CasaDetail";
+import AdminMembros from "./pages/admin/Membros";
+import AdminRelatorios from "./pages/admin/Relatorios";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +33,11 @@ const App = () => (
           <Route path="/membros" element={<Membros />} />
           <Route path="/presenca" element={<Presenca />} />
           <Route path="/perfil" element={<Perfil />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/casas" element={<AdminCasas />} />
+          <Route path="/admin/casas/:id" element={<AdminCasaDetail />} />
+          <Route path="/admin/membros" element={<AdminMembros />} />
+          <Route path="/admin/relatorios" element={<AdminRelatorios />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

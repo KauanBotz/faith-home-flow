@@ -39,7 +39,7 @@ const Login = () => {
     <div className="min-h-screen gradient-subtle flex items-center justify-center p-4">
       <Card className="w-full max-w-md p-8 shadow-elegant">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Bem-vindo de volta! 🙏</h1>
+          <h1 className="text-3xl font-bold mb-2">Bem-vindo de volta!</h1>
           <p className="text-muted-foreground">
             Acesse sua Casa de Fé
           </p>
