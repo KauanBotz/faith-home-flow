@@ -206,32 +206,64 @@ const AdminDashboard = () => {
         setCasasPorCampus(casasPorCampusData);
       }
 
-      // Evolução de membros nos últimos 6 meses
-      const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      // Evolução de membros - semana a semana do último mês
       const hoje = new Date();
-      const evolucaoData = [];
+      const umMesAtras = new Date(hoje);
+      umMesAtras.setDate(hoje.getDate() - 30);
       
-      for (let i = 5; i >= 0; i--) {
-        const mesAtual = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
-        const proximoMes = new Date(hoje.getFullYear(), hoje.getMonth() - i + 1, 1);
-        
-        const { count: membrosNesseMes } = await supabase
-          .from("membros")
-          .select("*", { count: "exact", head: true })
-          .lte("created_at", proximoMes.toISOString());
-        
-        evolucaoData.push({
-          mes: meses[mesAtual.getMonth()],
-          membros: membrosNesseMes || 0
-        });
+      // Buscar todos os membros criados no último mês
+      const { data: membrosUltimoMes } = await supabase
+        .from("membros")
+        .select("created_at")
+        .gte("created_at", umMesAtras.toISOString())
+        .order("created_at");
+      
+      // Agrupar por semana
+      const semanas: Record<string, number> = {};
+      const semanasOrdenadas: { inicio: Date; label: string }[] = [];
+      
+      // Gerar as semanas do último mês
+      for (let i = 0; i < 5; i++) {
+        const inicioSemana = new Date(umMesAtras);
+        inicioSemana.setDate(umMesAtras.getDate() + (i * 7));
+        const label = `Semana ${inicioSemana.getDate().toString().padStart(2, '0')}/${(inicioSemana.getMonth() + 1).toString().padStart(2, '0')}`;
+        semanas[label] = 0;
+        semanasOrdenadas.push({ inicio: inicioSemana, label });
       }
       
-      setEvolucaoMembros(evolucaoData);
+      // Contar membros acumulados até cada semana
+      if (membrosUltimoMes) {
+        const { count: totalMembrosAteInicio } = await supabase
+          .from("membros")
+          .select("*", { count: "exact", head: true })
+          .lte("created_at", umMesAtras.toISOString());
+        
+        let acumulado = totalMembrosAteInicio || 0;
+        
+        const evolucaoData = semanasOrdenadas.map(({ inicio, label }) => {
+          const fimSemana = new Date(inicio);
+          fimSemana.setDate(inicio.getDate() + 7);
+          
+          const membrosNaSemana = (membrosUltimoMes || []).filter(m => {
+            const dataCriacao = new Date(m.created_at);
+            return dataCriacao >= inicio && dataCriacao < fimSemana;
+          }).length;
+          
+          acumulado += membrosNaSemana;
+          
+          return {
+            semana: label,
+            membros: acumulado
+          };
+        });
+        
+        setEvolucaoMembros(evolucaoData);
+      } else {
+        setEvolucaoMembros([]);
+      }
     } catch (error: any) {
-      console.error("Error loading dashboard:", error);
-      toast.error("Erro ao carregar dados");
-    } finally {
-      setLoading(false);
+      console.error("Error loading chart data:", error);
+      toast.error("Erro ao carregar gráficos");
     }
   };
 
@@ -421,12 +453,12 @@ const AdminDashboard = () => {
           <Card className="p-6 shadow-medium">
             <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
               <TrendingUp className="w-6 h-6 text-accent" />
-              Evolução de Membros
+              Evolução de Membros (Último Mês)
             </h2>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={evolucaoMembros}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="mes" className="text-xs" />
+                <XAxis dataKey="semana" angle={-45} textAnchor="end" height={80} className="text-xs" />
                 <YAxis allowDecimals={false} className="text-xs" />
                 <Tooltip 
                   contentStyle={{ 
