@@ -33,11 +33,13 @@ const AdminDashboard = () => {
         return;
       }
 
+      // Ensure admin role exists for this user (SECURITY DEFINER)
+      await supabase.rpc("ensure_admin_role");
       const { data: isAdminData, error } = await supabase.rpc("is_admin");
       
       if (error || !isAdminData) {
         toast.error("Acesso negado. Apenas administradores.");
-        navigate("/dashboard");
+        navigate("/login");
         return;
       }
 
