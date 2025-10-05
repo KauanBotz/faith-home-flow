@@ -2,14 +2,10 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CadastroData } from "@/pages/Cadastro";
-import { MapPin, Building, Network, Calendar, Clock } from "lucide-react";
-import { format } from "date-fns";
-import { pt } from "date-fns/locale";
-import { cn } from "@/lib/utils";
+import { MapPin, Building, Network, Clock, Calendar } from "lucide-react";
 
 interface StepTwoProps {
   data: Partial<CadastroData>;
@@ -45,12 +41,20 @@ const redeOptions = [
   "MINC Sinop",
 ];
 
+const diasDaSemana = [
+  { value: "Segunda-feira", label: "Segunda" },
+  { value: "Terça-feira", label: "Terça" },
+  { value: "Quarta-feira", label: "Quarta" },
+  { value: "Quinta-feira", label: "Quinta" },
+  { value: "Sexta-feira", label: "Sexta" },
+];
+
 export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
   const [endereco, setEndereco] = useState(data.endereco || "");
   const [campus, setCampus] = useState(data.campus || "");
   const [rede, setRede] = useState(data.rede || "");
   const [horarioReuniao, setHorarioReuniao] = useState(data.horarioReuniao || "");
-  const [datasReunioes, setDatasReunioes] = useState<Date[]>(data.datasReunioes || []);
+  const [diasSemana, setDiasSemana] = useState<string[]>(data.diasSemana || []);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validate = () => {
@@ -60,7 +64,7 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
     if (!campus) newErrors.campus = "Campus é obrigatório";
     if (!rede) newErrors.rede = "Rede é obrigatória";
     if (!horarioReuniao) newErrors.horarioReuniao = "Horário é obrigatório";
-    if (datasReunioes.length === 0) newErrors.datasReunioes = "Selecione pelo menos uma data de reunião";
+    if (diasSemana.length === 0) newErrors.diasSemana = "Selecione pelo menos um dia da semana";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -74,24 +78,16 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
         campus, 
         rede, 
         horarioReuniao,
-        datasReunioes
+        diasSemana
       });
     }
   };
 
-  const handleDateSelect = (date: Date | undefined) => {
-    if (!date) return;
-    
-    const isSelected = datasReunioes.some(d => 
-      d.toDateString() === date.toDateString()
-    );
-    
-    if (isSelected) {
-      setDatasReunioes(datasReunioes.filter(d => 
-        d.toDateString() !== date.toDateString()
-      ));
+  const toggleDia = (dia: string) => {
+    if (diasSemana.includes(dia)) {
+      setDiasSemana(diasSemana.filter(d => d !== dia));
     } else {
-      setDatasReunioes([...datasReunioes, date].sort((a, b) => a.getTime() - b.getTime()));
+      setDiasSemana([...diasSemana, dia]);
     }
   };
 
@@ -185,67 +181,39 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
         </div>
 
         <div>
-          <Label htmlFor="datas">Datas das Reuniões</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal mt-1.5",
-                  datasReunioes.length === 0 && "text-muted-foreground"
-                )}
-              >
-                <Calendar className="mr-2 h-4 w-4" />
-                {datasReunioes.length > 0
-                  ? `${datasReunioes.length} data(s) selecionada(s)`
-                  : "Selecione as datas das reuniões"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <CalendarComponent
-                mode="multiple"
-                selected={datasReunioes}
-                onSelect={(dates) => {
-                  if (dates) {
-                    setDatasReunioes(Array.isArray(dates) ? dates.sort((a, b) => a.getTime() - b.getTime()) : [dates]);
-                  } else {
-                    setDatasReunioes([]);
-                  }
-                }}
-                disabled={(date) => {
-                  const oct20 = new Date(2024, 9, 20);
-                  const nov14 = new Date(2024, 10, 14);
-                  return date < oct20 || date > nov14;
-                }}
-                initialFocus
-                className="pointer-events-auto"
-              />
-            </PopoverContent>
-          </Popover>
-          {datasReunioes.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-2">
-              {datasReunioes.map((data, index) => (
-                <div key={index} className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm flex items-center gap-2">
-                  {format(data, "dd/MM/yyyy", { locale: pt })}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDatasReunioes(datasReunioes.filter(d => d.getTime() !== data.getTime()));
-                    }}
-                    className="hover:bg-primary/20 rounded-full p-0.5"
-                  >
-                    ×
-                  </button>
-                </div>
+          <Label className="flex items-center gap-2 mb-3">
+            <Calendar className="w-4 h-4" />
+            Dias das Reuniões
+          </Label>
+          <div className="space-y-3">
+            {diasDaSemana.map((dia) => (
+              <div key={dia.value} className="flex items-center space-x-2">
+                <Checkbox
+                  id={dia.value}
+                  checked={diasSemana.includes(dia.value)}
+                  onCheckedChange={() => toggleDia(dia.value)}
+                />
+                <label
+                  htmlFor={dia.value}
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                >
+                  {dia.label}
+                </label>
+              </div>
+            ))}
+          </div>
+          {diasSemana.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {diasSemana.map((dia) => (
+                <span key={dia} className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+                  {diasDaSemana.find(d => d.value === dia)?.label}
+                </span>
               ))}
             </div>
           )}
-          {errors.datasReunioes && (
-            <p className="text-destructive text-sm mt-1">{errors.datasReunioes}</p>
+          {errors.diasSemana && (
+            <p className="text-destructive text-sm mt-1">{errors.diasSemana}</p>
           )}
-          <p className="text-xs text-muted-foreground mt-2">
-            Selecione as datas entre 20 de outubro e 14 de novembro
-          </p>
         </div>
       </div>
 
@@ -257,10 +225,10 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
           onClick={onBack}
           className="flex-1"
         >
-          ← Voltar
+          <span className="mr-2">←</span> Voltar
         </Button>
         <Button type="submit" variant="hero" size="lg" className="flex-1">
-          Próximo Passo →
+          Próximo Passo <span className="ml-2">→</span>
         </Button>
       </div>
     </form>

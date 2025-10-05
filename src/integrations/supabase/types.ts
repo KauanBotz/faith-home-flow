@@ -18,7 +18,7 @@ export type Database = {
         Row: {
           campus: string
           created_at: string
-          datas_reunioes: Json
+          dias_semana: string[]
           email: string
           endereco: string
           horario_reuniao: string
@@ -32,7 +32,7 @@ export type Database = {
         Insert: {
           campus: string
           created_at?: string
-          datas_reunioes?: Json
+          dias_semana?: string[]
           email: string
           endereco: string
           horario_reuniao: string
@@ -46,7 +46,7 @@ export type Database = {
         Update: {
           campus?: string
           created_at?: string
-          datas_reunioes?: Json
+          dias_semana?: string[]
           email?: string
           endereco?: string
           horario_reuniao?: string

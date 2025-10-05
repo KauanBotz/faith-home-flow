@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CadastroData } from "@/pages/Cadastro";
-import { Home, User, MapPin, Building, Network, Clock, Users, CheckCircle2 } from "lucide-react";
+import { Home, User, MapPin, Building, Network, Clock, Users, CheckCircle2, Calendar } from "lucide-react";
 
 interface StepFourProps {
   data: CadastroData;
@@ -25,7 +25,7 @@ export const StepFour = ({ data, onSubmit, onBack }: StepFourProps) => {
       <div>
         <h2 className="text-2xl font-bold mb-2">Confirmação</h2>
         <p className="text-muted-foreground">
-          Revise seus dados antes de finalizar 📋
+          Revise seus dados antes de finalizar
         </p>
       </div>
 
@@ -74,6 +74,16 @@ export const StepFour = ({ data, onSubmit, onBack }: StepFourProps) => {
             <div className="flex gap-2">
               <Clock className="w-4 h-4 text-muted-foreground mt-0.5" />
               <span>{data.horarioReuniao}</span>
+            </div>
+            <div className="flex gap-2">
+              <Calendar className="w-4 h-4 text-muted-foreground mt-0.5" />
+              <div className="flex flex-wrap gap-1">
+                {data.diasSemana?.map((dia, idx) => (
+                  <span key={idx} className="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs">
+                    {dia.replace('-feira', '')}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         </Card>
@@ -129,7 +139,7 @@ export const StepFour = ({ data, onSubmit, onBack }: StepFourProps) => {
           className="flex-1"
           disabled={!acceptTerms}
         >
-          Finalizar e Criar Casa de Fé 🙌
+          Finalizar e Criar Casa de Fé
         </Button>
       </div>
     </div>

@@ -20,7 +20,7 @@ export interface CadastroData {
   endereco: string;
   campus: string;
   rede: string;
-  datasReunioes: Date[];
+  diasSemana: string[];
   horarioReuniao: string;
   
   // Step 3 - Members
@@ -90,7 +90,7 @@ const Cadastro = () => {
           endereco: formData.endereco!,
           campus: formData.campus!,
           rede: formData.rede!,
-          datas_reunioes: JSON.stringify(formData.datasReunioes || []),
+          dias_semana: formData.diasSemana || [],
           horario_reuniao: formData.horarioReuniao!,
         })
         .select()
@@ -129,8 +129,9 @@ const Cadastro = () => {
       {/* Header */}
       <header className="p-4 md:p-6">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-            Bora abrir uma Casa de Fé! 🏠✨
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
+            <Home className="w-8 h-8" />
+            Bora abrir uma Casa de Fé!
           </h1>
           <p className="text-muted-foreground mt-1">
             Vamos começar essa jornada juntos

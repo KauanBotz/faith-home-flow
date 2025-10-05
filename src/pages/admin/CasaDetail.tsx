@@ -5,8 +5,6 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Home, Users, Calendar, Clock, MapPin } from "lucide-react";
 import { toast } from "sonner";
-import { format } from "date-fns";
-import { pt } from "date-fns/locale";
 
 interface CasaFe {
   id: string;
@@ -17,7 +15,7 @@ interface CasaFe {
   telefone: string;
   email: string;
   horario_reuniao: string;
-  datas_reunioes: any;
+  dias_semana: string[];
 }
 
 interface Membro {
@@ -157,11 +155,11 @@ const AdminCasaDetail = () => {
               <div className="flex items-start gap-3">
                 <Calendar className="w-5 h-5 text-primary mt-0.5" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Datas das Reuniões</p>
+                  <p className="text-sm text-muted-foreground">Dias das Reuniões</p>
                   <div className="flex flex-wrap gap-2 mt-1">
-                    {Array.isArray(casa.datas_reunioes) && casa.datas_reunioes.map((data: any, idx: number) => (
+                    {casa.dias_semana?.map((dia: string, idx: number) => (
                       <span key={idx} className="bg-primary/10 text-primary px-2 py-1 rounded text-sm">
-                        {format(new Date(data), "dd/MM", { locale: pt })}
+                        {dia.replace('-feira', '')}
                       </span>
                     ))}
                   </div>
