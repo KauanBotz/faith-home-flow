@@ -16,6 +16,7 @@ const Dashboard = () => {
   const [reconciliouCount, setReconciliouCount] = useState(0);
   const [membrosData, setMembrosData] = useState<any[]>([]);
   const [presencasData, setPresencasData] = useState<any[]>([]);
+  const [relatoriosPendentes, setRelatoriosPendentes] = useState(0);
 
   useEffect(() => {
     checkAuth();
@@ -69,6 +70,39 @@ const Dashboard = () => {
           
           setPresencasData(presencasData || []);
         }
+
+        // Verificar relatórios pendentes (reuniões passadas sem relatório)
+        const hoje = new Date();
+        const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+        const diasReuniao = casaData.dias_semana || [];
+        
+        let pendentes = 0;
+        for (const diaReuniao of diasReuniao) {
+          const diaIndex = diasSemana.indexOf(diaReuniao);
+          if (diaIndex === -1) continue;
+          
+          const diaAtual = hoje.getDay();
+          let diasDesdeReuniao = diaAtual - diaIndex;
+          if (diasDesdeReuniao < 0) diasDesdeReuniao += 7;
+          
+          if (diasDesdeReuniao > 0) {
+            const ultimaReuniao = new Date(hoje);
+            ultimaReuniao.setDate(hoje.getDate() - diasDesdeReuniao);
+            
+            const { data: relatorio } = await supabase
+              .from("relatorios")
+              .select("id, notas")
+              .eq("casa_fe_id", casaData.id)
+              .eq("data_reuniao", ultimaReuniao.toISOString().split('T')[0])
+              .maybeSingle();
+            
+            if (!relatorio || !relatorio.notas) {
+              pendentes++;
+            }
+          }
+        }
+        
+        setRelatoriosPendentes(pendentes);
       }
     } catch (error: any) {
       console.error("Error loading dashboard:", error);
@@ -176,11 +210,7 @@ const Dashboard = () => {
               <Sparkles className="w-8 h-8 text-accent animate-pulse" />
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="p-4 bg-muted/30 rounded-xl">
-                <p className="text-sm text-muted-foreground mb-1">Geração</p>
-                <p className="font-semibold text-primary">{casaFe?.geracao || 'Primeira'}</p>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="p-4 bg-muted/30 rounded-xl">
                 <p className="text-sm text-muted-foreground mb-1">Endereço</p>
                 <p className="font-semibold">{casaFe?.endereco}</p>
@@ -268,8 +298,35 @@ const Dashboard = () => {
           </Card>
         </div>
 
+        {/* Alerta de Relatórios Pendentes */}
+        {relatoriosPendentes > 0 && (
+          <Card className="p-6 mb-8 shadow-medium border-destructive/20 bg-destructive/5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-destructive/20 flex items-center justify-center">
+                  <FileText className="w-7 h-7 text-destructive" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-destructive">
+                    {relatoriosPendentes} Relatório{relatoriosPendentes > 1 ? 's' : ''} Pendente{relatoriosPendentes > 1 ? 's' : ''}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Você tem relatórios da reunião que precisam ser preenchidos
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={() => navigate("/relatorio")}
+                className="gradient-primary hover:shadow-glow"
+              >
+                Preencher Agora
+              </Button>
+            </div>
+          </Card>
+        )}
+
         {/* Action Buttons */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5 mb-8">
           <Button
             size="lg"
             onClick={() => navigate("/membros")}
@@ -297,6 +354,16 @@ const Dashboard = () => {
           >
             <FileText className="w-6 h-6 mr-3" />
             Enviar Relatório
+          </Button>
+
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={() => navigate("/relatorios")}
+            className="h-20 text-lg hover:bg-primary/5 hover:border-primary transition-all hover:scale-[1.02]"
+          >
+            <FileText className="w-6 h-6 mr-3" />
+            Ver Relatórios
           </Button>
 
           <Button

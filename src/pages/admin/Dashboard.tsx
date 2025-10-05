@@ -3,12 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Home, Users, Calendar, AlertCircle, LogOut, BarChart3, TrendingUp, Activity, Heart, UserCheck } from "lucide-react";
+import { Home, Users, Calendar, AlertCircle, LogOut, BarChart3, TrendingUp, Activity, Heart, UserCheck, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 
 interface CasaFe {
   id: string;
   nome_lider: string;
+  telefone: string;
   campus: string;
   rede: string;
   endereco: string;
@@ -392,15 +393,17 @@ const AdminDashboard = () => {
                 casasPendentesRelatorio.map((casa) => (
                   <div
                     key={casa.id}
-                    className="flex items-center justify-between p-4 bg-destructive/5 border border-destructive/20 rounded-xl hover:bg-destructive/10 cursor-pointer transition-all group"
-                    onClick={() => navigate(`/admin/casas/${casa.id}`)}
+                    className="flex items-center justify-between p-4 bg-destructive/5 border border-destructive/20 rounded-xl transition-all"
                   >
-                    <div className="flex items-center gap-4">
+                    <div 
+                      className="flex items-center gap-4 flex-1 cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => navigate(`/admin/casas/${casa.id}`)}
+                    >
                       <div className="w-12 h-12 rounded-xl bg-destructive/20 flex items-center justify-center text-destructive font-bold text-lg">
                         {casa.nome_lider.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <p className="font-bold text-lg group-hover:text-destructive transition-colors">
+                        <p className="font-bold text-lg">
                           {casa.nome_lider}
                         </p>
                         <div className="flex items-center gap-3 mt-1">
@@ -410,8 +413,23 @@ const AdminDashboard = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="text-sm text-destructive font-semibold">
-                      Há {casa.dias_desde_reuniao} {casa.dias_desde_reuniao === 1 ? 'dia' : 'dias'}
+                    <div className="flex items-center gap-3">
+                      <div className="text-sm text-destructive font-semibold text-right">
+                        Há {casa.dias_desde_reuniao} {casa.dias_desde_reuniao === 1 ? 'dia' : 'dias'}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const mensagem = encodeURIComponent(`Olá ${casa.nome_lider.split(' ')[0]}! Notamos que o relatório da última reunião ainda não foi preenchido. Poderia preencher quando tiver um momento? Obrigado! 🙏`);
+                          window.open(`https://wa.me/55${casa.telefone?.replace(/\D/g, '')}?text=${mensagem}`, '_blank');
+                        }}
+                        className="gap-2"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        WhatsApp
+                      </Button>
                     </div>
                   </div>
                 ))

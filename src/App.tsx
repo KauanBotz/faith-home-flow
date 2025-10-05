@@ -17,6 +17,7 @@ import AdminCasaDetail from "./pages/admin/CasaDetail";
 import AdminMembros from "./pages/admin/Membros";
 import AdminRelatorios from "./pages/admin/Relatorios";
 import Relatorio from "./pages/Relatorio";
+import RelatoriosLeitura from "./pages/RelatoriosLeitura";
 
 const queryClient = new QueryClient();
 
@@ -34,7 +35,8 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/membros" element={<Membros />} />
       <Route path="/presenca" element={<Presenca />} />
-      <Route path="/relatorio" element={<Relatorio />} />
+          <Route path="/relatorio" element={<Relatorio />} />
+          <Route path="/relatorios" element={<RelatoriosLeitura />} />
       <Route path="/perfil" element={<Perfil />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/casas" element={<AdminCasas />} />

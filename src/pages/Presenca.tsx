@@ -4,9 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Save, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Save, CheckCircle2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format, getDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const Presenca = () => {
@@ -17,6 +17,7 @@ const Presenca = () => {
   const [reconciliouJesus, setReconciliouJesus] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [casaFe, setCasaFe] = useState<any>(null);
   const hoje = new Date();
 
   useEffect(() => {
@@ -33,11 +34,12 @@ const Presenca = () => {
 
       const { data: casaData } = await supabase
         .from("casas_fe")
-        .select("id")
+        .select("*")
         .eq("user_id", user.id)
         .single();
 
       if (casaData) {
+        setCasaFe(casaData);
         const { data: membrosData, error } = await supabase
           .from("membros")
           .select("*")
@@ -70,8 +72,20 @@ const Presenca = () => {
   };
 
   const handleSavePresencas = async () => {
+    // Validar dia da semana
+    const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+    const diaHoje = diasSemana[getDay(hoje)];
+    
+    if (!casaFe?.dias_semana?.includes(diaHoje)) {
+      toast.error(`Sua Casa de Fé só pode registrar presença em ${casaFe?.dias_semana?.join(', ')}. Hoje é ${diaHoje}.`);
+      return;
+    }
+
     setSaving(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
       // Salvar presenças
       const presencasData = Object.entries(presencas).map(([membroId, presente]) => ({
         membro_id: membroId,
@@ -102,8 +116,26 @@ const Presenca = () => {
 
       await Promise.all(updatePromises);
 
-      toast.success("Presença registrada com sucesso!");
-      navigate("/dashboard");
+      // Criar relatório automaticamente
+      const { data: relatorioExistente } = await supabase
+        .from("relatorios")
+        .select("id")
+        .eq("casa_fe_id", casaFe.id)
+        .eq("data_reuniao", format(hoje, "yyyy-MM-dd"))
+        .maybeSingle();
+
+      if (!relatorioExistente) {
+        await supabase
+          .from("relatorios")
+          .insert({
+            casa_fe_id: casaFe.id,
+            data_reuniao: format(hoje, "yyyy-MM-dd"),
+            notas: "",
+          });
+      }
+
+      toast.success("Presenças salvas! Não esqueça de preencher o relatório.");
+      navigate("/relatorio");
     } catch (error: any) {
       console.error("Error saving presencas:", error);
       toast.error("Erro ao salvar presenças");
