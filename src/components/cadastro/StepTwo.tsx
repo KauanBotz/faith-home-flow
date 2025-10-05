@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CadastroData } from "@/pages/Cadastro";
 import { MapPin, Building, Network, Clock, Calendar } from "lucide-react";
@@ -54,7 +53,7 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
   const [campus, setCampus] = useState(data.campus || "");
   const [rede, setRede] = useState(data.rede || "");
   const [horarioReuniao, setHorarioReuniao] = useState(data.horarioReuniao || "");
-  const [diasSemana, setDiasSemana] = useState<string[]>(data.diasSemana || []);
+  const [diaSemana, setDiaSemana] = useState<string>(data.diasSemana?.[0] || "");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validate = () => {
@@ -64,7 +63,7 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
     if (!campus) newErrors.campus = "Campus é obrigatório";
     if (!rede) newErrors.rede = "Rede é obrigatória";
     if (!horarioReuniao) newErrors.horarioReuniao = "Horário é obrigatório";
-    if (diasSemana.length === 0) newErrors.diasSemana = "Selecione pelo menos um dia da semana";
+    if (!diaSemana) newErrors.diaSemana = "Selecione o dia da semana";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -78,16 +77,8 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
         campus, 
         rede, 
         horarioReuniao,
-        diasSemana
+        diasSemana: [diaSemana]
       });
-    }
-  };
-
-  const toggleDia = (dia: string) => {
-    if (diasSemana.includes(dia)) {
-      setDiasSemana(diasSemana.filter(d => d !== dia));
-    } else {
-      setDiasSemana([...diasSemana, dia]);
     }
   };
 
@@ -183,36 +174,30 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
         <div>
           <Label className="flex items-center gap-2 mb-3">
             <Calendar className="w-4 h-4" />
-            Dias das Reuniões
+            Dia da Reunião
           </Label>
-          <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
             {diasDaSemana.map((dia) => (
-              <div key={dia.value} className="flex items-center space-x-2">
-                <Checkbox
-                  id={dia.value}
-                  checked={diasSemana.includes(dia.value)}
-                  onCheckedChange={() => toggleDia(dia.value)}
-                />
-                <label
-                  htmlFor={dia.value}
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                >
-                  {dia.label}
-                </label>
-              </div>
+              <Button
+                key={dia.value}
+                type="button"
+                variant={diaSemana === dia.value ? "default" : "outline"}
+                className="w-full"
+                onClick={() => setDiaSemana(dia.value)}
+              >
+                {dia.label}
+              </Button>
             ))}
           </div>
-          {diasSemana.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {diasSemana.map((dia) => (
-                <span key={dia} className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
-                  {diasDaSemana.find(d => d.value === dia)?.label}
-                </span>
-              ))}
+          {diaSemana && (
+            <div className="mt-3">
+              <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+                {diasDaSemana.find(d => d.value === diaSemana)?.label}
+              </span>
             </div>
           )}
-          {errors.diasSemana && (
-            <p className="text-destructive text-sm mt-1">{errors.diasSemana}</p>
+          {errors.diaSemana && (
+            <p className="text-destructive text-sm mt-1">{errors.diaSemana}</p>
           )}
         </div>
       </div>

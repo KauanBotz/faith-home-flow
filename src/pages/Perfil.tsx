@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, User } from "lucide-react";
 import { toast } from "sonner";
 
 const Perfil = () => {
@@ -58,7 +58,7 @@ const Perfil = () => {
 
       if (error) throw error;
 
-      toast.success("Perfil atualizado com sucesso! ✨");
+      toast.success("Perfil atualizado com sucesso!");
       navigate("/dashboard");
     } catch (error: any) {
       console.error("Error updating perfil:", error);
@@ -71,70 +71,98 @@ const Perfil = () => {
   if (loading) {
     return (
       <div className="min-h-screen gradient-subtle flex items-center justify-center">
-        <p className="text-lg">Carregando...</p>
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full gradient-primary animate-pulse" />
+          <p className="text-lg font-medium">Carregando...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen gradient-subtle">
-      <header className="bg-card shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center gap-4">
+    <div className="min-h-screen gradient-subtle pb-20">
+      <header className="bg-card shadow-soft sticky top-0 z-10 border-b">
+        <div className="max-w-3xl mx-auto px-4 py-4 flex items-center gap-4">
           <Button variant="outline" size="icon" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-2xl font-bold">Editar Perfil</h1>
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold">Meu Perfil</h1>
+            <p className="text-sm text-muted-foreground">Edite suas informações</p>
+          </div>
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-8">
-        <Card className="p-6 shadow-elegant">
-          <form onSubmit={handleSave} className="space-y-4">
+      <main className="max-w-3xl mx-auto px-4 py-6">
+        <Card className="p-6 shadow-medium">
+          <div className="flex items-center gap-4 mb-6 pb-6 border-b">
+            <div className="w-16 h-16 rounded-full gradient-primary flex items-center justify-center">
+              <User className="w-8 h-8 text-white" />
+            </div>
             <div>
-              <Label htmlFor="nome_lider">Nome do Líder</Label>
+              <h2 className="text-xl font-bold">{casaFe?.nome_lider}</h2>
+              <p className="text-sm text-muted-foreground">{casaFe?.campus}</p>
+            </div>
+          </div>
+
+          <form onSubmit={handleSave} className="space-y-5">
+            <div>
+              <Label htmlFor="nome_lider" className="text-base">Nome do Líder</Label>
               <Input
                 id="nome_lider"
                 value={casaFe?.nome_lider || ""}
                 onChange={(e) => setCasaFe({ ...casaFe, nome_lider: e.target.value })}
+                className="mt-2 h-11"
                 required
               />
             </div>
 
             <div>
-              <Label htmlFor="endereco">Endereço</Label>
+              <Label htmlFor="endereco" className="text-base">Endereço</Label>
               <Input
                 id="endereco"
                 value={casaFe?.endereco || ""}
                 onChange={(e) => setCasaFe({ ...casaFe, endereco: e.target.value })}
+                className="mt-2 h-11"
                 required
               />
             </div>
 
             <div>
-              <Label htmlFor="telefone">Telefone</Label>
+              <Label htmlFor="telefone" className="text-base">Telefone</Label>
               <Input
                 id="telefone"
                 value={casaFe?.telefone || ""}
                 onChange={(e) => setCasaFe({ ...casaFe, telefone: e.target.value })}
+                className="mt-2 h-11"
                 required
               />
             </div>
 
-            <div>
-              <Label>Campus</Label>
-              <Input value={casaFe?.campus || ""} disabled />
-            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-base">Campus</Label>
+                <Input 
+                  value={casaFe?.campus || ""} 
+                  disabled 
+                  className="mt-2 h-11 bg-muted"
+                />
+              </div>
 
-            <div>
-              <Label>Rede</Label>
-              <Input value={casaFe?.rede || ""} disabled />
+              <div>
+                <Label className="text-base">Rede</Label>
+                <Input 
+                  value={casaFe?.rede || ""} 
+                  disabled 
+                  className="mt-2 h-11 bg-muted"
+                />
+              </div>
             </div>
 
             <Button
               type="submit"
-              variant="hero"
               size="lg"
-              className="w-full"
+              className="w-full h-14 gradient-primary hover:shadow-glow transition-smooth mt-6"
               disabled={saving}
             >
               <Save className="w-5 h-5 mr-2" />

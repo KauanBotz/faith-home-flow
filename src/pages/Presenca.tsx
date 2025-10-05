@@ -4,9 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const Presenca = () => {
   const navigate = useNavigate();
@@ -44,7 +45,6 @@ const Presenca = () => {
         if (error) throw error;
         setMembros(membrosData || []);
 
-        // Initialize presencas
         const initialPresencas: Record<string, boolean> = {};
         membrosData?.forEach((membro) => {
           initialPresencas[membro.id] = false;
@@ -72,7 +72,7 @@ const Presenca = () => {
 
       if (error) throw error;
 
-      toast.success("Presenças registradas com sucesso! ✅");
+      toast.success("Presença registrada com sucesso!");
       navigate("/dashboard");
     } catch (error: any) {
       console.error("Error saving presencas:", error);
@@ -82,71 +82,109 @@ const Presenca = () => {
     }
   };
 
+  const presentesCount = Object.values(presencas).filter(p => p).length;
+
   if (loading) {
     return (
       <div className="min-h-screen gradient-subtle flex items-center justify-center">
-        <p className="text-lg">Carregando...</p>
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full gradient-primary animate-pulse" />
+          <p className="text-lg font-medium">Carregando...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen gradient-subtle">
-      <header className="bg-card shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center gap-4">
+    <div className="min-h-screen gradient-subtle pb-20">
+      <header className="bg-card shadow-soft sticky top-0 z-10 border-b">
+        <div className="max-w-3xl mx-auto px-4 py-4 flex items-center gap-4">
           <Button variant="outline" size="icon" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-2xl font-bold">Registrar Presença</h1>
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold">Registrar Presença</h1>
+            <p className="text-sm text-muted-foreground">
+              {format(hoje, "EEEE, dd 'de' MMMM", { locale: ptBR })}
+            </p>
+          </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <Card className="p-6 mb-6 shadow-medium">
-          <p className="text-center text-lg">
-            <strong>Data:</strong> {format(hoje, "dd/MM/yyyy")}
-          </p>
+      <main className="max-w-3xl mx-auto px-4 py-6">
+        <Card className="p-5 mb-6 shadow-soft gradient-primary text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm opacity-90">Total de membros</p>
+              <p className="text-3xl font-bold">{membros.length}</p>
+            </div>
+            <div>
+              <p className="text-sm opacity-90">Presentes hoje</p>
+              <p className="text-3xl font-bold">{presentesCount}</p>
+            </div>
+          </div>
         </Card>
 
-        <div className="space-y-3 mb-6">
-          {membros.map((membro) => (
-            <Card key={membro.id} className="p-4 shadow-sm">
-              <div className="flex items-center gap-4">
-                <Checkbox
-                  id={membro.id}
-                  checked={presencas[membro.id]}
-                  onCheckedChange={(checked) =>
-                    setPresencas({ ...presencas, [membro.id]: !!checked })
-                  }
-                />
-                <label htmlFor={membro.id} className="flex-1 cursor-pointer">
-                  <p className="font-medium">{membro.nome_completo}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {membro.idade} anos
-                  </p>
-                </label>
-              </div>
-            </Card>
-          ))}
-        </div>
+        {membros.length === 0 ? (
+          <Card className="p-12 text-center shadow-soft">
+            <p className="text-muted-foreground text-lg">
+              Nenhum membro cadastrado ainda
+            </p>
+            <Button 
+              variant="outline" 
+              className="mt-4"
+              onClick={() => navigate("/membros")}
+            >
+              Adicionar Membros
+            </Button>
+          </Card>
+        ) : (
+          <>
+            <div className="space-y-3 mb-6">
+              {membros.map((membro) => (
+                <Card 
+                  key={membro.id} 
+                  className={`p-4 shadow-soft transition-all ${
+                    presencas[membro.id] ? 'bg-success/5 border-success' : ''
+                  }`}
+                >
+                  <div className="flex items-center gap-4">
+                    <Checkbox
+                      id={membro.id}
+                      checked={presencas[membro.id]}
+                      onCheckedChange={(checked) =>
+                        setPresencas({ ...presencas, [membro.id]: !!checked })
+                      }
+                      className="w-6 h-6"
+                    />
+                    <label htmlFor={membro.id} className="flex-1 cursor-pointer">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-semibold text-base">{membro.nome_completo}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {membro.idade} anos
+                          </p>
+                        </div>
+                        {presencas[membro.id] && (
+                          <CheckCircle2 className="w-5 h-5 text-success" />
+                        )}
+                      </div>
+                    </label>
+                  </div>
+                </Card>
+              ))}
+            </div>
 
-        {membros.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">Nenhum membro cadastrado</p>
-          </div>
-        )}
-
-        {membros.length > 0 && (
-          <Button
-            variant="hero"
-            size="lg"
-            className="w-full"
-            onClick={handleSavePresencas}
-            disabled={saving}
-          >
-            <Save className="w-5 h-5 mr-2" />
-            {saving ? "Salvando..." : "Salvar Presenças"}
-          </Button>
+            <Button
+              size="lg"
+              className="w-full h-14 text-base gradient-primary hover:shadow-glow transition-smooth"
+              onClick={handleSavePresencas}
+              disabled={saving}
+            >
+              <Save className="w-5 h-5 mr-2" />
+              {saving ? "Salvando..." : "Salvar Presenças"}
+            </Button>
+          </>
         )}
       </main>
     </div>
