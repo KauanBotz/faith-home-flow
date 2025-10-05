@@ -149,14 +149,16 @@ const Perfil = () => {
                 />
               </div>
 
-              <div>
-                <Label className="text-base">Rede</Label>
-                <Input 
-                  value={casaFe?.rede || ""} 
-                  disabled 
-                  className="mt-2 h-11 bg-muted"
-                />
-              </div>
+              {casaFe?.campus === "MINC Pampulha" && casaFe?.rede && (
+                <div>
+                  <Label className="text-base">Rede</Label>
+                  <Input 
+                    value={casaFe?.rede || ""} 
+                    disabled 
+                    className="mt-2 h-11 bg-muted"
+                  />
+                </div>
+              )}
             </div>
 
             <Button
