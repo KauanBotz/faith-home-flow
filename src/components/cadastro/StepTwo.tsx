@@ -37,6 +37,7 @@ const diasDaSemana = [
   { value: "Quarta-feira", label: "Quarta" },
   { value: "Quinta-feira", label: "Quinta" },
   { value: "Sexta-feira", label: "Sexta" },
+  { value: "Sábado", label: "Sábado" },
 ];
 
 export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {

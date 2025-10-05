@@ -13,6 +13,8 @@ const Presenca = () => {
   const navigate = useNavigate();
   const [membros, setMembros] = useState<any[]>([]);
   const [presencas, setPresencas] = useState<Record<string, boolean>>({});
+  const [aceitouJesus, setAceitouJesus] = useState<Record<string, boolean>>({});
+  const [reconciliouJesus, setReconciliouJesus] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const hoje = new Date();
@@ -46,10 +48,18 @@ const Presenca = () => {
         setMembros(membrosData || []);
 
         const initialPresencas: Record<string, boolean> = {};
+        const initialAceitou: Record<string, boolean> = {};
+        const initialReconciliou: Record<string, boolean> = {};
+        
         membrosData?.forEach((membro) => {
           initialPresencas[membro.id] = false;
+          initialAceitou[membro.id] = membro.aceitou_jesus || false;
+          initialReconciliou[membro.id] = membro.reconciliou_jesus || false;
         });
+        
         setPresencas(initialPresencas);
+        setAceitouJesus(initialAceitou);
+        setReconciliouJesus(initialReconciliou);
       }
     } catch (error: any) {
       console.error("Error loading membros:", error);
@@ -62,15 +72,35 @@ const Presenca = () => {
   const handleSavePresencas = async () => {
     setSaving(true);
     try {
+      // Salvar presenças
       const presencasData = Object.entries(presencas).map(([membroId, presente]) => ({
         membro_id: membroId,
         data_reuniao: format(hoje, "yyyy-MM-dd"),
         presente,
       }));
 
-      const { error } = await supabase.from("presencas").insert(presencasData);
+      const { error: presencasError } = await supabase.from("presencas").insert(presencasData);
+      if (presencasError) throw presencasError;
 
-      if (error) throw error;
+      // Atualizar membros que aceitaram ou reconciliaram com Jesus
+      const updatePromises = membros.map((membro) => {
+        const needsUpdate = 
+          aceitouJesus[membro.id] !== membro.aceitou_jesus ||
+          reconciliouJesus[membro.id] !== membro.reconciliou_jesus;
+
+        if (needsUpdate) {
+          return supabase
+            .from("membros")
+            .update({
+              aceitou_jesus: aceitouJesus[membro.id],
+              reconciliou_jesus: reconciliouJesus[membro.id],
+            })
+            .eq("id", membro.id);
+        }
+        return Promise.resolve();
+      });
+
+      await Promise.all(updatePromises);
 
       toast.success("Presença registrada com sucesso!");
       navigate("/dashboard");
@@ -148,28 +178,64 @@ const Presenca = () => {
                     presencas[membro.id] ? 'bg-success/5 border-success' : ''
                   }`}
                 >
-                  <div className="flex items-center gap-4">
-                    <Checkbox
-                      id={membro.id}
-                      checked={presencas[membro.id]}
-                      onCheckedChange={(checked) =>
-                        setPresencas({ ...presencas, [membro.id]: !!checked })
-                      }
-                      className="w-6 h-6"
-                    />
-                    <label htmlFor={membro.id} className="flex-1 cursor-pointer">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-semibold text-base">{membro.nome_completo}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {membro.idade} anos
-                          </p>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-4">
+                      <Checkbox
+                        id={`presente-${membro.id}`}
+                        checked={presencas[membro.id]}
+                        onCheckedChange={(checked) =>
+                          setPresencas({ ...presencas, [membro.id]: !!checked })
+                        }
+                        className="w-6 h-6"
+                      />
+                      <label htmlFor={`presente-${membro.id}`} className="flex-1 cursor-pointer">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-semibold text-base">{membro.nome_completo}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {membro.idade} anos
+                            </p>
+                          </div>
+                          {presencas[membro.id] && (
+                            <CheckCircle2 className="w-5 h-5 text-success" />
+                          )}
                         </div>
-                        {presencas[membro.id] && (
-                          <CheckCircle2 className="w-5 h-5 text-success" />
-                        )}
+                      </label>
+                    </div>
+
+                    <div className="pl-10 space-y-2 border-l-2 border-muted ml-3">
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          id={`aceitou-${membro.id}`}
+                          checked={aceitouJesus[membro.id]}
+                          onCheckedChange={(checked) =>
+                            setAceitouJesus({ ...aceitouJesus, [membro.id]: !!checked })
+                          }
+                        />
+                        <label 
+                          htmlFor={`aceitou-${membro.id}`} 
+                          className="text-sm cursor-pointer"
+                        >
+                          Aceitou Jesus
+                        </label>
                       </div>
-                    </label>
+
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          id={`reconciliou-${membro.id}`}
+                          checked={reconciliouJesus[membro.id]}
+                          onCheckedChange={(checked) =>
+                            setReconciliouJesus({ ...reconciliouJesus, [membro.id]: !!checked })
+                          }
+                        />
+                        <label 
+                          htmlFor={`reconciliou-${membro.id}`} 
+                          className="text-sm cursor-pointer"
+                        >
+                          Reconciliou com Jesus
+                        </label>
+                      </div>
+                    </div>
                   </div>
                 </Card>
               ))}
