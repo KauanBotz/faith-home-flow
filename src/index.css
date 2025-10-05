@@ -8,52 +8,53 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* MINC Faith Home Colors - HSL Format */
-    --background: 30 25% 96%; /* Bege claro #F5F3F0 */
-    --foreground: 197 47% 25%; /* Azul petróleo #264653 */
+    /* Casas de Fé - Paleta do Ebook - HSL Format */
+    --background: 40 29% 96%; /* Bege claro #F5F3F0 */
+    --foreground: 0 0% 29%; /* Cinza escuro #4A4A4A */
 
     --card: 0 0% 100%; /* Branco puro #FFFFFF */
-    --card-foreground: 197 47% 25%;
+    --card-foreground: 0 0% 29%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 197 47% 25%;
+    --popover-foreground: 0 0% 29%;
 
-    /* Laranja Vibrante - Cor primária */
-    --primary: 14 100% 60%; /* #FF6B35 */
+    /* Dourado - Cor primária do ebook */
+    --primary: 42 45% 52%; /* #C4A14A dourado rico */
     --primary-foreground: 0 0% 100%;
     
-    /* Coral - Destaques */
-    --secondary: 9 100% 70%; /* #FF8066 */
+    /* Terra Cotta - Destaques */
+    --secondary: 15 28% 49%; /* #9B6B5C marrom avermelhado */
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 30 15% 92%;
-    --muted-foreground: 197 20% 50%;
+    --muted: 40 20% 92%;
+    --muted-foreground: 0 0% 45%;
 
-    /* Amarelo Mostarda - Alertas */
-    --accent: 35 87% 67%; /* #F4A261 */
-    --accent-foreground: 197 47% 25%;
+    /* Bege Quente - Alertas suaves */
+    --accent: 40 60% 70%; /* Bege/creme quente */
+    --accent-foreground: 0 0% 29%;
 
     /* Verde Água - Sucesso */
-    --success: 172 53% 39%; /* #2A9D8F */
+    --success: 180 15% 44%; /* #5F8080 verde água terroso */
     --success-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 65% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 30 15% 88%;
-    --input: 30 15% 88%;
-    --ring: 14 100% 60%;
+    --border: 40 15% 88%;
+    --input: 40 15% 88%;
+    --ring: 42 45% 52%;
 
     --radius: 0.75rem;
 
-    /* Gradientes */
-    --gradient-primary: linear-gradient(135deg, hsl(14, 100%, 60%), hsl(9, 100%, 70%));
-    --gradient-subtle: linear-gradient(180deg, hsl(30, 25%, 96%), hsl(0, 0%, 100%));
+    /* Gradientes terrosos do ebook */
+    --gradient-primary: linear-gradient(135deg, hsl(42, 45%, 52%), hsl(15, 28%, 49%));
+    --gradient-subtle: linear-gradient(180deg, hsl(40, 29%, 96%), hsl(0, 0%, 100%));
+    --gradient-earth: linear-gradient(135deg, hsl(180, 15%, 44%), hsl(42, 45%, 52%), hsl(15, 28%, 49%));
     
-    /* Sombras */
-    --shadow-soft: 0 2px 8px hsl(197, 47%, 25%, 0.08);
-    --shadow-medium: 0 4px 16px hsl(197, 47%, 25%, 0.12);
-    --shadow-glow: 0 0 24px hsl(14, 100%, 60%, 0.3);
+    /* Sombras suaves */
+    --shadow-soft: 0 2px 8px hsl(0, 0%, 29%, 0.08);
+    --shadow-medium: 0 4px 16px hsl(0, 0%, 29%, 0.12);
+    --shadow-glow: 0 0 24px hsl(42, 45%, 52%, 0.3);
     
     /* Transições */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -61,36 +62,36 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 197 47% 15%;
-    --foreground: 30 25% 96%;
+    --background: 0 0% 15%;
+    --foreground: 40 29% 96%;
 
-    --card: 197 47% 20%;
-    --card-foreground: 30 25% 96%;
+    --card: 0 0% 20%;
+    --card-foreground: 40 29% 96%;
 
-    --popover: 197 47% 20%;
-    --popover-foreground: 30 25% 96%;
+    --popover: 0 0% 20%;
+    --popover-foreground: 40 29% 96%;
 
-    --primary: 14 100% 60%;
+    --primary: 42 45% 52%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 9 100% 70%;
+    --secondary: 15 28% 49%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 197 30% 25%;
-    --muted-foreground: 30 15% 70%;
+    --muted: 0 0% 25%;
+    --muted-foreground: 40 20% 70%;
 
-    --accent: 35 87% 67%;
-    --accent-foreground: 197 47% 15%;
+    --accent: 40 60% 70%;
+    --accent-foreground: 0 0% 15%;
 
-    --success: 172 53% 39%;
+    --success: 180 15% 44%;
     --success-foreground: 0 0% 100%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 65% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 197 30% 30%;
-    --input: 197 30% 30%;
-    --ring: 14 100% 60%;
+    --border: 0 0% 30%;
+    --input: 0 0% 30%;
+    --ring: 42 45% 52%;
   }
 }
 
@@ -116,6 +117,10 @@ All colors MUST be HSL.
   
   .gradient-subtle {
     background: var(--gradient-subtle);
+  }
+  
+  .gradient-earth {
+    background: var(--gradient-earth);
   }
   
   .shadow-soft {
