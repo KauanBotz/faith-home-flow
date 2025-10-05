@@ -12,7 +12,7 @@ All colors MUST be HSL.
     --background: 30 25% 96%; /* Bege claro #F5F3F0 */
     --foreground: 197 47% 25%; /* Azul petróleo #264653 */
 
-    --card: 0 0% 100%; /* Branco puro */
+    --card: 0 0% 100%; /* Branco puro #FFFFFF */
     --card-foreground: 197 47% 25%;
 
     --popover: 0 0% 100%;
