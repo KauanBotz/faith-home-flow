@@ -91,15 +91,27 @@ const Presenca = () => {
         }
       }
 
-      // Salvar presenças
-      const presencasData = Object.entries(presencas).map(([membroId, presente]) => ({
-        membro_id: membroId,
-        data_reuniao: format(hoje, "yyyy-MM-dd"),
-        presente,
-      }));
+      // Salvar presenças - apenas membros marcados como presentes
+      const presencasData = Object.entries(presencas)
+        .filter(([_, presente]) => presente) // Apenas salvar quem está presente
+        .map(([membroId, presente]) => ({
+          membro_id: membroId,
+          data_reuniao: format(hoje, "yyyy-MM-dd"),
+          presente: true,
+        }));
+
+      // Se nenhum membro foi marcado como presente, avisar
+      if (presencasData.length === 0) {
+        setSaving(false);
+        toast.error("Marque pelo menos um membro como presente.");
+        return;
+      }
 
       const { error: presencasError } = await supabase.from("presencas").insert(presencasData);
-      if (presencasError) throw presencasError;
+      if (presencasError) {
+        console.error("Erro ao salvar presenças:", presencasError);
+        throw presencasError;
+      }
 
       // Atualizar membros que aceitaram ou reconciliaram com Jesus
       const updatePromises = membros.map((membro) => {

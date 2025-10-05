@@ -71,28 +71,32 @@ const Dashboard = () => {
           setPresencasData(presencasData || []);
         }
 
-        // Verificar relatórios pendentes: presenças marcadas sem relatório correspondente
+        // Verificar relatórios pendentes: presenças marcadas sem relatório preenchido
         const { data: presencas } = await supabase
           .from("presencas")
           .select("data_reuniao")
           .in("membro_id", membroIds)
+          .eq("presente", true)
           .order("data_reuniao", { ascending: false });
 
         if (presencas && presencas.length > 0) {
           // Pegar datas únicas
           const datasPresenca = [...new Set(presencas.map(p => p.data_reuniao))];
           
-          // Verificar quais datas têm relatório
+          // Verificar quais datas têm relatório PREENCHIDO (notas não vazias)
           const { data: relatorios } = await supabase
             .from("relatorios")
-            .select("data_reuniao")
+            .select("data_reuniao, notas")
             .eq("casa_fe_id", casaData.id);
 
-          const datasComRelatorio = relatorios?.map(r => r.data_reuniao) || [];
+          // Considerar apenas relatórios que foram realmente preenchidos
+          const datasComRelatorioPreenchido = relatorios
+            ?.filter(r => r.notas && r.notas.trim() !== "")
+            .map(r => r.data_reuniao) || [];
           
-          // Contar quantas datas têm presença mas não têm relatório
+          // Contar quantas datas têm presença mas não têm relatório preenchido
           const pendentes = datasPresenca.filter(
-            data => !datasComRelatorio.includes(data)
+            data => !datasComRelatorioPreenchido.includes(data)
           ).length;
           
           setRelatoriosPendentes(pendentes);
