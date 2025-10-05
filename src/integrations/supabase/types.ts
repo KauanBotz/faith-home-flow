@@ -21,6 +21,7 @@ export type Database = {
           dias_semana: string[]
           email: string
           endereco: string
+          geracao: string
           horario_reuniao: string
           id: string
           nome_lider: string
@@ -35,6 +36,7 @@ export type Database = {
           dias_semana?: string[]
           email: string
           endereco: string
+          geracao?: string
           horario_reuniao: string
           id?: string
           nome_lider: string
@@ -49,6 +51,7 @@ export type Database = {
           dias_semana?: string[]
           email?: string
           endereco?: string
+          geracao?: string
           horario_reuniao?: string
           id?: string
           nome_lider?: string
@@ -69,6 +72,7 @@ export type Database = {
           idade: number
           nome_completo: string
           notas: string | null
+          reconciliou_jesus: boolean
           telefone: string
           updated_at: string
         }
@@ -81,6 +85,7 @@ export type Database = {
           idade: number
           nome_completo: string
           notas?: string | null
+          reconciliou_jesus?: boolean
           telefone: string
           updated_at?: string
         }
@@ -93,6 +98,7 @@ export type Database = {
           idade?: number
           nome_completo?: string
           notas?: string | null
+          reconciliou_jesus?: boolean
           telefone?: string
           updated_at?: string
         }
@@ -137,6 +143,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      relatorios: {
+        Row: {
+          casa_fe_id: string
+          created_at: string
+          data_reuniao: string
+          id: string
+          notas: string | null
+        }
+        Insert: {
+          casa_fe_id: string
+          created_at?: string
+          data_reuniao: string
+          id?: string
+          notas?: string | null
+        }
+        Update: {
+          casa_fe_id?: string
+          created_at?: string
+          data_reuniao?: string
+          id?: string
+          notas?: string | null
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {

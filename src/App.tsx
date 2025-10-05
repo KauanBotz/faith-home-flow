@@ -9,6 +9,7 @@ import SetupAdmin from "./pages/SetupAdmin";
 import Dashboard from "./pages/Dashboard";
 import Membros from "./pages/Membros";
 import Presenca from "./pages/Presenca";
+import Relatorio from "./pages/Relatorio";
 import Perfil from "./pages/Perfil";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -31,9 +32,10 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/setup-admin" element={<SetupAdmin />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/membros" element={<Membros />} />
-          <Route path="/presenca" element={<Presenca />} />
-          <Route path="/perfil" element={<Perfil />} />
+      <Route path="/membros" element={<Membros />} />
+      <Route path="/presenca" element={<Presenca />} />
+      <Route path="/relatorio" element={<Relatorio />} />
+      <Route path="/perfil" element={<Perfil />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/casas" element={<AdminCasas />} />
           <Route path="/admin/casas/:id" element={<AdminCasaDetail />} />

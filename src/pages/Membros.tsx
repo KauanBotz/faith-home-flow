@@ -66,6 +66,7 @@ const Membros = () => {
           idade: editingMembro.idade,
           endereco: editingMembro.endereco,
           aceitou_jesus: editingMembro.aceitou_jesus,
+          reconciliou_jesus: editingMembro.reconciliou_jesus,
           notas: editingMembro.notas,
         })
         .eq("id", editingMembro.id);
@@ -93,12 +94,13 @@ const Membros = () => {
       m.idade,
       m.endereco,
       m.aceitou_jesus ? "Sim" : "Não",
+      m.reconciliou_jesus ? "Sim" : "Não",
       m.notas || "-"
     ]);
 
     autoTable(doc, {
       startY: 30,
-      head: [["Nome", "Telefone", "Idade", "Endereço", "Aceitou Jesus", "Notas"]],
+      head: [["Nome", "Telefone", "Idade", "Endereço", "Aceitou Jesus", "Reconciliou", "Notas"]],
       body: tableData,
     });
 
@@ -172,11 +174,18 @@ const Membros = () => {
                       </div>
                       <p className="font-medium">{membro.idade} anos</p>
                     </div>
-                    {membro.aceitou_jesus && (
-                      <div className="mt-3 inline-block bg-success/10 text-success px-3 py-1 rounded-full text-xs font-semibold">
-                        Aceitou Jesus
-                      </div>
-                    )}
+                    <div className="mt-3 flex gap-2">
+                      {membro.aceitou_jesus && (
+                        <div className="inline-block bg-success/10 text-success px-3 py-1 rounded-full text-xs font-semibold">
+                          Aceitou Jesus
+                        </div>
+                      )}
+                      {membro.reconciliou_jesus && (
+                        <div className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-semibold">
+                          Reconciliou
+                        </div>
+                      )}
+                    </div>
                     {membro.notas && (
                       <p className="mt-3 text-sm text-muted-foreground italic bg-muted/50 p-2 rounded">
                         {membro.notas}
@@ -234,6 +243,13 @@ const Membros = () => {
                             onCheckedChange={(checked) => setEditingMembro({...editingMembro, aceitou_jesus: checked})}
                           />
                           <Label>Aceitou Jesus</Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            checked={editingMembro?.reconciliou_jesus || false}
+                            onCheckedChange={(checked) => setEditingMembro({...editingMembro, reconciliou_jesus: checked})}
+                          />
+                          <Label>Reconciliou com Jesus</Label>
                         </div>
                         <div>
                           <Label>Notas</Label>

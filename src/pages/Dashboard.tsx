@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Home, Users, Calendar, LogOut, User, MapPin, Clock, Sparkles, TrendingUp } from "lucide-react";
+import { Home, Users, Calendar, LogOut, User, MapPin, Clock, Sparkles, TrendingUp, FileText } from "lucide-react";
 import { toast } from "sonner";
 
 const Dashboard = () => {
@@ -123,7 +123,11 @@ const Dashboard = () => {
               <Sparkles className="w-8 h-8 text-accent animate-pulse" />
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="p-4 bg-muted/30 rounded-xl">
+                <p className="text-sm text-muted-foreground mb-1">Geração</p>
+                <p className="font-semibold text-primary">{casaFe?.geracao || 'Primeira'}</p>
+              </div>
               <div className="p-4 bg-muted/30 rounded-xl">
                 <p className="text-sm text-muted-foreground mb-1">Endereço</p>
                 <p className="font-semibold">{casaFe?.endereco}</p>
@@ -197,7 +201,7 @@ const Dashboard = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Button
             size="lg"
             onClick={() => navigate("/membros")}
@@ -215,6 +219,16 @@ const Dashboard = () => {
           >
             <Calendar className="w-6 h-6 mr-3" />
             Registrar Presença
+          </Button>
+
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={() => navigate("/relatorio")}
+            className="h-20 text-lg hover:bg-secondary/5 hover:border-secondary transition-all hover:scale-[1.02]"
+          >
+            <FileText className="w-6 h-6 mr-3" />
+            Enviar Relatório
           </Button>
 
           <Button
