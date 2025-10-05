@@ -13,6 +13,7 @@ interface StepTwoProps {
 }
 
 const campusOptions = [
+  "MINC Pampulha",
   "MINC Lagoa Santa",
   "MINC São José da Lapa",
   "MINC Ribeirão das Neves",
@@ -23,11 +24,11 @@ const campusOptions = [
 ];
 
 const redeOptions = [
-  "Gerar (MINC Pampulha)",
-  "Ative (MINC Pampulha)",
-  "Avance (MINC Pampulha)",
-  "Nexo (MINC Pampulha)",
-  "Plug (MINC Pampulha)",
+  "Gerar",
+  "Ative",
+  "Avance",
+  "Nexo",
+  "Plug",
 ];
 
 const diasDaSemana = [
@@ -51,7 +52,7 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
 
     if (!endereco.trim()) newErrors.endereco = "Endereço é obrigatório";
     if (!campus) newErrors.campus = "Campus é obrigatório";
-    if (!rede) newErrors.rede = "Rede é obrigatória";
+    if (campus === "MINC Pampulha" && !rede) newErrors.rede = "Rede é obrigatória para MINC Pampulha";
     if (!horarioReuniao) newErrors.horarioReuniao = "Horário é obrigatório";
     if (!diaSemana) newErrors.diaSemana = "Selecione o dia da semana";
 
@@ -65,7 +66,7 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
       onNext({ 
         endereco, 
         campus, 
-        rede, 
+        rede: campus === "MINC Pampulha" ? rede : "", 
         horarioReuniao,
         diasSemana: [diaSemana]
       });
@@ -104,7 +105,12 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
           <Label htmlFor="campus">Campus</Label>
           <div className="relative mt-1.5">
             <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
-            <Select value={campus} onValueChange={setCampus}>
+            <Select value={campus} onValueChange={(value) => {
+              setCampus(value);
+              if (value !== "MINC Pampulha") {
+                setRede("");
+              }
+            }}>
               <SelectTrigger id="campus" className="pl-10">
                 <SelectValue placeholder="Selecione o campus" />
               </SelectTrigger>
@@ -122,27 +128,29 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
           )}
         </div>
 
-        <div>
-          <Label htmlFor="rede">Rede</Label>
-          <div className="relative mt-1.5">
-            <Network className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
-            <Select value={rede} onValueChange={setRede}>
-              <SelectTrigger id="rede" className="pl-10">
-                <SelectValue placeholder="Selecione a rede" />
-              </SelectTrigger>
-              <SelectContent>
-                {redeOptions.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        {campus === "MINC Pampulha" && (
+          <div>
+            <Label htmlFor="rede">Rede</Label>
+            <div className="relative mt-1.5">
+              <Network className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
+              <Select value={rede} onValueChange={setRede}>
+                <SelectTrigger id="rede" className="pl-10">
+                  <SelectValue placeholder="Selecione a rede" />
+                </SelectTrigger>
+                <SelectContent>
+                  {redeOptions.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {errors.rede && (
+              <p className="text-destructive text-sm mt-1">{errors.rede}</p>
+            )}
           </div>
-          {errors.rede && (
-            <p className="text-destructive text-sm mt-1">{errors.rede}</p>
-          )}
-        </div>
+        )}
 
         <div>
           <Label htmlFor="horario">Horário das Reuniões</Label>

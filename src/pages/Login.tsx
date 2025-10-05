@@ -42,47 +42,53 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen gradient-subtle flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <Card className="p-8 shadow-medium">
+    <div className="min-h-screen gradient-subtle flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Decorative Elements */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
+      
+      <div className="w-full max-w-md relative z-10">
+        <Card className="p-8 shadow-glow border-primary/10 backdrop-blur-sm bg-card/95">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full gradient-primary flex items-center justify-center">
-              <Home className="w-8 h-8 text-white" />
+            <div className="w-20 h-20 mx-auto mb-4 rounded-2xl gradient-primary flex items-center justify-center shadow-glow animate-fade-in">
+              <Home className="w-10 h-10 text-white" />
             </div>
-            <h1 className="text-3xl font-bold mb-2">Bem-vindo de volta!</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              Bem-vindo de volta!
+            </h1>
+            <p className="text-muted-foreground text-lg">
               Entre na sua Casa de Fé
             </p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-5">
-            <div>
-              <Label htmlFor="email" className="text-base">Email</Label>
-              <div className="relative mt-2">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-base font-semibold">Email</Label>
+              <div className="relative group">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="seu@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-11 h-12 text-base"
+                  className="pl-11 h-12 text-base border-primary/20 focus:border-primary transition-all"
                   required
                 />
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="senha" className="text-base">Senha</Label>
-              <div className="relative mt-2">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <div className="space-y-2">
+              <Label htmlFor="senha" className="text-base font-semibold">Senha</Label>
+              <div className="relative group">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                 <Input
                   id="senha"
                   type="password"
                   placeholder="••••••••"
                   value={senha}
                   onChange={(e) => setSenha(e.target.value)}
-                  className="pl-11 h-12 text-base"
+                  className="pl-11 h-12 text-base border-primary/20 focus:border-primary transition-all"
                   required
                 />
               </div>
@@ -91,22 +97,31 @@ const Login = () => {
             <Button
               type="submit"
               size="lg"
-              className="w-full h-12 text-base gradient-primary hover:shadow-glow transition-smooth"
+              className="w-full h-14 text-lg font-semibold gradient-primary hover:shadow-glow transition-all hover:scale-[1.02]"
               disabled={loading}
             >
-              {loading ? "Entrando..." : "Entrar"}
-              <Sparkles className="w-4 h-4 ml-2" />
+              {loading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                  Entrando...
+                </>
+              ) : (
+                <>
+                  Entrar
+                  <Sparkles className="w-5 h-5 ml-2" />
+                </>
+              )}
             </Button>
 
-            <div className="text-center text-sm pt-4 border-t space-y-2">
+            <div className="text-center text-sm pt-6 border-t border-primary/10 space-y-3">
               <div>
                 <span className="text-muted-foreground">Ainda não tem cadastro? </span>
-                <Link to="/cadastro" className="text-primary font-semibold hover:underline">
+                <Link to="/cadastro" className="text-primary font-bold hover:underline transition-all hover:text-accent">
                   Criar Casa de Fé
                 </Link>
               </div>
               <div>
-                <Link to="/setup-admin" className="text-muted-foreground text-xs hover:underline">
+                <Link to="/setup-admin" className="text-muted-foreground text-xs hover:text-primary hover:underline transition-colors">
                   Criar usuário admin
                 </Link>
               </div>

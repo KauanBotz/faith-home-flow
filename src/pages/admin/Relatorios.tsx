@@ -354,6 +354,7 @@ const AdminRelatorios = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todos</SelectItem>
+                  <SelectItem value="MINC Pampulha">MINC Pampulha</SelectItem>
                   <SelectItem value="MINC Lagoa Santa">MINC Lagoa Santa</SelectItem>
                   <SelectItem value="MINC São José da Lapa">MINC São José da Lapa</SelectItem>
                   <SelectItem value="MINC Ribeirão das Neves">MINC Ribeirão das Neves</SelectItem>
@@ -365,22 +366,24 @@ const AdminRelatorios = () => {
               </Select>
             </div>
 
-            <div>
-              <Label>Rede</Label>
-              <Select value={filtros.rede} onValueChange={(v) => setFiltros({...filtros, rede: v})}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todas">Todas</SelectItem>
-                  <SelectItem value="Gerar (MINC Pampulha)">Gerar (MINC Pampulha)</SelectItem>
-                  <SelectItem value="Ative (MINC Pampulha)">Ative (MINC Pampulha)</SelectItem>
-                  <SelectItem value="Avance (MINC Pampulha)">Avance (MINC Pampulha)</SelectItem>
-                  <SelectItem value="Nexo (MINC Pampulha)">Nexo (MINC Pampulha)</SelectItem>
-                  <SelectItem value="Plug (MINC Pampulha)">Plug (MINC Pampulha)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {(filtros.campus === "todos" || filtros.campus === "MINC Pampulha") && (
+              <div>
+                <Label>Rede</Label>
+                <Select value={filtros.rede} onValueChange={(v) => setFiltros({...filtros, rede: v})}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todas">Todas</SelectItem>
+                    <SelectItem value="Gerar">Gerar</SelectItem>
+                    <SelectItem value="Ative">Ative</SelectItem>
+                    <SelectItem value="Avance">Avance</SelectItem>
+                    <SelectItem value="Nexo">Nexo</SelectItem>
+                    <SelectItem value="Plug">Plug</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div>
               <Label>Dia da Semana</Label>
