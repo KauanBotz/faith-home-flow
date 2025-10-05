@@ -268,8 +268,50 @@ const Dashboard = () => {
           </Card>
         </div>
 
+        {/* Action Buttons */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+          <Button
+            size="lg"
+            onClick={() => navigate("/membros")}
+            className="h-20 text-lg gradient-primary hover:shadow-glow transition-all hover:scale-[1.02]"
+          >
+            <Users className="w-6 h-6 mr-3" />
+            Ver Membros
+          </Button>
+
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={() => navigate("/presenca")}
+            className="h-20 text-lg hover:bg-accent/5 hover:border-accent transition-all hover:scale-[1.02]"
+          >
+            <Calendar className="w-6 h-6 mr-3" />
+            Registrar Presença
+          </Button>
+
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={() => navigate("/relatorio")}
+            className="h-20 text-lg hover:bg-secondary/5 hover:border-secondary transition-all hover:scale-[1.02]"
+          >
+            <FileText className="w-6 h-6 mr-3" />
+            Enviar Relatório
+          </Button>
+
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={() => navigate("/perfil")}
+            className="h-20 text-lg hover:bg-success/5 hover:border-success transition-all hover:scale-[1.02]"
+          >
+            <User className="w-6 h-6 mr-3" />
+            Editar Perfil
+          </Button>
+        </div>
+
         {/* Gráfico de Presença */}
-        <Card className="p-6 mb-8 shadow-medium">
+        <Card className="p-6 shadow-medium">
           <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
             <TrendingUp className="w-6 h-6 text-primary" />
             Frequência dos Membros
@@ -279,7 +321,7 @@ const Dashboard = () => {
             <BarChart data={getMembrosFrequenciaData()}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="nome" angle={-45} textAnchor="end" height={120} />
-              <YAxis />
+              <YAxis allowDecimals={false} />
               <Tooltip />
               <Bar dataKey="presencas" fill="hsl(var(--primary))" name="Presenças" />
               <Bar dataKey="faltas" fill="hsl(var(--destructive))" name="Faltas" />
@@ -335,48 +377,6 @@ const Dashboard = () => {
             ))}
           </div>
         </Card>
-
-        {/* Action Buttons */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Button
-            size="lg"
-            onClick={() => navigate("/membros")}
-            className="h-20 text-lg gradient-primary hover:shadow-glow transition-all hover:scale-[1.02]"
-          >
-            <Users className="w-6 h-6 mr-3" />
-            Ver Membros
-          </Button>
-
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={() => navigate("/presenca")}
-            className="h-20 text-lg hover:bg-accent/5 hover:border-accent transition-all hover:scale-[1.02]"
-          >
-            <Calendar className="w-6 h-6 mr-3" />
-            Registrar Presença
-          </Button>
-
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={() => navigate("/relatorio")}
-            className="h-20 text-lg hover:bg-secondary/5 hover:border-secondary transition-all hover:scale-[1.02]"
-          >
-            <FileText className="w-6 h-6 mr-3" />
-            Enviar Relatório
-          </Button>
-
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={() => navigate("/perfil")}
-            className="h-20 text-lg hover:bg-success/5 hover:border-success transition-all hover:scale-[1.02]"
-          >
-            <User className="w-6 h-6 mr-3" />
-            Editar Perfil
-          </Button>
-        </div>
       </main>
     </div>
   );

@@ -498,7 +498,7 @@ const AdminRelatorios = () => {
               <BarChart data={getDadosPorCampus()}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
-                <YAxis />
+                <YAxis allowDecimals={false} />
                 <Tooltip />
                 <Bar dataKey="value" fill="#FF6B35" />
               </BarChart>
@@ -543,7 +543,7 @@ const AdminRelatorios = () => {
               <LineChart data={getDadosFrequencia()}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="data" />
-                <YAxis />
+                <YAxis allowDecimals={false} />
                 <Tooltip />
                 <Legend />
                 <Line type="monotone" dataKey="taxa" stroke="#2A9D8F" strokeWidth={3} name="Taxa %" />
@@ -563,7 +563,7 @@ const AdminRelatorios = () => {
               <AreaChart data={getDadosConversoes()}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="mes" />
-                <YAxis />
+                <YAxis allowDecimals={false} />
                 <Tooltip />
                 <Legend />
                 <Area 
@@ -595,7 +595,7 @@ const AdminRelatorios = () => {
               <BarChart data={getDadosPorHorario()}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="horario" />
-                <YAxis />
+                <YAxis allowDecimals={false} />
                 <Tooltip />
                 <Bar dataKey="quantidade" fill="#F4A261" />
               </BarChart>
@@ -613,7 +613,7 @@ const AdminRelatorios = () => {
             <BarChart data={getDadosPorDiaSemana()}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="dia" />
-              <YAxis />
+              <YAxis allowDecimals={false} />
               <Tooltip />
               <Bar dataKey="quantidade" fill="#2A9D8F" />
             </BarChart>
