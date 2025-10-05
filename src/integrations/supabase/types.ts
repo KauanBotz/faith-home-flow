@@ -14,7 +14,130 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      casas_fe: {
+        Row: {
+          campus: string
+          created_at: string
+          datas_reunioes: Json
+          email: string
+          endereco: string
+          horario_reuniao: string
+          id: string
+          nome_lider: string
+          rede: string
+          telefone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          campus: string
+          created_at?: string
+          datas_reunioes?: Json
+          email: string
+          endereco: string
+          horario_reuniao: string
+          id?: string
+          nome_lider: string
+          rede: string
+          telefone: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          campus?: string
+          created_at?: string
+          datas_reunioes?: Json
+          email?: string
+          endereco?: string
+          horario_reuniao?: string
+          id?: string
+          nome_lider?: string
+          rede?: string
+          telefone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      membros: {
+        Row: {
+          aceitou_jesus: boolean
+          casa_fe_id: string
+          created_at: string
+          endereco: string
+          id: string
+          idade: number
+          nome_completo: string
+          notas: string | null
+          telefone: string
+          updated_at: string
+        }
+        Insert: {
+          aceitou_jesus?: boolean
+          casa_fe_id: string
+          created_at?: string
+          endereco: string
+          id?: string
+          idade: number
+          nome_completo: string
+          notas?: string | null
+          telefone: string
+          updated_at?: string
+        }
+        Update: {
+          aceitou_jesus?: boolean
+          casa_fe_id?: string
+          created_at?: string
+          endereco?: string
+          id?: string
+          idade?: number
+          nome_completo?: string
+          notas?: string | null
+          telefone?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "membros_casa_fe_id_fkey"
+            columns: ["casa_fe_id"]
+            isOneToOne: false
+            referencedRelation: "casas_fe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      presencas: {
+        Row: {
+          created_at: string
+          data_reuniao: string
+          id: string
+          membro_id: string
+          presente: boolean
+        }
+        Insert: {
+          created_at?: string
+          data_reuniao: string
+          id?: string
+          membro_id: string
+          presente?: boolean
+        }
+        Update: {
+          created_at?: string
+          data_reuniao?: string
+          id?: string
+          membro_id?: string
+          presente?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "presencas_membro_id_fkey"
+            columns: ["membro_id"]
+            isOneToOne: false
+            referencedRelation: "membros"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

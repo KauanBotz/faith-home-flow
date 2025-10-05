@@ -3,8 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CadastroData } from "@/pages/Cadastro";
 import { MapPin, Building, Network, Calendar, Clock } from "lucide-react";
+import { format } from "date-fns";
+import { pt } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 interface StepTwoProps {
   data: Partial<CadastroData>;
@@ -45,6 +50,7 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
   const [campus, setCampus] = useState(data.campus || "");
   const [rede, setRede] = useState(data.rede || "");
   const [horarioReuniao, setHorarioReuniao] = useState(data.horarioReuniao || "");
+  const [datasReunioes, setDatasReunioes] = useState<Date[]>(data.datasReunioes || []);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validate = () => {
@@ -54,6 +60,7 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
     if (!campus) newErrors.campus = "Campus é obrigatório";
     if (!rede) newErrors.rede = "Rede é obrigatória";
     if (!horarioReuniao) newErrors.horarioReuniao = "Horário é obrigatório";
+    if (datasReunioes.length === 0) newErrors.datasReunioes = "Selecione pelo menos uma data de reunião";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -67,8 +74,24 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
         campus, 
         rede, 
         horarioReuniao,
-        datasReunioes: [] // Será preenchido com as 4 datas
+        datasReunioes
       });
+    }
+  };
+
+  const handleDateSelect = (date: Date | undefined) => {
+    if (!date) return;
+    
+    const isSelected = datasReunioes.some(d => 
+      d.toDateString() === date.toDateString()
+    );
+    
+    if (isSelected) {
+      setDatasReunioes(datasReunioes.filter(d => 
+        d.toDateString() !== date.toDateString()
+      ));
+    } else {
+      setDatasReunioes([...datasReunioes, date].sort((a, b) => a.getTime() - b.getTime()));
     }
   };
 
@@ -161,16 +184,60 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
           )}
         </div>
 
-        <div className="bg-accent/10 border border-accent/20 rounded-lg p-4">
-          <div className="flex items-start gap-3">
-            <Calendar className="w-5 h-5 text-accent mt-0.5" />
-            <div>
-              <p className="font-medium text-sm">Período das Reuniões</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                As reuniões acontecerão entre 20 e 25 de outubro
-              </p>
+        <div>
+          <Label htmlFor="datas">Datas das Reuniões</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full justify-start text-left font-normal mt-1.5",
+                  datasReunioes.length === 0 && "text-muted-foreground"
+                )}
+              >
+                <Calendar className="mr-2 h-4 w-4" />
+                {datasReunioes.length > 0
+                  ? `${datasReunioes.length} data(s) selecionada(s)`
+                  : "Selecione as datas das reuniões"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <CalendarComponent
+                mode="single"
+                selected={datasReunioes[0]}
+                onSelect={handleDateSelect}
+                disabled={(date) => {
+                  const oct20 = new Date(2024, 9, 20); // October 20, 2024
+                  const nov14 = new Date(2024, 10, 14); // November 14, 2024
+                  return date < oct20 || date > nov14;
+                }}
+                initialFocus
+                className="pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
+          {datasReunioes.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {datasReunioes.map((data, index) => (
+                <div key={index} className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                  {format(data, "dd/MM/yyyy", { locale: pt })}
+                  <button
+                    type="button"
+                    onClick={() => handleDateSelect(data)}
+                    className="hover:bg-primary/20 rounded-full p-0.5"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
             </div>
-          </div>
+          )}
+          {errors.datasReunioes && (
+            <p className="text-destructive text-sm mt-1">{errors.datasReunioes}</p>
+          )}
+          <p className="text-xs text-muted-foreground mt-2">
+            Selecione as datas entre 20 de outubro e 14 de novembro
+          </p>
         </div>
       </div>
 

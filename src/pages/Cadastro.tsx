@@ -7,6 +7,7 @@ import { StepOne } from "@/components/cadastro/StepOne";
 import { StepTwo } from "@/components/cadastro/StepTwo";
 import { StepThree } from "@/components/cadastro/StepThree";
 import { StepFour } from "@/components/cadastro/StepFour";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface CadastroData {
   // Step 1 - Facilitator data
@@ -66,10 +67,61 @@ const Cadastro = () => {
   };
 
   const handleSubmit = async () => {
-    // TODO: Implementar salvamento no Supabase
-    console.log("Form data:", formData);
-    // Auto-login e redirect para dashboard
-    navigate("/dashboard");
+    try {
+      // 1. Create user account
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email!,
+        password: formData.senha!,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+
+      if (authError) throw authError;
+
+      // 2. Create casa de fé
+      const { data: casaData, error: casaError } = await supabase
+        .from("casas_fe")
+        .insert({
+          user_id: authData.user!.id,
+          nome_lider: formData.nome!,
+          email: formData.email!,
+          telefone: formData.telefone!,
+          endereco: formData.endereco!,
+          campus: formData.campus!,
+          rede: formData.rede!,
+          datas_reunioes: JSON.stringify(formData.datasReunioes || []),
+          horario_reuniao: formData.horarioReuniao!,
+        })
+        .select()
+        .single();
+
+      if (casaError) throw casaError;
+
+      // 3. Create membros
+      if (formData.membros && formData.membros.length > 0) {
+        const membrosData = formData.membros.map((membro) => ({
+          casa_fe_id: casaData.id,
+          nome_completo: membro.nome,
+          telefone: membro.telefone,
+          idade: membro.idade,
+          endereco: membro.endereco,
+          aceitou_jesus: membro.convertido,
+          notas: membro.notas || null,
+        }));
+
+        const { error: membrosError } = await supabase
+          .from("membros")
+          .insert(membrosData);
+
+        if (membrosError) throw membrosError;
+      }
+
+      navigate("/dashboard");
+    } catch (error: any) {
+      console.error("Error creating casa de fé:", error);
+      alert("Erro ao criar Casa de Fé: " + error.message);
+    }
   };
 
   return (
