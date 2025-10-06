@@ -380,11 +380,11 @@ const Dashboard = () => {
             variant="outline"
             size="lg"
             asChild
-            className="h-20 text-lg hover:bg-accent/5 hover:border-accent transition-all hover:scale-[1.02]"
+            className="h-20 text-base hover:bg-accent/5 hover:border-accent transition-all hover:scale-[1.02] px-3"
           >
-            <a href="/instrucoes-casa-de-fe.pdf" download="Instrucoes_Casa_de_Fe.pdf">
-              <BookOpen className="w-6 h-6 mr-3" />
-              Instruções Casa de Fé
+            <a href="/instrucoes-casa-de-fe.pdf" download="Instrucoes_Casa_de_Fe.pdf" className="flex items-center justify-center gap-2">
+              <BookOpen className="w-5 h-5 flex-shrink-0" />
+              <span className="whitespace-normal text-center leading-tight">Instruções<br />Casa de Fé</span>
             </a>
           </Button>
         </div>
