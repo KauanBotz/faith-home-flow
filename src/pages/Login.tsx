@@ -120,11 +120,6 @@ const Login = () => {
                   Criar Casa de Fé
                 </Link>
               </div>
-              <div>
-                <Link to="/setup-admin" className="text-muted-foreground text-xs hover:text-primary hover:underline transition-colors">
-                  Criar usuário admin
-                </Link>
-              </div>
             </div>
           </form>
         </Card>

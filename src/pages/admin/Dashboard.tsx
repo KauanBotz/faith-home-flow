@@ -355,7 +355,7 @@ const AdminDashboard = () => {
                   <Activity className="w-7 h-7 text-success" />
                 </div>
                 <div className="text-sm font-semibold text-muted-foreground">
-                  Últimos 30d
+                  Últimos 14 dias
                 </div>
               </div>
               <div>

@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Cadastro from "./pages/Cadastro";
 import Login from "./pages/Login";
-import SetupAdmin from "./pages/SetupAdmin";
 import Dashboard from "./pages/Dashboard";
 import Membros from "./pages/Membros";
 import Presenca from "./pages/Presenca";
@@ -31,7 +30,6 @@ const App = () => (
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/cadastro" element={<Cadastro />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/setup-admin" element={<SetupAdmin />} />
           <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/membros" element={<Membros />} />
       <Route path="/presenca" element={<Presenca />} />
