@@ -175,7 +175,15 @@ export type Database = {
           id?: string
           notas?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "relatorios_casa_fe_id_fkey"
+            columns: ["casa_fe_id"]
+            isOneToOne: false
+            referencedRelation: "casas_fe"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
