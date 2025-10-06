@@ -609,21 +609,8 @@ const AdminRelatorios = () => {
 
           {/* ABA GRÁFICOS */}
           <TabsContent value="graficos">
-            {relatoriosFiltrados.length === 0 ? (
-              <Card className="p-12 shadow-medium text-center mb-8">
-                <BarChart3 className="w-20 h-20 mx-auto mb-4 text-muted-foreground opacity-30" />
-                <h3 className="text-xl font-bold mb-2">Sem dados para gráficos</h3>
-                <p className="text-muted-foreground mb-4">
-                  Ajuste os filtros ou aguarde que os líderes enviem relatórios.
-                </p>
-                <Button variant="outline" onClick={limparFiltros}>
-                  Limpar Filtros
-                </Button>
-              </Card>
-            ) : (
-              <>
-                {/* GRÁFICOS - Grid de 2 colunas */}
-                <div className="grid gap-6 lg:grid-cols-2 mb-8">
+            {/* GRÁFICOS - Grid de 2 colunas */}
+            <div className="grid gap-6 lg:grid-cols-2 mb-8">
           {/* Gráfico 1: Relatórios por Campus */}
           <Card className="p-6 shadow-medium">
             <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
@@ -777,8 +764,6 @@ const AdminRelatorios = () => {
             </BarChart>
           </ResponsiveContainer>
         </Card>
-              </>
-            )}
           </TabsContent>
 
           {/* ABA RELATÓRIOS DETALHADOS */}
