@@ -143,7 +143,7 @@ const AdminRelatorios = () => {
     toast.success("Filtros aplicados!");
   };
 
-  // Filtros aplicados
+  // Filtros aplicados aos relatórios
   const relatoriosFiltrados = relatorios.filter(r => {
     if (filtrosAplicados.casa !== "todas" && r.casa_fe_id !== filtrosAplicados.casa) return false;
     if (filtrosAplicados.campus !== "todos" && r.casas_fe?.campus !== filtrosAplicados.campus) return false;
@@ -152,6 +152,27 @@ const AdminRelatorios = () => {
     if (filtrosAplicados.fim && r.data_reuniao > filtrosAplicados.fim) return false;
     if (filtrosAplicados.busca && !r.casas_fe?.nome_lider.toLowerCase().includes(filtrosAplicados.busca.toLowerCase())) return false;
     return true;
+  });
+
+  // Casas filtradas para KPIs
+  const casasFiltradas = casasFe.filter(c => {
+    if (filtrosAplicados.casa !== "todas" && c.id !== filtrosAplicados.casa) return false;
+    if (filtrosAplicados.campus !== "todos" && c.campus !== filtrosAplicados.campus) return false;
+    if (filtrosAplicados.rede !== "todas" && c.rede !== filtrosAplicados.rede) return false;
+    if (filtrosAplicados.busca && !c.nome_lider.toLowerCase().includes(filtrosAplicados.busca.toLowerCase())) return false;
+    return true;
+  });
+
+  // IDs das casas filtradas
+  const casasFiltradas_ids = casasFiltradas.map(c => c.id);
+
+  // Membros filtrados
+  const membrosFiltrados = membros.filter(m => casasFiltradas_ids.includes(m.casa_fe_id));
+
+  // Presenças filtradas
+  const presencasFiltradas = presencas.filter(p => {
+    const membro = membros.find(m => m.id === p.membro_id);
+    return membro && casasFiltradas_ids.includes(membro.casa_fe_id);
   });
 
   // Dados para gráficos
@@ -206,12 +227,12 @@ const AdminRelatorios = () => {
   };
 
   const getFrequenciaPorCasa = () => {
-    return casasFe.slice(0, 10).map(casa => {
-      const casaMembros = membros.filter(m => m.casa_fe_id === casa.id);
-      const casaPresencas = presencas.filter(p => 
+    return casasFiltradas.slice(0, 10).map(casa => {
+      const casaMembros = membrosFiltrados.filter(m => m.casa_fe_id === casa.id);
+      const casaPresencas = presencasFiltradas.filter(p => 
         casaMembros.some(m => m.id === p.membro_id) && p.presente
       );
-      const total = presencas.filter(p => casaMembros.some(m => m.id === p.membro_id)).length;
+      const total = presencasFiltradas.filter(p => casaMembros.some(m => m.id === p.membro_id)).length;
       const percentual = total > 0 ? Math.round((casaPresencas.length / total) * 100) : 0;
       
       return {
@@ -225,7 +246,7 @@ const AdminRelatorios = () => {
 
   const getDistribuicaoRedes = () => {
     const redesCount: Record<string, number> = {};
-    casasFe.forEach(casa => {
+    casasFiltradas.forEach(casa => {
       const rede = casa.rede || "Sem Rede";
       redesCount[rede] = (redesCount[rede] || 0) + 1;
     });
@@ -234,7 +255,7 @@ const AdminRelatorios = () => {
 
   const getHorariosReuniao = () => {
     const horarios: Record<string, number> = {};
-    casasFe.forEach(casa => {
+    casasFiltradas.forEach(casa => {
       if (casa.horario_reuniao) {
         const hora = casa.horario_reuniao.substring(0, 5);
         horarios[hora] = (horarios[hora] || 0) + 1;
@@ -246,22 +267,33 @@ const AdminRelatorios = () => {
   };
 
   const getDiasSemana = () => {
+    // Define ordem dos dias
+    const diasOrdem = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
     const dias: Record<string, number> = {};
-    casasFe.forEach(casa => {
+    
+    // Inicializa todos os dias com 0
+    diasOrdem.forEach(dia => {
+      dias[dia] = 0;
+    });
+    
+    // Conta as casas por dia
+    casasFiltradas.forEach(casa => {
       if (casa.dias_semana && casa.dias_semana.length > 0) {
         casa.dias_semana.forEach((dia: string) => {
           dias[dia] = (dias[dia] || 0) + 1;
         });
       }
     });
-    return Object.entries(dias).map(([dia, total]) => ({ dia, total }));
+    
+    // Retorna na ordem correta
+    return diasOrdem.map(dia => ({ dia, total: dias[dia] }));
   };
 
   const getConversoesPorCampus = () => {
-    return Array.from(new Set(casasFe.map(c => c.campus))).map(campus => {
-      const casasDoCampus = casasFe.filter(c => c.campus === campus);
+    return Array.from(new Set(casasFiltradas.map(c => c.campus))).map(campus => {
+      const casasDoCampus = casasFiltradas.filter(c => c.campus === campus);
       const casaIds = casasDoCampus.map(c => c.id);
-      const membrosDoCampus = membros.filter(m => casaIds.includes(m.casa_fe_id));
+      const membrosDoCampus = membrosFiltrados.filter(m => casaIds.includes(m.casa_fe_id));
       
       return {
         campus,
@@ -557,8 +589,8 @@ const AdminRelatorios = () => {
                 <Home className="w-6 h-6 text-primary" />
               </div>
             </div>
-            <p className="text-3xl font-bold mb-1">{casasFe.length}</p>
-            <p className="text-sm text-muted-foreground">Total de Casas de Fé</p>
+            <p className="text-3xl font-bold mb-1">{casasFiltradas.length}</p>
+            <p className="text-sm text-muted-foreground">Casas de Fé (Filtradas)</p>
           </Card>
 
           <Card className="p-6 shadow-medium hover:shadow-glow transition-all">
@@ -577,8 +609,8 @@ const AdminRelatorios = () => {
                 <Users className="w-6 h-6 text-success" />
               </div>
             </div>
-            <p className="text-3xl font-bold mb-1">{membros.length}</p>
-            <p className="text-sm text-muted-foreground">Total de Membros</p>
+            <p className="text-3xl font-bold mb-1">{membrosFiltrados.length}</p>
+            <p className="text-sm text-muted-foreground">Membros (Filtrados)</p>
           </Card>
 
           <Card className="p-6 shadow-medium hover:shadow-glow transition-all">
@@ -588,9 +620,9 @@ const AdminRelatorios = () => {
               </div>
             </div>
             <p className="text-3xl font-bold mb-1">
-              {membros.filter(m => m.aceitou_jesus).length}
+              {membrosFiltrados.filter(m => m.aceitou_jesus).length}
             </p>
-            <p className="text-sm text-muted-foreground">Aceitaram Jesus</p>
+            <p className="text-sm text-muted-foreground">Aceitaram Jesus (Filtrados)</p>
           </Card>
         </div>
 
