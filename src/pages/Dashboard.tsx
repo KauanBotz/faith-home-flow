@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Home, Users, Calendar, LogOut, User, MapPin, Clock, Sparkles, TrendingUp, FileText, Heart, UserCheck, MessageCircle, CheckCircle } from "lucide-react";
+import { Home, Users, Calendar, LogOut, User, MapPin, Clock, Sparkles, TrendingUp, FileText, Heart, UserCheck, MessageCircle, CheckCircle, BookOpen, Download } from "lucide-react";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
@@ -326,7 +326,7 @@ const Dashboard = () => {
         )}
 
         {/* Action Buttons */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5 mb-8">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6 mb-8">
           <Button
             size="lg"
             onClick={() => navigate("/membros")}
@@ -374,6 +374,18 @@ const Dashboard = () => {
           >
             <User className="w-6 h-6 mr-3" />
             Editar Perfil
+          </Button>
+
+          <Button
+            variant="outline"
+            size="lg"
+            asChild
+            className="h-20 text-lg hover:bg-accent/5 hover:border-accent transition-all hover:scale-[1.02]"
+          >
+            <a href="/instrucoes-casa-de-fe.pdf" download="Instrucoes_Casa_de_Fe.pdf">
+              <BookOpen className="w-6 h-6 mr-3" />
+              Instruções Casa de Fé
+            </a>
           </Button>
         </div>
 
