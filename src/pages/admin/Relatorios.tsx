@@ -189,40 +189,31 @@ const AdminRelatorios = () => {
   };
 
   const getEvolucaoRelatorios = () => {
-    // Agrupar por semana do último mês
-    const hoje = new Date();
-    const umMesAtras = subMonths(hoje, 1);
+    // Se não houver relatórios, retornar array vazio
+    if (relatoriosFiltrados.length === 0) {
+      return [];
+    }
+
+    // Agrupar por data
+    const porData: Record<string, number> = {};
     
-    const relatoriosUltimoMes = relatoriosFiltrados.filter(r => {
-      const dataRelatorio = parseISO(r.data_reuniao);
-      return dataRelatorio >= umMesAtras && dataRelatorio <= hoje;
+    relatoriosFiltrados.forEach(r => {
+      const data = format(parseISO(r.data_reuniao), "dd/MM");
+      porData[data] = (porData[data] || 0) + 1;
     });
     
-    // Agrupar por semana
-    const semanas: Record<string, { count: number; datas: Date[] }> = {};
-    
-    relatoriosUltimoMes.forEach(r => {
-      const data = parseISO(r.data_reuniao);
-      const inicioSemana = new Date(data);
-      inicioSemana.setDate(data.getDate() - data.getDay()); // Domingo da semana
-      const chave = format(inicioSemana, "dd/MM");
-      
-      if (!semanas[chave]) {
-        semanas[chave] = { count: 0, datas: [] };
-      }
-      semanas[chave].count++;
-      semanas[chave].datas.push(data);
-    });
-    
-    return Object.entries(semanas)
-      .map(([semana, dados]) => ({
-        semana: `Semana ${semana}`,
-        total: dados.count
+    return Object.entries(porData)
+      .map(([data, total]) => ({
+        semana: data,
+        total
       }))
       .sort((a, b) => {
-        const dataA = a.semana.split(' ')[1];
-        const dataB = b.semana.split(' ')[1];
-        return dataA.localeCompare(dataB);
+        // Converter dd/MM para Date para ordenar corretamente
+        const [diaA, mesA] = a.semana.split('/').map(Number);
+        const [diaB, mesB] = b.semana.split('/').map(Number);
+        const dataA = new Date(2025, mesA - 1, diaA);
+        const dataB = new Date(2025, mesB - 1, diaB);
+        return dataA.getTime() - dataB.getTime();
       });
   };
 
@@ -664,31 +655,40 @@ const AdminRelatorios = () => {
           <Card className="p-6 shadow-medium">
             <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-accent" />
-              Evolução de Relatórios (Último Mês)
+              Evolução de Relatórios por Data
             </h2>
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={getEvolucaoRelatorios()}>
-                <defs>
-                  <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--accent))" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="hsl(var(--accent))" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="semana" angle={-45} textAnchor="end" height={80} />
-                <YAxis allowDecimals={false} />
-                <Tooltip content={<CustomTooltip />} />
-                <Area 
-                  type="monotone" 
-                  dataKey="total" 
-                  stroke="hsl(var(--accent))" 
-                  strokeWidth={3}
-                  fillOpacity={1} 
-                  fill="url(#colorTotal)" 
-                  name="Relatórios"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            {getEvolucaoRelatorios().length === 0 ? (
+              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                <div className="text-center">
+                  <TrendingUp className="w-16 h-16 mx-auto mb-2 opacity-30" />
+                  <p>Nenhum relatório encontrado</p>
+                </div>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <AreaChart data={getEvolucaoRelatorios()}>
+                  <defs>
+                    <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--accent))" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="hsl(var(--accent))" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="semana" angle={-45} textAnchor="end" height={80} />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Area 
+                    type="monotone" 
+                    dataKey="total" 
+                    stroke="hsl(var(--accent))" 
+                    strokeWidth={3}
+                    fillOpacity={1} 
+                    fill="url(#colorTotal)" 
+                    name="Relatórios"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </Card>
 
           {/* Gráfico 3: Frequência por Casa */}
@@ -768,7 +768,13 @@ const AdminRelatorios = () => {
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={getDiasSemana()}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="dia" />
+                <XAxis 
+                  dataKey="dia" 
+                  angle={-45} 
+                  textAnchor="end" 
+                  height={100}
+                  interval={0}
+                />
                 <YAxis allowDecimals={false} />
                 <Tooltip content={<CustomTooltip />} />
                 <Bar dataKey="total" fill="hsl(var(--accent))" name="Casas de Fé" radius={[8, 8, 0, 0]} />
@@ -783,13 +789,23 @@ const AdminRelatorios = () => {
             <MapPin className="w-6 h-6 text-primary" />
             Conversões por Campus
           </h2>
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={getConversoesPorCampus()}>
+          <ResponsiveContainer width="100%" height={600}>
+            <BarChart data={getConversoesPorCampus()} margin={{ bottom: 120, left: 20, right: 20 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis dataKey="campus" angle={-45} textAnchor="end" height={100} />
+              <XAxis 
+                dataKey="campus" 
+                angle={-45} 
+                textAnchor="end" 
+                height={150}
+                interval={0}
+              />
               <YAxis allowDecimals={false} />
               <Tooltip content={<CustomTooltip />} />
-              <Legend />
+              <Legend 
+                verticalAlign="top" 
+                height={50}
+                wrapperStyle={{ paddingBottom: '20px' }}
+              />
               <Bar dataKey="aceitaram" fill="hsl(var(--primary))" name="Aceitaram Jesus" radius={[8, 8, 0, 0]} />
               <Bar dataKey="reconciliaram" fill="hsl(var(--success))" name="Reconciliaram" radius={[8, 8, 0, 0]} />
               <Bar dataKey="total" fill="hsl(var(--accent))" name="Total de Membros" radius={[8, 8, 0, 0]} />
