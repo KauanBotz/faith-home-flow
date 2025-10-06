@@ -106,24 +106,55 @@ const Relatorio = () => {
       return;
     }
 
+    if (!casaFe?.id) {
+      toast.error("Casa de Fé não encontrada");
+      return;
+    }
+
     setSending(true);
 
     try {
-      const { error } = await supabase
+      // Verificar se já existe relatório para esta data
+      const { data: relatorioExistente } = await supabase
         .from("relatorios")
-        .insert({
-          casa_fe_id: casaFe.id,
-          data_reuniao: dataSelecionada,
-          notas: notas.trim(),
-        });
+        .select("id, notas")
+        .eq("casa_fe_id", casaFe.id)
+        .eq("data_reuniao", dataSelecionada)
+        .maybeSingle();
 
-      if (error) throw error;
+      if (relatorioExistente) {
+        // Se existe e está vazio, atualizar
+        if (!relatorioExistente.notas || relatorioExistente.notas.trim() === "") {
+          const { error } = await supabase
+            .from("relatorios")
+            .update({ notas: notas.trim() })
+            .eq("id", relatorioExistente.id);
+
+          if (error) throw error;
+        } else {
+          // Se já tem notas, avisar o usuário
+          toast.error("Já existe um relatório preenchido para esta data");
+          setSending(false);
+          return;
+        }
+      } else {
+        // Não existe, criar novo
+        const { error } = await supabase
+          .from("relatorios")
+          .insert({
+            casa_fe_id: casaFe.id,
+            data_reuniao: dataSelecionada,
+            notas: notas.trim(),
+          });
+
+        if (error) throw error;
+      }
       
       toast.success("Relatório enviado com sucesso!");
       navigate("/dashboard");
     } catch (error: any) {
       console.error("Error submitting relatório:", error);
-      toast.error("Erro ao enviar relatório");
+      toast.error(`Erro ao enviar relatório: ${error.message || "Tente novamente"}`);
     } finally {
       setSending(false);
     }
