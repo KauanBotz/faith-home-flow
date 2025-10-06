@@ -258,26 +258,44 @@ const AdminRelatorios = () => {
   };
 
   const getDiasSemana = () => {
-    // Define ordem dos dias
+    // Ordem canônica dos dias
     const diasOrdem = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
-    const dias: Record<string, number> = {};
-    
-    // Inicializa todos os dias com 0
-    diasOrdem.forEach(dia => {
-      dias[dia] = 0;
-    });
-    
-    // Conta as casas por dia
-    casasFiltradas.forEach(casa => {
+
+    // Mapeia variações para o formato canônico
+    const map: Record<string, string> = {
+      'seg': 'Segunda', 'segunda': 'Segunda', 'segunda-feira': 'Segunda',
+      'ter': 'Terça', 'terca': 'Terça', 'terça': 'Terça', 'terca-feira': 'Terça', 'terça-feira': 'Terça',
+      'qua': 'Quarta', 'quarta': 'Quarta', 'quarta-feira': 'Quarta',
+      'qui': 'Quinta', 'quinta': 'Quinta', 'quinta-feira': 'Quinta',
+      'sex': 'Sexta', 'sexta': 'Sexta', 'sexta-feira': 'Sexta',
+      'sab': 'Sábado', 'sabado': 'Sábado', 'sábado': 'Sábado',
+      'dom': 'Domingo', 'domingo': 'Domingo'
+    };
+
+    const removerAcentos = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const canon = (raw: string) => {
+      const base = removerAcentos(raw.trim().toLowerCase())
+        .replace(/-feira$/, '') // remove sufixo "-feira"
+        .replace(/[^a-z]/g, ''); // remove símbolos
+      return map[base] || map[base.slice(0, 3)] || null;
+    };
+
+    const contagem: Record<string, number> = {};
+    diasOrdem.forEach((d) => (contagem[d] = 0));
+
+    casasFiltradas.forEach((casa) => {
       if (casa.dias_semana && casa.dias_semana.length > 0) {
         casa.dias_semana.forEach((dia: string) => {
-          dias[dia] = (dias[dia] || 0) + 1;
+          const c = canon(dia);
+          if (c) {
+            contagem[c] = (contagem[c] || 0) + 1;
+          }
         });
       }
     });
-    
-    // Retorna na ordem correta
-    return diasOrdem.map(dia => ({ dia, total: dias[dia] }));
+
+    // Retorna sempre na ordem canônica
+    return diasOrdem.map((dia) => ({ dia, total: contagem[dia] }));
   };
 
   const getConversoesPorCampus = () => {
