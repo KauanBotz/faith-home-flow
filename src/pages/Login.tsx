@@ -116,7 +116,7 @@ const Login = () => {
             <div className="text-center pt-6 border-t border-primary/10 space-y-3">
               <p className="text-sm text-muted-foreground">Ainda não tem cadastro?</p>
               <Link to="/cadastro">
-                <Button variant="outline" size="lg" className="w-full border-primary/30 hover:border-primary">
+                <Button variant="outline" className="w-full border-primary/30 hover:border-primary">
                   Criar Casa de Fé
                 </Button>
               </Link>

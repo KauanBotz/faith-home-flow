@@ -8,6 +8,7 @@ import { StepTwo } from "@/components/cadastro/StepTwo";
 import { StepThree } from "@/components/cadastro/StepThree";
 import { StepFour } from "@/components/cadastro/StepFour";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export interface CadastroData {
   // Step 1 - Facilitator data
@@ -71,6 +72,18 @@ const Cadastro = () => {
 
   const handleSubmit = async () => {
     try {
+      // Verificar se já existe uma casa de fé com este email
+      const { data: existingCasa } = await supabase
+        .from("casas_fe")
+        .select("email")
+        .eq("email", formData.email!)
+        .single();
+
+      if (existingCasa) {
+        toast.error("Já existe uma Casa de Fé cadastrada com este email!");
+        return;
+      }
+
       // 1. Create user account
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email!,
@@ -80,7 +93,14 @@ const Cadastro = () => {
         },
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        if (authError.message.includes("already registered")) {
+          toast.error("Este email já está cadastrado!");
+        } else {
+          toast.error("Erro ao criar conta: " + authError.message);
+        }
+        throw authError;
+      }
 
       // 2. Create casa de fé
       const { data: casaData, error: casaError } = await supabase
@@ -123,10 +143,13 @@ const Cadastro = () => {
         if (membrosError) throw membrosError;
       }
 
+      toast.success("Casa de Fé criada com sucesso!");
       navigate("/dashboard");
     } catch (error: any) {
       console.error("Error creating casa de fé:", error);
-      alert("Erro ao criar Casa de Fé: " + error.message);
+      if (!error.message.includes("already registered")) {
+        toast.error("Erro ao criar Casa de Fé: " + error.message);
+      }
     }
   };
 
@@ -135,6 +158,13 @@ const Cadastro = () => {
       {/* Header */}
       <header className="p-4 md:p-6">
         <div className="max-w-4xl mx-auto">
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/login")}
+            className="mb-4"
+          >
+            ← Voltar para Login
+          </Button>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
             <Home className="w-8 h-8" />
             Bora abrir uma Casa de Fé!
