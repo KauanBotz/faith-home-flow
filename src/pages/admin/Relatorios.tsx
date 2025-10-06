@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { 
   ArrowLeft, FileText, Calendar, Home, Filter, Download, 
   BarChart3, TrendingUp, Users, Clock, MapPin, Network,
-  FileDown, X, Search, ChevronDown
+  FileDown, X, Search, ChevronDown, ChevronRight
 } from "lucide-react";
 import { toast } from "sonner";
 import { format, startOfMonth, endOfMonth, subMonths, parseISO } from "date-fns";
@@ -52,6 +52,7 @@ const AdminRelatorios = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRelatorios, setSelectedRelatorios] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [expandedRelatorios, setExpandedRelatorios] = useState<string[]>([]);
 
   useEffect(() => {
     checkAdmin();
@@ -734,51 +735,82 @@ const AdminRelatorios = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              {relatoriosFiltrados.map((relatorio) => (
-                <div
-                  key={relatorio.id}
-                  className="flex items-start gap-4 p-4 bg-muted/30 rounded-xl hover:bg-muted/50 transition-all"
-                >
-                  <Checkbox
-                    checked={selectedRelatorios.includes(relatorio.id)}
-                    onCheckedChange={(checked) => {
-                      if (checked) {
-                        setSelectedRelatorios([...selectedRelatorios, relatorio.id]);
-                      } else {
-                        setSelectedRelatorios(selectedRelatorios.filter(id => id !== relatorio.id));
-                      }
-                    }}
-                  />
-                  <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
-                    <FileText className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h3 className="text-lg font-bold flex items-center gap-2">
-                          {relatorio.casas_fe?.nome_lider}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {relatorio.casas_fe?.campus} • {relatorio.casas_fe?.rede}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <div className="flex items-center gap-2 text-sm font-medium">
-                          <Calendar className="w-4 h-4" />
-                          {format(parseISO(relatorio.data_reuniao), "dd/MM/yyyy")}
+              {relatoriosFiltrados.map((relatorio) => {
+                const isExpanded = expandedRelatorios.includes(relatorio.id);
+                const toggleExpand = () => {
+                  if (isExpanded) {
+                    setExpandedRelatorios(expandedRelatorios.filter(id => id !== relatorio.id));
+                  } else {
+                    setExpandedRelatorios([...expandedRelatorios, relatorio.id]);
+                  }
+                };
+
+                return (
+                  <div
+                    key={relatorio.id}
+                    className="flex items-start gap-4 p-5 bg-muted/30 rounded-xl hover:bg-muted/50 transition-all border border-transparent hover:border-primary/20"
+                  >
+                    <Checkbox
+                      checked={selectedRelatorios.includes(relatorio.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedRelatorios([...selectedRelatorios, relatorio.id]);
+                        } else {
+                          setSelectedRelatorios(selectedRelatorios.filter(id => id !== relatorio.id));
+                        }
+                      }}
+                    />
+                    <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0 shadow-glow">
+                      <FileText className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <h3 className="text-lg font-bold flex items-center gap-2">
+                            {relatorio.casas_fe?.nome_lider}
+                          </h3>
+                          <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
+                            <MapPin className="w-3 h-3" />
+                            {relatorio.casas_fe?.campus} • {relatorio.casas_fe?.rede}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <div className="flex items-center gap-2 text-sm font-medium bg-primary/10 px-3 py-1 rounded-lg">
+                            <Calendar className="w-4 h-4" />
+                            {format(parseISO(relatorio.data_reuniao), "dd/MM/yyyy")}
+                          </div>
                         </div>
                       </div>
+                      
+                      {relatorio.notas && (
+                        <div className="bg-card rounded-lg border border-border overflow-hidden">
+                          <button
+                            onClick={toggleExpand}
+                            className="w-full flex items-center justify-between p-3 hover:bg-muted/50 transition-colors"
+                          >
+                            <span className="text-sm font-medium">Notas do Relatório</span>
+                            <ChevronRight 
+                              className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                            />
+                          </button>
+                          <div className={`px-3 pb-3 ${isExpanded ? 'block' : 'hidden'}`}>
+                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                              {relatorio.notas}
+                            </p>
+                          </div>
+                          {!isExpanded && (
+                            <div className="px-3 pb-3">
+                              <p className="text-sm text-muted-foreground line-clamp-2">
+                                {relatorio.notas}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
-                    {relatorio.notas && (
-                      <div className="bg-card/50 rounded-lg p-3 mt-2">
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {relatorio.notas}
-                        </p>
-                      </div>
-                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </Card>
