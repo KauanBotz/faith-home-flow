@@ -59,6 +59,7 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
     if (campus === "MINC Pampulha" && !rede) newErrors.rede = "Rede é obrigatória para MINC Pampulha";
     if (!horarioReuniao) newErrors.horarioReuniao = "Horário é obrigatório";
     if (!diaSemana) newErrors.diaSemana = "Selecione o dia da semana";
+    if (!nomeDupla.trim()) newErrors.nomeDupla = "Nome da dupla é obrigatório";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -210,7 +211,7 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
         <div className="border-t pt-6 mt-6">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Users className="w-5 h-5 text-primary" />
-            Sua Dupla (Opcional)
+            Sua Dupla
           </h3>
           
           <div className="space-y-4">
@@ -227,6 +228,9 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
                   className="pl-10"
                 />
               </div>
+              {errors.nomeDupla && (
+                <p className="text-destructive text-sm mt-1">{errors.nomeDupla}</p>
+              )}
             </div>
 
             <div>

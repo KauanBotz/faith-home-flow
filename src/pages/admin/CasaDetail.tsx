@@ -3,8 +3,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Home, Users, Calendar, Clock, MapPin } from "lucide-react";
+import { ArrowLeft, Home, Users, Calendar, Clock, MapPin, Plus } from "lucide-react";
 import { toast } from "sonner";
+import { AddMembroDialog } from "@/components/admin/AddMembroDialog";
 
 interface CasaFe {
   id: string;
@@ -37,6 +38,7 @@ const AdminCasaDetail = () => {
   const [loading, setLoading] = useState(true);
   const [casa, setCasa] = useState<CasaFe | null>(null);
   const [membros, setMembros] = useState<Membro[]>([]);
+  const [showAddDialog, setShowAddDialog] = useState(false);
 
   useEffect(() => {
     checkAdminAndLoad();
@@ -203,10 +205,16 @@ const AdminCasaDetail = () => {
         </Card>
 
         <Card className="p-6">
-          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-            <Users className="w-5 h-5" />
-            Membros ({membros.length})
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              Membros ({membros.length})
+            </h2>
+            <Button onClick={() => setShowAddDialog(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Adicionar Membro
+            </Button>
+          </div>
           <div className="space-y-3">
             {membros.map((membro) => (
               <div key={membro.id} className="p-4 bg-muted/50 rounded-lg">
@@ -233,6 +241,13 @@ const AdminCasaDetail = () => {
           </div>
         </Card>
       </main>
+
+      <AddMembroDialog
+        open={showAddDialog}
+        onOpenChange={setShowAddDialog}
+        casaFeId={id!}
+        onSuccess={loadCasaDetails}
+      />
     </div>
   );
 };

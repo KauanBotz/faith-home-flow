@@ -53,19 +53,16 @@ export const StepThree = ({ data, onNext, onBack }: StepThreeProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Validar que pelo menos um membro tem nome
-    const hasValidMembro = membros.some(m => m.nome.trim());
-    if (hasValidMembro) {
-      onNext({ membros: membros.filter(m => m.nome.trim()) });
-    }
+    // Membros são opcionais agora
+    onNext({ membros: membros.filter(m => m.nome.trim()) });
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-2">Cadastro dos Membros</h2>
+        <h2 className="text-2xl font-bold mb-2">Cadastro dos Membros (Opcional)</h2>
         <p className="text-muted-foreground">
-          Quem vai estar na sua Casa de Fé? 🙌
+          Quem vai estar na sua Casa de Fé? 🙌 Você pode adicionar depois se preferir!
         </p>
       </div>
 

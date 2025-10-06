@@ -116,8 +116,21 @@ export const StepFour = ({ data, onSubmit, onBack }: StepFourProps) => {
             onCheckedChange={(checked) => setAcceptTerms(checked === true)}
           />
           <label htmlFor="terms" className="text-sm cursor-pointer">
-            Li e concordo com os termos de uso e políticas de privacidade da MINC. 
-            Autorizo o uso dos meus dados para fins de gestão das Casas de Fé.
+            Li e concordo com as{" "}
+            <button
+              type="button"
+              onClick={() => {
+                const link = document.createElement("a");
+                link.href = "/instrucoes-casa-de-fe.pdf";
+                link.download = "instrucoes-casa-de-fe.pdf";
+                link.click();
+                setAcceptTerms(true);
+              }}
+              className="text-primary font-semibold hover:underline"
+            >
+              instruções da Casa de Fé (clique aqui)
+            </button>
+            {" "}e autorizo o uso dos meus dados para fins de gestão das Casas de Fé.
           </label>
         </div>
       </div>

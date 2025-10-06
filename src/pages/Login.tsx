@@ -113,13 +113,13 @@ const Login = () => {
               )}
             </Button>
 
-            <div className="text-center text-sm pt-6 border-t border-primary/10 space-y-3">
-              <div>
-                <span className="text-muted-foreground">Ainda não tem cadastro? </span>
-                <Link to="/cadastro" className="text-primary font-bold hover:underline transition-all hover:text-accent">
+            <div className="text-center pt-6 border-t border-primary/10 space-y-3">
+              <p className="text-sm text-muted-foreground">Ainda não tem cadastro?</p>
+              <Link to="/cadastro">
+                <Button variant="outline" size="lg" className="w-full border-primary/30 hover:border-primary">
                   Criar Casa de Fé
-                </Link>
-              </div>
+                </Button>
+              </Link>
             </div>
           </form>
         </Card>
