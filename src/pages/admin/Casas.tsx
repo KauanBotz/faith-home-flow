@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Search, Home } from "lucide-react";
+import { ArrowLeft, Search, Home, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 
 interface CasaFe {
@@ -16,6 +16,8 @@ interface CasaFe {
   endereco: string;
   telefone: string;
   email: string;
+  nome_dupla?: string | null;
+  telefone_dupla?: string | null;
 }
 
 const AdminCasas = () => {
@@ -154,14 +156,16 @@ const AdminCasas = () => {
           {filteredCasas.map((casa) => (
             <Card
               key={casa.id}
-              className="p-6 hover:shadow-medium transition-smooth cursor-pointer"
-              onClick={() => navigate(`/admin/casas/${casa.id}`)}
+              className="p-6 hover:shadow-medium transition-smooth"
             >
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <div 
+                  className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 cursor-pointer"
+                  onClick={() => navigate(`/admin/casas/${casa.id}`)}
+                >
                   <Home className="w-6 h-6 text-primary" />
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 cursor-pointer" onClick={() => navigate(`/admin/casas/${casa.id}`)}>
                   <h3 className="font-bold text-lg mb-1">{casa.nome_lider}</h3>
                   <p className="text-sm text-muted-foreground mb-2">
                     {casa.email} • {casa.telefone}
@@ -175,6 +179,36 @@ const AdminCasas = () => {
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground mt-2">{casa.endereco}</p>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const phone = casa.telefone.replace(/\D/g, '');
+                      const message = encodeURIComponent(`Olá ${casa.nome_lider}, tudo bem? Sou da administração da MINC.`);
+                      window.open(`https://wa.me/55${phone}?text=${message}`, '_blank');
+                    }}
+                  >
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    Líder
+                  </Button>
+                  {casa.telefone_dupla && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const phone = casa.telefone_dupla!.replace(/\D/g, '');
+                        const message = encodeURIComponent(`Olá ${casa.nome_dupla || 'dupla'}, tudo bem? Sou da administração da MINC.`);
+                        window.open(`https://wa.me/55${phone}?text=${message}`, '_blank');
+                      }}
+                    >
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Dupla
+                    </Button>
+                  )}
                 </div>
               </div>
             </Card>

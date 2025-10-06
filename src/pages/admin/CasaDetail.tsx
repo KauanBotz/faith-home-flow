@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Home, Users, Calendar, Clock, MapPin, Plus } from "lucide-react";
+import { ArrowLeft, Home, Users, Calendar, Clock, MapPin, Plus, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { AddMembroDialog } from "@/components/admin/AddMembroDialog";
 
@@ -121,6 +121,37 @@ const AdminCasaDetail = () => {
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         <Card className="p-6 mb-6">
+          <div className="flex items-start justify-between mb-6">
+            <h2 className="text-lg font-semibold">Informações da Casa de Fé</h2>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  const phone = casa.telefone.replace(/\D/g, '');
+                  const message = encodeURIComponent(`Olá ${casa.nome_lider}, tudo bem? Sou da administração da MINC.`);
+                  window.open(`https://wa.me/55${phone}?text=${message}`, '_blank');
+                }}
+              >
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Mensagem ao Líder
+              </Button>
+              {casa.telefone_dupla && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    const phone = casa.telefone_dupla!.replace(/\D/g, '');
+                    const message = encodeURIComponent(`Olá ${casa.nome_dupla || 'dupla'}, tudo bem? Sou da administração da MINC.`);
+                    window.open(`https://wa.me/55${phone}?text=${message}`, '_blank');
+                  }}
+                >
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Mensagem à Dupla
+                </Button>
+              )}
+            </div>
+          </div>
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div className="flex items-start gap-3">
@@ -218,13 +249,27 @@ const AdminCasaDetail = () => {
           <div className="space-y-3">
             {membros.map((membro) => (
               <div key={membro.id} className="p-4 bg-muted/50 rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-medium">{membro.nome_completo}</h3>
-                  {membro.aceitou_jesus && (
-                    <span className="bg-success/10 text-success px-2 py-1 rounded-full text-xs">
-                      Convertido
-                    </span>
-                  )}
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1">
+                    <h3 className="font-medium">{membro.nome_completo}</h3>
+                    {membro.aceitou_jesus && (
+                      <span className="bg-success/10 text-success px-2 py-1 rounded-full text-xs">
+                        Convertido
+                      </span>
+                    )}
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      const phone = membro.telefone.replace(/\D/g, '');
+                      const message = encodeURIComponent(`Olá ${membro.nome_completo}, tudo bem? Sou da administração da MINC.`);
+                      window.open(`https://wa.me/55${phone}?text=${message}`, '_blank');
+                    }}
+                  >
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    Mensagem
+                  </Button>
                 </div>
                 <div className="text-sm text-muted-foreground space-y-1">
                   <p>{membro.telefone} • {membro.idade} anos</p>
