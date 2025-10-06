@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Home, Users, Calendar, LogOut, User, MapPin, Clock, Sparkles, TrendingUp, FileText, Heart, UserCheck, MessageCircle, CheckCircle, BookOpen, Download } from "lucide-react";
+import { Home, Users, Calendar, LogOut, User, MapPin, Clock, Sparkles, TrendingUp, FileText, Heart, UserCheck, MessageCircle, CheckCircle, BookOpen, Download, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { AddMembroDialog } from "@/components/admin/AddMembroDialog";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ const Dashboard = () => {
   const [membrosData, setMembrosData] = useState<any[]>([]);
   const [presencasData, setPresencasData] = useState<any[]>([]);
   const [relatoriosPendentes, setRelatoriosPendentes] = useState(0);
+  const [showAddMembro, setShowAddMembro] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -329,62 +331,71 @@ const Dashboard = () => {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6 mb-8">
           <Button
             size="lg"
-            onClick={() => navigate("/membros")}
-            className="h-20 text-lg gradient-primary hover:shadow-glow transition-all hover:scale-[1.02]"
+            onClick={() => setShowAddMembro(true)}
+            className="h-20 gradient-primary hover:shadow-glow transition-all hover:scale-[1.02] flex-col gap-1"
           >
-            <Users className="w-6 h-6 mr-3" />
-            Ver Membros
+            <Plus className="w-7 h-7" />
+            <span className="text-sm font-semibold">Adicionar Membro</span>
+          </Button>
+
+          <Button
+            size="lg"
+            onClick={() => navigate("/membros")}
+            className="h-20 gradient-primary hover:shadow-glow transition-all hover:scale-[1.02] flex-col gap-1"
+          >
+            <Users className="w-7 h-7" />
+            <span className="text-sm font-semibold">Ver Membros</span>
           </Button>
 
           <Button
             variant="outline"
             size="lg"
             onClick={() => navigate("/presenca")}
-            className="h-20 text-lg hover:bg-accent/5 hover:border-accent transition-all hover:scale-[1.02]"
+            className="h-20 hover:bg-accent/5 hover:border-accent transition-all hover:scale-[1.02] flex-col gap-1"
           >
-            <Calendar className="w-6 h-6 mr-3" />
-            Registrar Presença
+            <Calendar className="w-7 h-7" />
+            <span className="text-sm font-semibold">Registrar Presença</span>
           </Button>
 
           <Button
             variant="outline"
             size="lg"
             onClick={() => navigate("/relatorio")}
-            className="h-20 text-lg hover:bg-secondary/5 hover:border-secondary transition-all hover:scale-[1.02]"
+            className="h-20 hover:bg-secondary/5 hover:border-secondary transition-all hover:scale-[1.02] flex-col gap-1"
           >
-            <FileText className="w-6 h-6 mr-3" />
-            Enviar Relatório
+            <FileText className="w-7 h-7" />
+            <span className="text-sm font-semibold">Enviar Relatório</span>
           </Button>
 
           <Button
             variant="outline"
             size="lg"
             onClick={() => navigate("/relatorios")}
-            className="h-20 text-lg hover:bg-primary/5 hover:border-primary transition-all hover:scale-[1.02]"
+            className="h-20 hover:bg-primary/5 hover:border-primary transition-all hover:scale-[1.02] flex-col gap-1"
           >
-            <FileText className="w-6 h-6 mr-3" />
-            Ver Relatórios
+            <FileText className="w-7 h-7" />
+            <span className="text-sm font-semibold">Ver Relatórios</span>
           </Button>
 
           <Button
             variant="outline"
             size="lg"
             onClick={() => navigate("/perfil")}
-            className="h-20 text-lg hover:bg-success/5 hover:border-success transition-all hover:scale-[1.02]"
+            className="h-20 hover:bg-success/5 hover:border-success transition-all hover:scale-[1.02] flex-col gap-1"
           >
-            <User className="w-6 h-6 mr-3" />
-            Editar Perfil
+            <User className="w-7 h-7" />
+            <span className="text-sm font-semibold">Editar Perfil</span>
           </Button>
 
           <Button
             variant="outline"
             size="lg"
             asChild
-            className="h-20 text-base hover:bg-accent/5 hover:border-accent transition-all hover:scale-[1.02] px-3"
+            className="h-20 hover:bg-accent/5 hover:border-accent transition-all hover:scale-[1.02] flex-col gap-1 px-3"
           >
-            <a href="/instrucoes-casa-de-fe.pdf" download="Instrucoes_Casa_de_Fe.pdf" className="flex items-center justify-center gap-2">
-              <BookOpen className="w-5 h-5 flex-shrink-0" />
-              <span className="whitespace-normal text-center leading-tight">Instruções<br />Casa de Fé</span>
+            <a href="/instrucoes-casa-de-fe.pdf" download="Instrucoes_Casa_de_Fe.pdf" className="flex flex-col items-center justify-center gap-1">
+              <BookOpen className="w-6 h-6" />
+              <span className="text-xs font-semibold text-center leading-tight">Instruções<br />Casa de Fé</span>
             </a>
           </Button>
         </div>
@@ -457,6 +468,13 @@ const Dashboard = () => {
           </div>
         </Card>
       </main>
+
+      <AddMembroDialog
+        open={showAddMembro}
+        onOpenChange={setShowAddMembro}
+        casaFeId={casaFe?.id || ""}
+        onSuccess={loadDashboardData}
+      />
     </div>
   );
 };
