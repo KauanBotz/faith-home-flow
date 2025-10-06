@@ -22,6 +22,9 @@ export interface CadastroData {
   rede: string;
   diasSemana: string[];
   horarioReuniao: string;
+  nomeDupla?: string;
+  telefoneDupla?: string;
+  emailDupla?: string;
   
   // Step 3 - Members
   membros: Array<{
@@ -92,6 +95,9 @@ const Cadastro = () => {
           rede: formData.rede!,
           dias_semana: formData.diasSemana || [],
           horario_reuniao: formData.horarioReuniao!,
+          nome_dupla: formData.nomeDupla || null,
+          telefone_dupla: formData.telefoneDupla || null,
+          email_dupla: formData.emailDupla || null,
         })
         .select()
         .single();

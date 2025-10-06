@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CadastroData } from "@/pages/Cadastro";
-import { MapPin, Building, Network, Clock, Calendar } from "lucide-react";
+import { MapPin, Building, Network, Clock, Calendar, Users, Phone, Mail, Info } from "lucide-react";
 
 interface StepTwoProps {
   data: Partial<CadastroData>;
@@ -46,6 +46,9 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
   const [rede, setRede] = useState(data.rede || "");
   const [horarioReuniao, setHorarioReuniao] = useState(data.horarioReuniao || "");
   const [diaSemana, setDiaSemana] = useState<string>(data.diasSemana?.[0] || "");
+  const [nomeDupla, setNomeDupla] = useState(data.nomeDupla || "");
+  const [telefoneDupla, setTelefoneDupla] = useState(data.telefoneDupla || "");
+  const [emailDupla, setEmailDupla] = useState(data.emailDupla || "");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validate = () => {
@@ -69,7 +72,10 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
         campus, 
         rede: campus === "MINC Pampulha" ? rede : "", 
         horarioReuniao,
-        diasSemana: [diaSemana]
+        diasSemana: [diaSemana],
+        nomeDupla: nomeDupla || undefined,
+        telefoneDupla: telefoneDupla || undefined,
+        emailDupla: emailDupla || undefined,
       });
     }
   };
@@ -198,6 +204,68 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
           {errors.diaSemana && (
             <p className="text-destructive text-sm mt-1">{errors.diaSemana}</p>
           )}
+        </div>
+
+        {/* Dados da Dupla */}
+        <div className="border-t pt-6 mt-6">
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Users className="w-5 h-5 text-primary" />
+            Sua Dupla (Opcional)
+          </h3>
+          
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="nomeDupla">Nome da Dupla</Label>
+              <div className="relative mt-1.5">
+                <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  id="nomeDupla"
+                  type="text"
+                  placeholder="Nome completo"
+                  value={nomeDupla}
+                  onChange={(e) => setNomeDupla(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="telefoneDupla">Telefone da Dupla</Label>
+              <div className="relative mt-1.5">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  id="telefoneDupla"
+                  type="tel"
+                  placeholder="(00) 00000-0000"
+                  value={telefoneDupla}
+                  onChange={(e) => setTelefoneDupla(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="emailDupla">Email da Dupla</Label>
+              <div className="relative mt-1.5">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  id="emailDupla"
+                  type="email"
+                  placeholder="email@exemplo.com"
+                  value={emailDupla}
+                  onChange={(e) => setEmailDupla(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+
+            <div className="bg-muted/50 border border-muted rounded-lg p-4 flex gap-3">
+              <Info className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-muted-foreground">
+                Caso você não tenha dupla, entre em contato com o time pastoral.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 

@@ -16,6 +16,9 @@ interface CasaFe {
   email: string;
   horario_reuniao: string;
   dias_semana: string[];
+  nome_dupla?: string | null;
+  telefone_dupla?: string | null;
+  email_dupla?: string | null;
 }
 
 interface Membro {
@@ -167,6 +170,36 @@ const AdminCasaDetail = () => {
               </div>
             </div>
           </div>
+
+          {/* Informações da Dupla */}
+          {(casa.nome_dupla || casa.telefone_dupla || casa.email_dupla) && (
+            <div className="border-t mt-6 pt-6">
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <Users className="w-5 h-5 text-primary" />
+                Dupla
+              </h3>
+              <div className="grid md:grid-cols-3 gap-4">
+                {casa.nome_dupla && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Nome</p>
+                    <p className="font-medium">{casa.nome_dupla}</p>
+                  </div>
+                )}
+                {casa.telefone_dupla && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Telefone</p>
+                    <p className="font-medium">{casa.telefone_dupla}</p>
+                  </div>
+                )}
+                {casa.email_dupla && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Email</p>
+                    <p className="font-medium">{casa.email_dupla}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </Card>
 
         <Card className="p-6">

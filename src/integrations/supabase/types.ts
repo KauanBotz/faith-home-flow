@@ -20,13 +20,16 @@ export type Database = {
           created_at: string
           dias_semana: string[]
           email: string
+          email_dupla: string | null
           endereco: string
           geracao: string
           horario_reuniao: string
           id: string
+          nome_dupla: string | null
           nome_lider: string
           rede: string
           telefone: string
+          telefone_dupla: string | null
           updated_at: string
           user_id: string
         }
@@ -35,13 +38,16 @@ export type Database = {
           created_at?: string
           dias_semana?: string[]
           email: string
+          email_dupla?: string | null
           endereco: string
           geracao?: string
           horario_reuniao: string
           id?: string
+          nome_dupla?: string | null
           nome_lider: string
           rede: string
           telefone: string
+          telefone_dupla?: string | null
           updated_at?: string
           user_id: string
         }
@@ -50,13 +56,16 @@ export type Database = {
           created_at?: string
           dias_semana?: string[]
           email?: string
+          email_dupla?: string | null
           endereco?: string
           geracao?: string
           horario_reuniao?: string
           id?: string
+          nome_dupla?: string | null
           nome_lider?: string
           rede?: string
           telefone?: string
+          telefone_dupla?: string | null
           updated_at?: string
           user_id?: string
         }
