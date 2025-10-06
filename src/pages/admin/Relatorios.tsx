@@ -53,6 +53,16 @@ const AdminRelatorios = () => {
   const [selectedRelatorios, setSelectedRelatorios] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [expandedRelatorios, setExpandedRelatorios] = useState<string[]>([]);
+  
+  // Filtros aplicados (separados dos temporários)
+  const [filtrosAplicados, setFiltrosAplicados] = useState({
+    casa: "todas",
+    campus: "todos",
+    rede: "todas",
+    inicio: "",
+    fim: "",
+    busca: ""
+  });
 
   useEffect(() => {
     checkAdmin();
@@ -120,14 +130,26 @@ const AdminRelatorios = () => {
     }
   };
 
+  const aplicarFiltros = () => {
+    setFiltrosAplicados({
+      casa: casaSelecionada,
+      campus: campusSelecionado,
+      rede: redeSelecionada,
+      inicio: periodoInicio,
+      fim: periodoFim,
+      busca: searchTerm
+    });
+    toast.success("Filtros aplicados!");
+  };
+
   // Filtros aplicados
   const relatoriosFiltrados = relatorios.filter(r => {
-    if (casaSelecionada !== "todas" && r.casa_fe_id !== casaSelecionada) return false;
-    if (campusSelecionado !== "todos" && r.casas_fe?.campus !== campusSelecionado) return false;
-    if (redeSelecionada !== "todas" && r.casas_fe?.rede !== redeSelecionada) return false;
-    if (periodoInicio && r.data_reuniao < periodoInicio) return false;
-    if (periodoFim && r.data_reuniao > periodoFim) return false;
-    if (searchTerm && !r.casas_fe?.nome_lider.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+    if (filtrosAplicados.casa !== "todas" && r.casa_fe_id !== filtrosAplicados.casa) return false;
+    if (filtrosAplicados.campus !== "todos" && r.casas_fe?.campus !== filtrosAplicados.campus) return false;
+    if (filtrosAplicados.rede !== "todas" && r.casas_fe?.rede !== filtrosAplicados.rede) return false;
+    if (filtrosAplicados.inicio && r.data_reuniao < filtrosAplicados.inicio) return false;
+    if (filtrosAplicados.fim && r.data_reuniao > filtrosAplicados.fim) return false;
+    if (filtrosAplicados.busca && !r.casas_fe?.nome_lider.toLowerCase().includes(filtrosAplicados.busca.toLowerCase())) return false;
     return true;
   });
 
@@ -327,6 +349,14 @@ const AdminRelatorios = () => {
     setPeriodoInicio("");
     setPeriodoFim("");
     setSearchTerm("");
+    setFiltrosAplicados({
+      casa: "todas",
+      campus: "todos",
+      rede: "todas",
+      inicio: "",
+      fim: "",
+      busca: ""
+    });
     toast.success("Filtros limpos!");
   };
 
@@ -503,10 +533,16 @@ const AdminRelatorios = () => {
                 <div className="text-sm text-muted-foreground">
                   <span className="font-bold text-foreground">{relatoriosFiltrados.length}</span> relatórios encontrados
                 </div>
-                <Button variant="outline" onClick={limparFiltros} className="gap-2">
-                  <X className="w-4 h-4" />
-                  Limpar Filtros
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={limparFiltros} className="gap-2">
+                    <X className="w-4 h-4" />
+                    Limpar
+                  </Button>
+                  <Button onClick={aplicarFiltros} className="gap-2 gradient-primary">
+                    <Filter className="w-4 h-4" />
+                    Aplicar Filtros
+                  </Button>
+                </div>
               </div>
             </div>
           )}
@@ -530,8 +566,8 @@ const AdminRelatorios = () => {
                 <FileText className="w-6 h-6 text-accent" />
               </div>
             </div>
-            <p className="text-3xl font-bold mb-1">{relatorios.length}</p>
-            <p className="text-sm text-muted-foreground">Relatórios Enviados</p>
+            <p className="text-3xl font-bold mb-1">{relatoriosFiltrados.length}</p>
+            <p className="text-sm text-muted-foreground">Relatórios (Filtrados)</p>
           </Card>
 
           <Card className="p-6 shadow-medium hover:shadow-glow transition-all">
@@ -557,6 +593,19 @@ const AdminRelatorios = () => {
           </Card>
         </div>
 
+        {relatoriosFiltrados.length === 0 ? (
+          <Card className="p-12 shadow-medium text-center mb-8">
+            <FileText className="w-20 h-20 mx-auto mb-4 text-muted-foreground opacity-30" />
+            <h3 className="text-xl font-bold mb-2">Nenhum relatório encontrado</h3>
+            <p className="text-muted-foreground mb-4">
+              Ajuste os filtros ou aguarde que os líderes enviem relatórios das reuniões.
+            </p>
+            <Button variant="outline" onClick={limparFiltros}>
+              Limpar Filtros
+            </Button>
+          </Card>
+        ) : (
+          <>
         {/* GRÁFICOS - Grid de 2 colunas */}
         <div className="grid gap-6 lg:grid-cols-2 mb-8">
           {/* Gráfico 1: Relatórios por Campus */}
@@ -712,6 +761,8 @@ const AdminRelatorios = () => {
             </BarChart>
           </ResponsiveContainer>
         </Card>
+          </>
+        )}
 
         {/* Lista de Relatórios */}
         <Card className="p-6 shadow-medium">
