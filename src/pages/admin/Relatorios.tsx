@@ -23,6 +23,7 @@ import jsPDF from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const COLORS = [
   'hsl(var(--primary))',
@@ -593,21 +594,36 @@ const AdminRelatorios = () => {
           </Card>
         </div>
 
-        {relatoriosFiltrados.length === 0 ? (
-          <Card className="p-12 shadow-medium text-center mb-8">
-            <FileText className="w-20 h-20 mx-auto mb-4 text-muted-foreground opacity-30" />
-            <h3 className="text-xl font-bold mb-2">Nenhum relatório encontrado</h3>
-            <p className="text-muted-foreground mb-4">
-              Ajuste os filtros ou aguarde que os líderes enviem relatórios das reuniões.
-            </p>
-            <Button variant="outline" onClick={limparFiltros}>
-              Limpar Filtros
-            </Button>
-          </Card>
-        ) : (
-          <>
-        {/* GRÁFICOS - Grid de 2 colunas */}
-        <div className="grid gap-6 lg:grid-cols-2 mb-8">
+        {/* TABS: Gráficos e Relatórios */}
+        <Tabs defaultValue="graficos" className="w-full">
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-6">
+            <TabsTrigger value="graficos" className="gap-2">
+              <BarChart3 className="w-4 h-4" />
+              Gráficos
+            </TabsTrigger>
+            <TabsTrigger value="relatorios" className="gap-2">
+              <FileText className="w-4 h-4" />
+              Relatórios Detalhados
+            </TabsTrigger>
+          </TabsList>
+
+          {/* ABA GRÁFICOS */}
+          <TabsContent value="graficos">
+            {relatoriosFiltrados.length === 0 ? (
+              <Card className="p-12 shadow-medium text-center mb-8">
+                <BarChart3 className="w-20 h-20 mx-auto mb-4 text-muted-foreground opacity-30" />
+                <h3 className="text-xl font-bold mb-2">Sem dados para gráficos</h3>
+                <p className="text-muted-foreground mb-4">
+                  Ajuste os filtros ou aguarde que os líderes enviem relatórios.
+                </p>
+                <Button variant="outline" onClick={limparFiltros}>
+                  Limpar Filtros
+                </Button>
+              </Card>
+            ) : (
+              <>
+                {/* GRÁFICOS - Grid de 2 colunas */}
+                <div className="grid gap-6 lg:grid-cols-2 mb-8">
           {/* Gráfico 1: Relatórios por Campus */}
           <Card className="p-6 shadow-medium">
             <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
@@ -761,9 +777,12 @@ const AdminRelatorios = () => {
             </BarChart>
           </ResponsiveContainer>
         </Card>
-          </>
-        )}
+              </>
+            )}
+          </TabsContent>
 
+          {/* ABA RELATÓRIOS DETALHADOS */}
+          <TabsContent value="relatorios">
         {/* Lista de Relatórios */}
         <Card className="p-6 shadow-medium">
           <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
@@ -865,6 +884,8 @@ const AdminRelatorios = () => {
             </div>
           )}
         </Card>
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
