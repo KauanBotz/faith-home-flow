@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Home, Users, Calendar, AlertCircle, LogOut, BarChart3, TrendingUp, Activity, Heart, UserCheck, MessageCircle } from "lucide-react";
+import { Home, Users, Calendar, AlertCircle, LogOut, BarChart3, TrendingUp, Activity, Heart, UserCheck, MessageCircle, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 
@@ -206,37 +206,34 @@ const AdminDashboard = () => {
         setCasasPorCampus(casasPorCampusData);
       }
 
-      // Evolução de membros - semana a semana do último mês
-      const hoje = new Date();
-      const umMesAtras = new Date(hoje);
-      umMesAtras.setDate(hoje.getDate() - 30);
+      // Evolução de membros - do dia 20/10 até 14/11
+      const dataInicio = new Date('2024-10-20');
+      const dataFim = new Date('2024-11-14');
       
-      // Buscar todos os membros criados no último mês
-      const { data: membrosUltimoMes } = await supabase
+      // Buscar todos os membros criados nesse período
+      const { data: membrosPeriodo } = await supabase
         .from("membros")
         .select("created_at")
-        .gte("created_at", umMesAtras.toISOString())
+        .gte("created_at", dataInicio.toISOString())
+        .lte("created_at", dataFim.toISOString())
         .order("created_at");
       
-      // Agrupar por semana
-      const semanas: Record<string, number> = {};
+      // Gerar as semanas do período
       const semanasOrdenadas: { inicio: Date; label: string }[] = [];
+      let dataAtual = new Date(dataInicio);
       
-      // Gerar as semanas do último mês
-      for (let i = 0; i < 5; i++) {
-        const inicioSemana = new Date(umMesAtras);
-        inicioSemana.setDate(umMesAtras.getDate() + (i * 7));
-        const label = `Semana ${inicioSemana.getDate().toString().padStart(2, '0')}/${(inicioSemana.getMonth() + 1).toString().padStart(2, '0')}`;
-        semanas[label] = 0;
-        semanasOrdenadas.push({ inicio: inicioSemana, label });
+      while (dataAtual <= dataFim) {
+        const label = `${dataAtual.getDate().toString().padStart(2, '0')}/${(dataAtual.getMonth() + 1).toString().padStart(2, '0')}`;
+        semanasOrdenadas.push({ inicio: new Date(dataAtual), label });
+        dataAtual.setDate(dataAtual.getDate() + 7);
       }
       
       // Contar membros acumulados até cada semana
-      if (membrosUltimoMes) {
+      if (membrosPeriodo) {
         const { count: totalMembrosAteInicio } = await supabase
           .from("membros")
           .select("*", { count: "exact", head: true })
-          .lte("created_at", umMesAtras.toISOString());
+          .lte("created_at", dataInicio.toISOString());
         
         let acumulado = totalMembrosAteInicio || 0;
         
@@ -244,7 +241,7 @@ const AdminDashboard = () => {
           const fimSemana = new Date(inicio);
           fimSemana.setDate(inicio.getDate() + 7);
           
-          const membrosNaSemana = (membrosUltimoMes || []).filter(m => {
+          const membrosNaSemana = (membrosPeriodo || []).filter(m => {
             const dataCriacao = new Date(m.created_at);
             return dataCriacao >= inicio && dataCriacao < fimSemana;
           }).length;
@@ -453,7 +450,7 @@ const AdminDashboard = () => {
           <Card className="p-6 shadow-medium">
             <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
               <TrendingUp className="w-6 h-6 text-accent" />
-              Evolução de Membros (Último Mês)
+              Evolução de Membros (20/10 - 14/11)
             </h2>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={evolucaoMembros}>
@@ -482,7 +479,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Ações Rápidas */}
-        <div className="grid gap-4 md:grid-cols-3 mb-8">
+        <div className="grid gap-4 md:grid-cols-4 mb-8">
           <Button
             size="lg"
             onClick={() => navigate("/admin/casas")}
@@ -511,11 +508,22 @@ const AdminDashboard = () => {
             <BarChart3 className="w-6 h-6 mr-3" />
             Relatórios & Analytics
           </Button>
+
+          <Button
+            variant="outline"
+            size="lg"
+            asChild
+            className="h-20 text-base hover:bg-accent/5 hover:border-accent transition-all px-3"
+          >
+            <a href="/instrucoes-casa-de-fe.pdf" download="Instrucoes_Casa_de_Fe.pdf" className="flex items-center justify-center gap-2">
+              <BookOpen className="w-5 h-5 flex-shrink-0" />
+              <span className="whitespace-normal text-center leading-tight">Instruções<br />Casa de Fé</span>
+            </a>
+          </Button>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2 mb-8">
-          {/* Casas Pendentes de Relatório */}
-          <Card className="p-6 shadow-medium" id="casas-pendentes">
+        {/* Casas Pendentes de Relatório */}
+        <Card className="p-6 shadow-medium mb-8" id="casas-pendentes">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-2xl font-bold flex items-center gap-3">
@@ -581,65 +589,6 @@ const AdminDashboard = () => {
               )}
             </div>
           </Card>
-
-          {/* Últimas Casas Cadastradas */}
-          <Card className="p-6 shadow-medium">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-2xl font-bold flex items-center gap-3">
-                  <Calendar className="w-6 h-6 text-primary" />
-                  Casas Recentes
-                </h2>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Últimas casas cadastradas
-                </p>
-              </div>
-              <Button variant="outline" onClick={() => navigate("/admin/casas")}>
-                Ver Todas
-              </Button>
-            </div>
-
-            <div className="space-y-3">
-              {casasRecentes.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  <Home className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>Nenhuma casa cadastrada ainda</p>
-                </div>
-              ) : (
-                casasRecentes.map((casa) => (
-                  <div
-                    key={casa.id}
-                    className="flex items-center justify-between p-4 bg-muted/30 rounded-xl hover:bg-muted/50 cursor-pointer transition-all group"
-                    onClick={() => navigate(`/admin/casas/${casa.id}`)}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center text-white font-bold text-lg shadow-glow">
-                        {casa.nome_lider.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <p className="font-bold text-lg group-hover:text-primary transition-colors">
-                          {casa.nome_lider}
-                        </p>
-                        <div className="flex items-center gap-3 mt-1">
-                          <span className="text-sm text-muted-foreground">
-                            <span className="font-semibold text-foreground">{casa.geracao || 'Primeira'}</span>
-                          </span>
-                          <span className="text-muted-foreground">•</span>
-                          <span className="text-sm text-muted-foreground">
-                            {casa.campus} {casa.rede && `- ${casa.rede}`}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {new Date(casa.created_at).toLocaleDateString('pt-BR')}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </Card>
-        </div>
       </main>
     </div>
   );

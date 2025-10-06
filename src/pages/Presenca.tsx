@@ -72,15 +72,6 @@ const Presenca = () => {
   };
 
   const handleSavePresencas = async () => {
-    // Validar dia da semana
-    const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
-    const diaHoje = diasSemana[getDay(hoje)];
-    
-    if (!casaFe?.dias_semana?.includes(diaHoje)) {
-      toast.error(`Sua Casa de Fé só pode registrar presença em ${casaFe?.dias_semana?.join(', ')}. Hoje é ${diaHoje}.`);
-      return;
-    }
-
     setSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
