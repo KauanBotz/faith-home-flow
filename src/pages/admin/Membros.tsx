@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Search, Users } from "lucide-react";
+import { ArrowLeft, Search, Users, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 
 interface Membro {
@@ -195,6 +195,18 @@ const AdminMembros = () => {
                       <p className="text-sm text-muted-foreground italic mt-2">"{membro.notas}"</p>
                     )}
                   </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      const phone = membro.telefone.replace(/\D/g, '');
+                      const message = encodeURIComponent(`Olá ${membro.nome_completo}, tudo bem? Sou da administração da MINC.`);
+                      window.open(`https://wa.me/55${phone}?text=${message}`, '_blank');
+                    }}
+                  >
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    Mensagem
+                  </Button>
                 </div>
               </Card>
             );
