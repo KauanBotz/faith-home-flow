@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { ArrowLeft, Save, CheckCircle2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { format, getDay } from "date-fns";
@@ -18,8 +19,9 @@ const Presenca = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [casaFe, setCasaFe] = useState<any>(null);
+  const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [historico, setHistorico] = useState<Record<string, string[]>>({});
   const hoje = new Date();
-
   useEffect(() => {
     loadMembros();
   }, []);
@@ -71,18 +73,76 @@ const Presenca = () => {
     }
   };
 
+  // Recarrega presenças já salvas quando a data muda
+  useEffect(() => {
+    const carregar = async () => {
+      if (membros.length === 0) return;
+      try {
+        const membroIds = membros.map(m => m.id);
+        const { data: presencasDia } = await supabase
+          .from("presencas")
+          .select("membro_id")
+          .in("membro_id", membroIds)
+          .eq("data_reuniao", selectedDate)
+          .eq("presente", true);
+
+        const presMap: Record<string, boolean> = {};
+        membros.forEach((m) => { presMap[m.id] = false; });
+        presencasDia?.forEach((p: any) => { presMap[p.membro_id] = true; });
+        setPresencas(presMap);
+      } catch (e) {
+        console.error("Erro ao carregar presenças da data:", e);
+      }
+    };
+    carregar();
+  }, [selectedDate, membros]);
+
+  // Carregar histórico de presenças
+  useEffect(() => {
+    const carregarHistorico = async () => {
+      if (!casaFe || membros.length === 0) return;
+      try {
+        const membroIds = membros.map((m) => m.id);
+        const { data: presencasHist } = await supabase
+          .from("presencas")
+          .select("membro_id, data_reuniao")
+          .in("membro_id", membroIds)
+          .eq("presente", true)
+          .order("data_reuniao", { ascending: false })
+          .limit(200);
+
+        const map: Record<string, string[]> = {};
+        presencasHist?.forEach((p: any) => {
+          const nome = membros.find((m) => m.id === p.membro_id)?.nome_completo || "Membro";
+          if (!map[p.data_reuniao]) map[p.data_reuniao] = [];
+          map[p.data_reuniao].push(nome);
+        });
+        setHistorico(map);
+      } catch (e) {
+        console.error("Erro ao carregar histórico:", e);
+      }
+    };
+    carregarHistorico();
+  }, [casaFe, membros]);
+
   const handleSavePresencas = async () => {
     setSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      if (!selectedDate) {
+        toast.error("Selecione a data da reunião.");
+        setSaving(false);
+        return;
+      }
+
       // Salvar presenças - apenas membros marcados como presentes
       const presencasData = Object.entries(presencas)
         .filter(([_, presente]) => presente) // Apenas salvar quem está presente
         .map(([membroId, presente]) => ({
           membro_id: membroId,
-          data_reuniao: format(hoje, "yyyy-MM-dd"),
+          data_reuniao: selectedDate,
           presente: true,
         }));
 
@@ -119,26 +179,9 @@ const Presenca = () => {
 
       await Promise.all(updatePromises);
 
-      // Criar relatório automaticamente
-      const { data: relatorioExistente } = await supabase
-        .from("relatorios")
-        .select("id")
-        .eq("casa_fe_id", casaFe.id)
-        .eq("data_reuniao", format(hoje, "yyyy-MM-dd"))
-        .maybeSingle();
+      toast.success("Presenças salvas! Agora preencha o relatório.");
+      navigate(`/relatorio?data=${selectedDate}`);
 
-      if (!relatorioExistente) {
-        await supabase
-          .from("relatorios")
-          .insert({
-            casa_fe_id: casaFe.id,
-            data_reuniao: format(hoje, "yyyy-MM-dd"),
-            notas: "",
-          });
-      }
-
-      toast.success("Presenças salvas! Não esqueça de preencher o relatório.");
-      navigate("/relatorio");
     } catch (error: any) {
       console.error("Error saving presencas:", error);
       toast.error("Erro ao salvar presenças");
@@ -177,6 +220,17 @@ const Presenca = () => {
       </header>
 
       <main className="max-w-3xl mx-auto px-4 py-6">
+        <Card className="p-5 mb-6 shadow-soft">
+          <div>
+            <label className="text-sm font-medium">Data da Reunião</label>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="mt-2 w-full h-11 px-3 rounded-md border border-input bg-background"
+            />
+          </div>
+        </Card>
         <Card className="p-5 mb-6 shadow-soft gradient-primary text-white">
           <div className="flex items-center justify-between">
             <div>
@@ -275,6 +329,22 @@ const Presenca = () => {
                 </Card>
               ))}
             </div>
+
+            {Object.keys(historico).length > 0 && (
+              <Card className="p-5 mb-6 shadow-soft">
+                <h3 className="font-semibold mb-3">Histórico de Presenças</h3>
+                <div className="space-y-3">
+                  {Object.entries(historico).slice(0, 6).map(([data, nomes]) => (
+                    <div key={data} className="text-sm">
+                      <div className="font-medium">
+                        {format(new Date(data + "T00:00:00"), "dd 'de' MMMM", { locale: ptBR })} • {nomes.length} presentes
+                      </div>
+                      <div className="text-muted-foreground">{nomes.join(", ")}</div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
 
             <Button
               size="lg"

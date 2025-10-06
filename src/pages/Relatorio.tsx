@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,6 +12,7 @@ import { ptBR } from "date-fns/locale";
 
 const Relatorio = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [casaFe, setCasaFe] = useState<any>(null);
@@ -60,19 +61,28 @@ const Relatorio = () => {
         // Verificar quais datas já têm relatório
         const { data: relatorios } = await supabase
           .from("relatorios")
-          .select("data_reuniao")
+          .select("data_reuniao, notas")
           .eq("casa_fe_id", casaData.id);
 
-        const datasComRelatorio = relatorios?.map(r => r.data_reuniao) || [];
+        const datasComRelatorioPreenchido = relatorios
+          ?.filter((r) => r.notas && r.notas.trim() !== "")
+          .map((r) => r.data_reuniao) || [];
         
-        // Filtrar apenas datas sem relatório
-        const datasSemRelatorio = datasUnicas.filter(
-          data => !datasComRelatorio.includes(data)
+        // Datas com presença e SEM relatório preenchido
+        const datasPendentes = datasUnicas.filter(
+          (data) => !datasComRelatorioPreenchido.includes(data)
         );
 
-        setDatasDisponiveis(datasSemRelatorio);
-        if (datasSemRelatorio.length > 0) {
-          setDataSelecionada(datasSemRelatorio[0]);
+        setDatasDisponiveis(datasPendentes);
+
+        // Pré-selecionar data vinda da URL (se disponível)
+        const params = new URLSearchParams(location.search);
+        const dataParam = params.get("data");
+        
+        if (dataParam && datasPendentes.includes(dataParam)) {
+          setDataSelecionada(dataParam);
+        } else if (datasPendentes.length > 0) {
+          setDataSelecionada(datasPendentes[0]);
         }
       }
     } catch (error: any) {
