@@ -25,10 +25,11 @@ const campusOptions = [
 
 const redeOptions = [
   "Gerar",
+  "Gerações",
   "Ative",
   "Avance",
   "Nexo",
-  "Plug",
+  "Plug"
 ];
 
 const diasDaSemana = [
@@ -266,7 +267,15 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
             <div className="bg-muted/50 border border-muted rounded-lg p-4 flex gap-3">
               <Info className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
               <p className="text-sm text-muted-foreground">
-                Caso você não tenha dupla, entre em contato com o time pastoral.
+                Caso você não tenha dupla, entre em contato com a{" "}
+                <a 
+                  href="https://wa.me/5531975410027" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline font-medium"
+                >
+                  Secretaria MINC
+                </a>.
               </p>
             </div>
           </div>

@@ -62,7 +62,7 @@ export const StepThree = ({ data, onNext, onBack }: StepThreeProps) => {
       <div>
         <h2 className="text-2xl font-bold mb-2">Cadastro dos Membros (Opcional)</h2>
         <p className="text-muted-foreground">
-          Quem vai estar na sua Casa de Fé? 🙌 Você pode adicionar depois se preferir!
+          Quem vai estar na sua Casa de Fé? Você pode adicionar depois se preferir!
         </p>
       </div>
 

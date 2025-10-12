@@ -115,7 +115,7 @@ const Dashboard = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    toast.success("Até logo!");
+    toast.success("Até logo! Graça e Paz.");
     navigate("/login");
   };
 
@@ -169,13 +169,16 @@ const Dashboard = () => {
       <header className="bg-card/95 backdrop-blur-sm shadow-soft border-b sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 py-5">
           <div className="flex items-center justify-between">
+           <div className="flex items-center gap-3">
+              <img src="../favicon.png" alt="" className="w-10 h-10" />
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 Minha Casa de Fé
               </h1>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-sm text-muted-foreground">
                 Bem-vindo, {casaFe?.nome_lider}
               </p>
+            </div>
             </div>
             <Button 
               variant="outline" 

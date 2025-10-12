@@ -266,7 +266,7 @@ const AdminDashboard = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    toast.success("Até logo!");
+    toast.success("Até logo! Graça e Paz.");
     navigate("/login");
   };
 
@@ -287,6 +287,8 @@ const AdminDashboard = () => {
       <header className="bg-card shadow-soft border-b sticky top-0 z-10 backdrop-blur-sm bg-card/95">
         <div className="max-w-7xl mx-auto px-4 py-5">
           <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img src="../favicon.png" alt="" className="w-10 h-10" />
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 Dashboard Admin
@@ -295,6 +297,7 @@ const AdminDashboard = () => {
                 Bem-vindo ao painel de controle
               </p>
             </div>
+          </div>
             <Button variant="outline" onClick={handleLogout} className="gap-2">
               <LogOut className="w-4 h-4" />
               Sair

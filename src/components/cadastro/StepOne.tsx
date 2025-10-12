@@ -45,7 +45,7 @@ export const StepOne = ({ data, onNext }: StepOneProps) => {
       <div>
         <h2 className="text-2xl font-bold mb-2">Seus Dados</h2>
         <p className="text-muted-foreground">
-          Vamos começar conhecendo você melhor 👋
+          Vamos começar conhecendo você melhor.
         </p>
       </div>
 

@@ -141,17 +141,6 @@ export const AddMembroDialog = ({ open, onOpenChange, casaFeId, onSuccess }: Add
             </div>
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-            <Label htmlFor="convertido" className="cursor-pointer">
-              Já é convertido?
-            </Label>
-            <Switch
-              id="convertido"
-              checked={formData.aceitou_jesus}
-              onCheckedChange={(checked) => setFormData({ ...formData, aceitou_jesus: checked })}
-            />
-          </div>
-
           <div>
             <Label htmlFor="notas">Notas (opcional)</Label>
             <Textarea

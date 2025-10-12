@@ -19,8 +19,8 @@ const NotFound = () => {
       <div className="text-center relative z-10 max-w-2xl">
         {/* 404 Icon */}
         <div className="mb-8 relative inline-block">
-          <div className="w-32 h-32 mx-auto rounded-3xl gradient-primary flex items-center justify-center shadow-glow animate-pulse">
-            <Search className="w-16 h-16 text-white" />
+          <div className="w-32 h-32 mx-auto rounded-3xl flex items-center justify-center">
+            <img src="../favicon.png" alt="" />
           </div>
           <Sparkles className="absolute -top-4 -right-4 w-8 h-8 text-accent animate-bounce" />
           <Sparkles className="absolute -bottom-2 -left-2 w-6 h-6 text-primary animate-bounce delay-150" />

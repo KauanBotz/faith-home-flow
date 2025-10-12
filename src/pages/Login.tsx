@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Mail, Lock, Home, Sparkles } from "lucide-react";
+import { Mail, Lock, Sparkles } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -26,9 +26,8 @@ const Login = () => {
 
       if (error) throw error;
 
-      toast.success("Login realizado com sucesso!");
+      toast.success("Login realizado. Graça e paz!");
       
-      // Check if admin
       if (email === "admin@mincbh.com.br") {
         navigate("/admin/dashboard");
       } else {
@@ -42,22 +41,21 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen gradient-subtle flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Decorative Elements */}
+    <div className="min-h-screen gradient-subtle flex flex-col items-center justify-center p-4 relative overflow-hidden">
       <div className="absolute top-0 left-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
       
       <div className="w-full max-w-md relative z-10">
         <Card className="p-8 shadow-glow border-primary/10 backdrop-blur-sm bg-card/95">
           <div className="text-center mb-8">
-            <div className="w-20 h-20 mx-auto mb-4 rounded-2xl gradient-primary flex items-center justify-center shadow-glow animate-fade-in">
-              <Home className="w-10 h-10 text-white" />
+            <div className="w-[140px] h-[140px] mx-auto rounded-2xl flex items-center justify-center animate-fade-in">              
+              <img src="icon.png" alt="" />
             </div>
-            <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Bem-vindo de volta!
             </h1>
-            <p className="text-muted-foreground text-lg">
-              Entre na sua Casa de Fé
+          <p className="text-muted-foreground text-xs flex items-center justify-center gap-2">
+              Minha Igreja Na Cidade.
             </p>
           </div>
 
@@ -108,21 +106,40 @@ const Login = () => {
               ) : (
                 <>
                   Entrar
-                  <Sparkles className="w-5 h-5 ml-2" />
                 </>
               )}
             </Button>
 
-            <div className="text-center pt-6 border-t border-primary/10 space-y-3">
+            <div className="text-center pt-6 border-t border-primary/10 space-y-4">
               <p className="text-sm text-muted-foreground">Ainda não tem cadastro?</p>
-              <Link to="/cadastro">
-                <Button variant="outline" className="w-full border-primary/30 hover:border-primary">
+              <Link to="/cadastro" className="block">
+                <Button 
+                  variant="outline" 
+                  size="lg"
+                  className="w-full h-12 border-2 border-primary/40 hover:border-primary bg-primary/5 hover:bg-primary/10 text-primary font-semibold transition-all hover:scale-[1.02] hover:shadow-lg"
+                >
+                  <Sparkles className="w-5 h-5 mr-2" />
                   Criar Casa de Fé
                 </Button>
               </Link>
             </div>
           </form>
         </Card>
+
+      <div className="mt-8 text-center">
+          <p className="text-xs text-muted-foreground/70">
+            Feito com 💛 por{" "}
+            <a 
+              href="https://linkedin.com/in/kauanvaaz" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary hover:text-accent transition-colors font-medium hover:underline"
+            >
+              Kauan Gabriel
+            </a>
+          </p>
+        </div>
+
       </div>
     </div>
   );

@@ -165,9 +165,9 @@ const Cadastro = () => {
           >
             ← Voltar para Login
           </Button>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
-            <Home className="w-8 h-8" />
-            Bora abrir uma Casa de Fé!
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-3">
+            <img src="favicon.png" alt="" className="w-8 h-8" />
+            VAMOS DAR START NA SUA CASA DE FÉ! 
           </h1>
           <p className="text-muted-foreground mt-1">
             Vamos começar essa jornada juntos
@@ -221,7 +221,7 @@ const Cadastro = () => {
       </div>
 
       {/* Content */}
-      <div className="flex-1 px-4 pb-8">
+      <div className="flex-1 px-4">
         <div className="max-w-4xl mx-auto">
           <Card className="p-6 md:p-8 shadow-medium">
             {currentStep === 1 && (
@@ -268,8 +268,8 @@ const Cadastro = () => {
       </div>
 
       {/* Footer */}
-      <footer className="p-4 text-center text-sm text-muted-foreground">
-        <p>MINC - Minha Igreja Na Cidade © 2024</p>
+      <footer className="p-5 text-center text-sm text-muted-foreground">
+        <p>MINC - Minha Igreja Na Cidade © 2025</p>
       </footer>
     </div>
   );
