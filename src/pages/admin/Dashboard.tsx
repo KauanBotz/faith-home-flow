@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Home, Users, Calendar, AlertCircle, LogOut, BarChart3, TrendingUp, Activity, Heart, UserCheck, MessageCircle, BookOpen } from "lucide-react";
+import { Home, Users, Calendar, AlertCircle, LogOut, BarChart3, TrendingUp, Activity, Heart, UserCheck, MessageCircle, BookOpen, BookMarked } from "lucide-react";
 import { toast } from "sonner";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
+import { PalavraPastorDialog } from "@/components/dashboard/PalavraPastorDialog";
 
 const COLORS = [
   'hsl(var(--primary))',
@@ -46,6 +47,8 @@ const AdminDashboard = () => {
   const [reconciliouCount, setReconciliouCount] = useState(0);
   const [casasPorCampus, setCasasPorCampus] = useState<any[]>([]);
   const [evolucaoMembros, setEvolucaoMembros] = useState<any[]>([]);
+  const [showPalavraDialog, setShowPalavraDialog] = useState(false);
+  const [palavraToEdit, setPalavraToEdit] = useState<any>(null);
 
   useEffect(() => {
     checkAdminAuth();
@@ -553,6 +556,18 @@ const AdminDashboard = () => {
               <span className="whitespace-normal text-center leading-tight">Instruções<br />Casa de Fé</span>
             </a>
           </Button>
+
+          <Button
+            size="lg"
+            onClick={() => {
+              setPalavraToEdit(null);
+              setShowPalavraDialog(true);
+            }}
+            className="h-20 text-lg gradient-primary hover:shadow-glow transition-all"
+          >
+            <BookMarked className="w-6 h-6 mr-3" />
+            Palavra do Pastor
+          </Button>
         </div>
 
         {/* Casas Pendentes de Relatório */}
@@ -623,6 +638,16 @@ const AdminDashboard = () => {
             </div>
           </Card>
       </main>
+
+      <PalavraPastorDialog
+        open={showPalavraDialog}
+        onOpenChange={setShowPalavraDialog}
+        palavra={palavraToEdit}
+        onSaved={() => {
+          setPalavraToEdit(null);
+          loadDashboardData();
+        }}
+      />
     </div>
   );
 };

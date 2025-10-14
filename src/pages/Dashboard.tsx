@@ -3,10 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Home, Users, Calendar, LogOut, User, MapPin, Clock, Sparkles, TrendingUp, FileText, Heart, UserCheck, MessageCircle, CheckCircle, BookOpen, Download, Plus } from "lucide-react";
+import { Home, Users, Calendar, LogOut, User, MapPin, Clock, Sparkles, TrendingUp, FileText, Heart, UserCheck, MessageCircle, CheckCircle, BookOpen, Download, Plus, BookMarked, Pen, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { AddMembroDialog } from "@/components/admin/AddMembroDialog";
+import { TestemunhoDialog } from "@/components/dashboard/TestemunhoDialog";
+import { OracaoDialog } from "@/components/dashboard/OracaoDialog";
+import ReactMarkdown from "react-markdown";
+import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -19,6 +25,15 @@ const Dashboard = () => {
   const [presencasData, setPresencasData] = useState<any[]>([]);
   const [relatoriosPendentes, setRelatoriosPendentes] = useState(0);
   const [showAddMembro, setShowAddMembro] = useState(false);
+  const [showTestemunho, setShowTestemunho] = useState(false);
+  const [showOracao, setShowOracao] = useState(false);
+  const [palavraPastor, setPalavraPastor] = useState<any>(null);
+  const [testemunhos, setTestemunhos] = useState<any[]>([]);
+  const [oracoes, setOracoes] = useState<any[]>([]);
+  const [showHistoricoTestemunhos, setShowHistoricoTestemunhos] = useState(false);
+  const [showHistoricoOracoes, setShowHistoricoOracoes] = useState(false);
+  const [showHistoricoPalavra, setShowHistoricoPalavra] = useState(false);
+  const [palavrasAnteriores, setPalavrasAnteriores] = useState<any[]>([]);
 
   useEffect(() => {
     checkAuth();
@@ -47,6 +62,8 @@ const Dashboard = () => {
       setCasaFe(casaData);
 
       if (casaData) {
+        // ... keep existing code (membros, presenças, relatórios pendentes)
+        
         const { data: membrosData, count } = await supabase
           .from("membros")
           .select("*", { count: "exact" })
@@ -55,13 +72,11 @@ const Dashboard = () => {
         setMembrosCount(count || 0);
         setMembrosData(membrosData || []);
 
-        // Contar aceitou jesus e reconciliou
         const aceitouCount = (membrosData || []).filter(m => m.aceitou_jesus).length;
         const reconciliouCount = (membrosData || []).filter(m => m.reconciliou_jesus).length;
         setAceitouJesusCount(aceitouCount);
         setReconciliouCount(reconciliouCount);
 
-        // Buscar presenças
         const membroIds = (membrosData || []).map(m => m.id);
         if (membroIds.length > 0) {
           const { data: presencasData } = await supabase
@@ -73,7 +88,6 @@ const Dashboard = () => {
           setPresencasData(presencasData || []);
         }
 
-        // Verificar relatórios pendentes: presenças marcadas sem relatório preenchido
         const { data: presencas } = await supabase
           .from("presencas")
           .select("data_reuniao")
@@ -82,21 +96,17 @@ const Dashboard = () => {
           .order("data_reuniao", { ascending: false });
 
         if (presencas && presencas.length > 0) {
-          // Pegar datas únicas
           const datasPresenca = [...new Set(presencas.map(p => p.data_reuniao))];
           
-          // Verificar quais datas têm relatório PREENCHIDO (notas não vazias)
           const { data: relatorios } = await supabase
             .from("relatorios")
             .select("data_reuniao, notas")
             .eq("casa_fe_id", casaData.id);
 
-          // Considerar apenas relatórios que foram realmente preenchidos
           const datasComRelatorioPreenchido = relatorios
             ?.filter(r => r.notas && r.notas.trim() !== "")
             .map(r => r.data_reuniao) || [];
           
-          // Contar quantas datas têm presença mas não têm relatório preenchido
           const pendentes = datasPresenca.filter(
             data => !datasComRelatorioPreenchido.includes(data)
           ).length;
@@ -105,6 +115,43 @@ const Dashboard = () => {
         } else {
           setRelatoriosPendentes(0);
         }
+
+        // Carregar palavra do pastor (mais recente)
+        const { data: palavraData } = await supabase
+          .from("palavra_pastor")
+          .select("*")
+          .order("data_publicacao", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        
+        setPalavraPastor(palavraData);
+
+        // Carregar palavras anteriores
+        const { data: palavrasAnterioresData } = await supabase
+          .from("palavra_pastor")
+          .select("*")
+          .order("data_publicacao", { ascending: false })
+          .limit(10);
+        
+        setPalavrasAnteriores(palavrasAnterioresData || []);
+
+        // Carregar testemunhos recentes
+        const { data: testemunhosData } = await supabase
+          .from("testemunhos")
+          .select("*")
+          .order("data_testemunho", { ascending: false })
+          .limit(10);
+        
+        setTestemunhos(testemunhosData || []);
+
+        // Carregar orações recentes
+        const { data: oracoesData } = await supabase
+          .from("oracoes")
+          .select("*")
+          .order("data_oracao", { ascending: false })
+          .limit(10);
+        
+        setOracoes(oracoesData || []);
       }
     } catch (error: any) {
       console.error("Error loading dashboard:", error);
@@ -403,6 +450,162 @@ const Dashboard = () => {
           </Button>
         </div>
 
+        {/* Seções: Palavra do Pastor, Testemunho e Oração */}
+        <div className="grid gap-6 lg:grid-cols-3 mb-8">
+          {/* Palavra do Pastor */}
+          <Card className="p-6 shadow-medium">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold flex items-center gap-2">
+                <BookMarked className="w-5 h-5 text-primary" />
+                Palavra do Pastor
+              </h3>
+            </div>
+            
+            {palavraPastor ? (
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">
+                  {format(parseISO(palavraPastor.data_publicacao), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                </p>
+                <h4 className="font-bold text-lg mb-3">{palavraPastor.titulo}</h4>
+                <div className="prose prose-sm max-w-none text-muted-foreground">
+                  <ReactMarkdown>
+                    {palavraPastor.conteudo.substring(0, 200) + (palavraPastor.conteudo.length > 200 ? "..." : "")}
+                  </ReactMarkdown>
+                </div>
+                
+                {palavrasAnteriores.length > 1 && (
+                  <Collapsible open={showHistoricoPalavra} onOpenChange={setShowHistoricoPalavra}>
+                    <CollapsibleTrigger asChild>
+                      <Button variant="ghost" size="sm" className="mt-4 w-full">
+                        <ChevronDown className={`w-4 h-4 mr-2 transition-transform ${showHistoricoPalavra ? 'rotate-180' : ''}`} />
+                        Ver histórico
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-4 space-y-3">
+                      {palavrasAnteriores.slice(1).map((palavra) => (
+                        <div key={palavra.id} className="p-3 bg-muted/30 rounded-lg">
+                          <p className="text-xs text-muted-foreground">
+                            {format(parseISO(palavra.data_publicacao), "dd/MM/yyyy")}
+                          </p>
+                          <p className="font-semibold text-sm">{palavra.titulo}</p>
+                        </div>
+                      ))}
+                    </CollapsibleContent>
+                  </Collapsible>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Nenhuma palavra publicada ainda</p>
+            )}
+          </Card>
+
+          {/* Testemunho da Semana */}
+          <Card className="p-6 shadow-medium">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold flex items-center gap-2">
+                <Heart className="w-5 h-5 text-primary" />
+                Testemunhos
+              </h3>
+              <Button size="sm" onClick={() => setShowTestemunho(true)}>
+                <Plus className="w-4 h-4 mr-1" />
+                Adicionar
+              </Button>
+            </div>
+            
+            {testemunhos.length > 0 ? (
+              <div>
+                <div className="mb-4">
+                  <p className="text-xs text-muted-foreground mb-1">
+                    {format(parseISO(testemunhos[0].data_testemunho), "dd 'de' MMMM", { locale: ptBR })}
+                  </p>
+                  <p className="font-bold text-sm mb-2">{testemunhos[0].nome_pessoa}</p>
+                  <p className="text-sm text-muted-foreground line-clamp-4">
+                    {testemunhos[0].testemunho}
+                  </p>
+                </div>
+
+                {testemunhos.length > 1 && (
+                  <Collapsible open={showHistoricoTestemunhos} onOpenChange={setShowHistoricoTestemunhos}>
+                    <CollapsibleTrigger asChild>
+                      <Button variant="ghost" size="sm" className="w-full">
+                        <ChevronDown className={`w-4 h-4 mr-2 transition-transform ${showHistoricoTestemunhos ? 'rotate-180' : ''}`} />
+                        Ver histórico ({testemunhos.length - 1})
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-4 space-y-3">
+                      {testemunhos.slice(1).map((test) => (
+                        <div key={test.id} className="p-3 bg-muted/30 rounded-lg">
+                          <p className="text-xs text-muted-foreground">
+                            {format(parseISO(test.data_testemunho), "dd/MM/yyyy")}
+                          </p>
+                          <p className="font-semibold text-sm">{test.nome_pessoa}</p>
+                          <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                            {test.testemunho}
+                          </p>
+                        </div>
+                      ))}
+                    </CollapsibleContent>
+                  </Collapsible>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Nenhum testemunho compartilhado</p>
+            )}
+          </Card>
+
+          {/* Oração da Semana */}
+          <Card className="p-6 shadow-medium">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold flex items-center gap-2">
+                <Heart className="w-5 h-5 text-primary" />
+                Pedidos de Oração
+              </h3>
+              <Button size="sm" onClick={() => setShowOracao(true)}>
+                <Plus className="w-4 h-4 mr-1" />
+                Adicionar
+              </Button>
+            </div>
+            
+            {oracoes.length > 0 ? (
+              <div>
+                <div className="mb-4">
+                  <p className="text-xs text-muted-foreground mb-2">
+                    {format(parseISO(oracoes[0].data_oracao), "dd 'de' MMMM", { locale: ptBR })}
+                  </p>
+                  <p className="text-sm text-muted-foreground line-clamp-4">
+                    {oracoes[0].pedido}
+                  </p>
+                </div>
+
+                {oracoes.length > 1 && (
+                  <Collapsible open={showHistoricoOracoes} onOpenChange={setShowHistoricoOracoes}>
+                    <CollapsibleTrigger asChild>
+                      <Button variant="ghost" size="sm" className="w-full">
+                        <ChevronDown className={`w-4 h-4 mr-2 transition-transform ${showHistoricoOracoes ? 'rotate-180' : ''}`} />
+                        Ver histórico ({oracoes.length - 1})
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-4 space-y-3">
+                      {oracoes.slice(1).map((oracao) => (
+                        <div key={oracao.id} className="p-3 bg-muted/30 rounded-lg">
+                          <p className="text-xs text-muted-foreground">
+                            {format(parseISO(oracao.data_oracao), "dd/MM/yyyy")}
+                          </p>
+                          <p className="text-xs text-muted-foreground line-clamp-2">
+                            {oracao.pedido}
+                          </p>
+                        </div>
+                      ))}
+                    </CollapsibleContent>
+                  </Collapsible>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Nenhum pedido de oração</p>
+            )}
+          </Card>
+        </div>
+
         {/* Gráfico de Presença */}
         <Card className="p-6 shadow-medium">
           <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
@@ -477,6 +680,20 @@ const Dashboard = () => {
         onOpenChange={setShowAddMembro}
         casaFeId={casaFe?.id || ""}
         onSuccess={loadDashboardData}
+      />
+
+      <TestemunhoDialog
+        open={showTestemunho}
+        onOpenChange={setShowTestemunho}
+        casaFeId={casaFe?.id || ""}
+        onSaved={loadDashboardData}
+      />
+
+      <OracaoDialog
+        open={showOracao}
+        onOpenChange={setShowOracao}
+        casaFeId={casaFe?.id || ""}
+        onSaved={loadDashboardData}
       />
     </div>
   );

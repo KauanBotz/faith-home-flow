@@ -121,6 +121,65 @@ export type Database = {
           },
         ]
       }
+      oracoes: {
+        Row: {
+          casa_fe_id: string
+          created_at: string
+          data_oracao: string
+          id: string
+          pedido: string
+        }
+        Insert: {
+          casa_fe_id: string
+          created_at?: string
+          data_oracao?: string
+          id?: string
+          pedido: string
+        }
+        Update: {
+          casa_fe_id?: string
+          created_at?: string
+          data_oracao?: string
+          id?: string
+          pedido?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oracoes_casa_fe_id_fkey"
+            columns: ["casa_fe_id"]
+            isOneToOne: false
+            referencedRelation: "casas_fe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      palavra_pastor: {
+        Row: {
+          conteudo: string
+          created_at: string
+          data_publicacao: string
+          id: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          conteudo: string
+          created_at?: string
+          data_publicacao?: string
+          id?: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          conteudo?: string
+          created_at?: string
+          data_publicacao?: string
+          id?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       presencas: {
         Row: {
           created_at: string
@@ -178,6 +237,41 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "relatorios_casa_fe_id_fkey"
+            columns: ["casa_fe_id"]
+            isOneToOne: false
+            referencedRelation: "casas_fe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      testemunhos: {
+        Row: {
+          casa_fe_id: string
+          created_at: string
+          data_testemunho: string
+          id: string
+          nome_pessoa: string
+          testemunho: string
+        }
+        Insert: {
+          casa_fe_id: string
+          created_at?: string
+          data_testemunho?: string
+          id?: string
+          nome_pessoa: string
+          testemunho: string
+        }
+        Update: {
+          casa_fe_id?: string
+          created_at?: string
+          data_testemunho?: string
+          id?: string
+          nome_pessoa?: string
+          testemunho?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "testemunhos_casa_fe_id_fkey"
             columns: ["casa_fe_id"]
             isOneToOne: false
             referencedRelation: "casas_fe"
