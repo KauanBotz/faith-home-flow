@@ -52,6 +52,29 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
   const [emailDupla, setEmailDupla] = useState(data.emailDupla || "");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const formatPhone = (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    
+    if (numbers.length === 0) return '';
+    
+    const localNumbers = numbers.startsWith('55') ? numbers.slice(2) : numbers;
+    
+    if (localNumbers.length <= 2) {
+      return `+55 (${localNumbers}`;
+    } else if (localNumbers.length <= 7) {
+      return `+55 (${localNumbers.slice(0, 2)}) ${localNumbers.slice(2)}`;
+    } else if (localNumbers.length <= 11) {
+      return `+55 (${localNumbers.slice(0, 2)}) ${localNumbers.slice(2, 7)}-${localNumbers.slice(7, 11)}`;
+    }
+    
+    return `+55 (${localNumbers.slice(0, 2)}) ${localNumbers.slice(2, 7)}-${localNumbers.slice(7, 11)}`;
+  };
+
+  const handlePhoneDuplaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhone(e.target.value);
+    setTelefoneDupla(formatted);
+  };
+
   const validate = () => {
     const newErrors: Record<string, string> = {};
 
@@ -241,10 +264,11 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
                 <Input
                   id="telefoneDupla"
                   type="tel"
-                  placeholder="(00) 00000-0000"
+                  placeholder="+55 (00) 00000-0000"
                   value={telefoneDupla}
-                  onChange={(e) => setTelefoneDupla(e.target.value)}
+                  onChange={handlePhoneDuplaChange}
                   className="pl-10"
+                  maxLength={19}
                 />
               </div>
             </div>

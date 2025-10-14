@@ -18,6 +18,30 @@ export const StepOne = ({ data, onNext }: StepOneProps) => {
   const [confirmSenha, setConfirmSenha] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const formatPhone = (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    
+    if (numbers.length === 0) return '';
+    
+    // Remove +55 se já existir para reprocessar
+    const localNumbers = numbers.startsWith('55') ? numbers.slice(2) : numbers;
+    
+    if (localNumbers.length <= 2) {
+      return `+55 (${localNumbers}`;
+    } else if (localNumbers.length <= 7) {
+      return `+55 (${localNumbers.slice(0, 2)}) ${localNumbers.slice(2)}`;
+    } else if (localNumbers.length <= 11) {
+      return `+55 (${localNumbers.slice(0, 2)}) ${localNumbers.slice(2, 7)}-${localNumbers.slice(7, 11)}`;
+    }
+    
+    return `+55 (${localNumbers.slice(0, 2)}) ${localNumbers.slice(2, 7)}-${localNumbers.slice(7, 11)}`;
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhone(e.target.value);
+    setTelefone(formatted);
+  };
+
   const validate = () => {
     const newErrors: Record<string, string> = {};
 
@@ -98,10 +122,11 @@ export const StepOne = ({ data, onNext }: StepOneProps) => {
             <Input
               id="telefone"
               type="tel"
-              placeholder="(00) 00000-0000"
+              placeholder="+55 (00) 00000-0000"
               value={telefone}
-              onChange={(e) => setTelefone(e.target.value)}
+              onChange={handlePhoneChange}
               className="pl-10"
+              maxLength={19}
             />
           </div>
           {errors.telefone && (

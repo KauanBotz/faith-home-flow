@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CadastroData } from "@/pages/Cadastro";
-import { Home, User, MapPin, Building, Network, Clock, Users, CheckCircle2, Calendar } from "lucide-react";
+import { Home, User, MapPin, Building, Network, Clock, Users, CheckCircle2, Calendar, Edit, Plus } from "lucide-react";
 
 interface StepFourProps {
   data: CadastroData;
@@ -11,9 +11,10 @@ interface StepFourProps {
   onSubmit: () => void;
   onBack: () => void;
   onAddAnother?: () => void;
+  onEditCasa?: (casaId: string) => void;
 }
 
-export const StepFour = ({ data, todasCasas = [], onSubmit, onBack, onAddAnother }: StepFourProps) => {
+export const StepFour = ({ data, todasCasas = [], onSubmit, onBack, onAddAnother, onEditCasa }: StepFourProps) => {
   const [acceptTerms, setAcceptTerms] = useState(false);
 
   const handleSubmit = () => {
@@ -35,13 +36,27 @@ export const StepFour = ({ data, todasCasas = [], onSubmit, onBack, onAddAnother
         {/* Lista de Todas as Casas de Fé */}
         {todasCasas.length > 0 && (
           <Card className="p-4 bg-primary/5 border-primary/20">
-            <div className="flex items-center gap-2 mb-3">
-              <Home className="w-5 h-5 text-primary" />
-              <h3 className="font-semibold">Suas Casas de Fé ({todasCasas.length})</h3>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Home className="w-5 h-5 text-primary" />
+                <h3 className="font-semibold">Suas Casas de Fé ({todasCasas.length})</h3>
+              </div>
+              {onAddAnother && (
+                <Button 
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={onAddAnother}
+                  className="border-primary/40 hover:border-primary bg-background"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Adicionar
+                </Button>
+              )}
             </div>
             <div className="space-y-2 max-h-[200px] overflow-y-auto">
               {todasCasas.map((casa, idx) => (
-                <div key={casa.id} className="p-3 bg-background rounded-lg border border-border">
+                <div key={casa.id} className="p-3 bg-background rounded-lg border border-border group hover:border-primary/40 transition-colors">
                   <div className="flex items-start gap-2">
                     <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
                       {idx + 1}
@@ -51,6 +66,17 @@ export const StepFour = ({ data, todasCasas = [], onSubmit, onBack, onAddAnother
                       <p className="text-muted-foreground">{casa.endereco}</p>
                       <p className="text-xs text-muted-foreground">{casa.campus} - {casa.rede}</p>
                     </div>
+                    {onEditCasa && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => onEditCasa(casa.id)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -163,19 +189,7 @@ export const StepFour = ({ data, todasCasas = [], onSubmit, onBack, onAddAnother
         </div>
       </div>
 
-      <div className="flex flex-col gap-3">
-        {todasCasas.length === 0 && onAddAnother && (
-          <Button 
-            type="button"
-            variant="outline" 
-            size="lg" 
-            onClick={onAddAnother}
-            className="w-full border-2 border-primary/40 hover:border-primary bg-primary/5 hover:bg-primary/10"
-          >
-            + Adicionar Outra Casa de Fé
-          </Button>
-        )}
-        
+      <div className="flex flex-col gap-3">        
         <div className="flex flex-col sm:flex-row gap-3">
           <Button 
             type="button" 
