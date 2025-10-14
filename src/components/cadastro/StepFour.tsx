@@ -164,7 +164,7 @@ export const StepFour = ({ data, todasCasas = [], onSubmit, onBack, onAddAnother
       </div>
 
       <div className="flex flex-col gap-3">
-        {todasCasas.length > 0 && onAddAnother && (
+        {todasCasas.length === 0 && onAddAnother && (
           <Button 
             type="button"
             variant="outline" 
@@ -176,13 +176,13 @@ export const StepFour = ({ data, todasCasas = [], onSubmit, onBack, onAddAnother
           </Button>
         )}
         
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <Button 
             type="button" 
             variant="outline" 
             size="lg" 
             onClick={onBack}
-            className="flex-1"
+            className="w-full sm:flex-1"
           >
             ← Voltar
           </Button>
@@ -190,7 +190,7 @@ export const StepFour = ({ data, todasCasas = [], onSubmit, onBack, onAddAnother
             onClick={handleSubmit}
             variant="hero" 
             size="lg" 
-            className="flex-1"
+            className="w-full sm:flex-1"
             disabled={!acceptTerms}
           >
             Finalizar e Criar Casa de Fé

@@ -179,20 +179,10 @@ const Cadastro = () => {
         setUserCasas(casasAtualizadas);
       }
       
-      // Mostrar opção de cadastrar mais uma
-      const cadastrarMais = window.confirm("Casa de Fé criada! Deseja cadastrar outra casa?");
-      
-      if (cadastrarMais) {
-        // Resetar formulário mantendo dados de login
-        setFormData({ 
-          nome: formData.nome,
-          email: formData.email,
-          telefone: formData.telefone,
-          senha: formData.senha,
-          membros: [] 
-        });
-        setCurrentStep(2); // Pular para step 2 (Casa de Fé)
-        toast.info("Preencha os dados da nova Casa de Fé");
+      // Se já tem casas cadastradas (>1), voltar pro login
+      // Se é a primeira casa, ir pro dashboard
+      if (casasAtualizadas && casasAtualizadas.length > 1) {
+        navigate("/login");
       } else {
         navigate("/dashboard");
       }
