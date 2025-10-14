@@ -47,6 +47,11 @@ export const StepOne = ({ data, onNext }: StepOneProps) => {
         <p className="text-muted-foreground">
           Vamos começar conhecendo você melhor.
         </p>
+        <div className="mt-4 p-3 bg-accent/10 border border-accent/20 rounded-lg">
+          <p className="text-sm text-accent-foreground">
+            💡 <strong>Já tem uma Casa de Fé?</strong> Use o mesmo email e senha para cadastrar outra.
+          </p>
+        </div>
       </div>
 
       <div className="space-y-4">

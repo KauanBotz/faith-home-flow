@@ -7,11 +7,12 @@ import { Home, User, MapPin, Building, Network, Clock, Users, CheckCircle2, Cale
 
 interface StepFourProps {
   data: CadastroData;
+  todasCasas?: any[];
   onSubmit: () => void;
   onBack: () => void;
 }
 
-export const StepFour = ({ data, onSubmit, onBack }: StepFourProps) => {
+export const StepFour = ({ data, todasCasas = [], onSubmit, onBack }: StepFourProps) => {
   const [acceptTerms, setAcceptTerms] = useState(false);
 
   const handleSubmit = () => {
@@ -30,6 +31,32 @@ export const StepFour = ({ data, onSubmit, onBack }: StepFourProps) => {
       </div>
 
       <div className="space-y-4">
+        {/* Lista de Todas as Casas de Fé */}
+        {todasCasas.length > 0 && (
+          <Card className="p-4 bg-primary/5 border-primary/20">
+            <div className="flex items-center gap-2 mb-3">
+              <Home className="w-5 h-5 text-primary" />
+              <h3 className="font-semibold">Suas Casas de Fé ({todasCasas.length})</h3>
+            </div>
+            <div className="space-y-2 max-h-[200px] overflow-y-auto">
+              {todasCasas.map((casa, idx) => (
+                <div key={casa.id} className="p-3 bg-background rounded-lg border border-border">
+                  <div className="flex items-start gap-2">
+                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                      {idx + 1}
+                    </span>
+                    <div className="flex-1 text-sm">
+                      <p className="font-semibold">{casa.nome_lider}</p>
+                      <p className="text-muted-foreground">{casa.endereco}</p>
+                      <p className="text-xs text-muted-foreground">{casa.campus} - {casa.rede}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+
         {/* Dados do Facilitador */}
         <Card className="p-4">
           <div className="flex items-center gap-2 mb-3">
@@ -52,11 +79,11 @@ export const StepFour = ({ data, onSubmit, onBack }: StepFourProps) => {
           </div>
         </Card>
 
-        {/* Dados da Casa de Fé */}
-        <Card className="p-4">
+        {/* Dados da Casa de Fé NOVA */}
+        <Card className="p-4 border-2 border-success/30 bg-success/5">
           <div className="flex items-center gap-2 mb-3">
-            <Home className="w-5 h-5 text-secondary" />
-            <h3 className="font-semibold">Casa de Fé</h3>
+            <Home className="w-5 h-5 text-success" />
+            <h3 className="font-semibold">Nova Casa de Fé</h3>
           </div>
           <div className="space-y-2 text-sm">
             <div className="flex gap-2">

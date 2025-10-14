@@ -44,6 +44,8 @@ const Cadastro = () => {
   const [formData, setFormData] = useState<Partial<CadastroData>>({
     membros: [],
   });
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userCasas, setUserCasas] = useState<any[]>([]);
 
   const steps = [
     { number: 1, title: "Seus Dados", icon: Users },
@@ -53,6 +55,35 @@ const Cadastro = () => {
   ];
 
   const progress = (currentStep / 4) * 100;
+
+  // Verificar se está logado e carregar casas
+  useState(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setIsLoggedIn(true);
+        // Carregar casas existentes
+        const { data: casas } = await supabase
+          .from("casas_fe")
+          .select("*")
+          .eq("user_id", user.id);
+        
+        if (casas && casas.length > 0) {
+          setUserCasas(casas);
+          // Preencher dados do primeiro cadastro
+          setFormData({
+            nome: casas[0].nome_lider,
+            email: casas[0].email,
+            telefone: casas[0].telefone,
+            membros: [],
+          });
+          // Pular para step 2
+          setCurrentStep(2);
+        }
+      }
+    };
+    checkAuth();
+  });
 
   const updateFormData = (data: Partial<CadastroData>) => {
     setFormData(prev => ({ ...prev, ...data }));
@@ -71,6 +102,15 @@ const Cadastro = () => {
   };
 
   const handleSubmit = async () => {
+    // Verificar data limite
+    const dataLimite = new Date("2025-10-26");
+    const hoje = new Date();
+    
+    if (hoje >= dataLimite) {
+      toast.error("O período de cadastro de novas Casas de Fé foi encerrado em 26/10/2025.");
+      return;
+    }
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
@@ -105,13 +145,29 @@ const Cadastro = () => {
 
       toast.success("Casa de Fé criada com sucesso!");
       
+      // Recarregar lista de casas
+      const { data: casasAtualizadas } = await supabase
+        .from("casas_fe")
+        .select("*")
+        .eq("user_id", userId || (await supabase.auth.getUser()).data.user?.id);
+      
+      if (casasAtualizadas) {
+        setUserCasas(casasAtualizadas);
+      }
+      
       // Mostrar opção de cadastrar mais uma
       const cadastrarMais = window.confirm("Casa de Fé criada! Deseja cadastrar outra casa?");
       
       if (cadastrarMais) {
-        // Resetar formulário
-        setFormData({ membros: [] });
-        setCurrentStep(1);
+        // Resetar formulário mantendo dados de login
+        setFormData({ 
+          nome: formData.nome,
+          email: formData.email,
+          telefone: formData.telefone,
+          senha: formData.senha,
+          membros: [] 
+        });
+        setCurrentStep(2); // Pular para step 2 (Casa de Fé)
         toast.info("Preencha os dados da nova Casa de Fé");
       } else {
         navigate("/dashboard");
@@ -238,7 +294,7 @@ const Cadastro = () => {
       <div className="flex-1 px-4">
         <div className="max-w-4xl mx-auto">
           <Card className="p-6 md:p-8 shadow-medium">
-            {currentStep === 1 && (
+            {currentStep === 1 && !isLoggedIn && (
               <StepOne 
                 data={formData}
                 onNext={(data) => {
@@ -273,6 +329,7 @@ const Cadastro = () => {
             {currentStep === 4 && (
               <StepFour 
                 data={formData as CadastroData}
+                todasCasas={userCasas}
                 onSubmit={handleSubmit}
                 onBack={prevStep}
               />
