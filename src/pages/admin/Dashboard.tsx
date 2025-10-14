@@ -7,6 +7,17 @@ import { Home, Users, Calendar, AlertCircle, LogOut, BarChart3, TrendingUp, Acti
 import { toast } from "sonner";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 
+const COLORS = [
+  'hsl(var(--primary))',
+  'hsl(var(--accent))', 
+  'hsl(var(--secondary))',
+  'hsl(var(--success))',
+  '#8B5CF6',
+  '#EC4899',
+  '#F59E0B',
+  '#10B981'
+];
+
 interface CasaFe {
   id: string;
   nome_lider: string;
@@ -149,8 +160,12 @@ const AdminDashboard = () => {
         .select("*", { count: "exact", head: true })
         .gte("created_at", thirtyDaysAgo.toISOString());
 
-      const crescimentoCasas = casasTotal ? Math.round((casasRecentes || 0) / casasTotal * 100) : 0;
-      const crescimentoMembros = membrosTotal ? Math.round((membrosRecentes || 0) / membrosTotal * 100) : 0;
+      // Calcular percentual baseado no total ANTERIOR (total - recentes)
+      const casasAnteriores = (casasTotal || 0) - (casasRecentes || 0);
+      const membrosAnteriores = (membrosTotal || 0) - (membrosRecentes || 0);
+      
+      const crescimentoCasas = casasAnteriores > 0 ? Math.round(((casasRecentes || 0) / casasAnteriores) * 100) : 0;
+      const crescimentoMembros = membrosAnteriores > 0 ? Math.round(((membrosRecentes || 0) / membrosAnteriores) * 100) : 0;
 
       // Crescimento de conversões (últimos 30 dias)
       const { count: aceitouRecentes } = await supabase
@@ -165,8 +180,11 @@ const AdminDashboard = () => {
         .eq("reconciliou_jesus", true)
         .gte("created_at", thirtyDaysAgo.toISOString());
 
-      const crescimentoAceitou = aceitouCount ? Math.round((aceitouRecentes || 0) / aceitouCount * 100) : 0;
-      const crescimentoReconciliou = reconciliouCount ? Math.round((reconciliouRecentes || 0) / reconciliouCount * 100) : 0;
+      const aceitouAnteriores = aceitouCount - (aceitouRecentes || 0);
+      const reconciliouAnteriores = reconciliouCount - (reconciliouRecentes || 0);
+
+      const crescimentoAceitou = aceitouAnteriores > 0 ? Math.round(((aceitouRecentes || 0) / aceitouAnteriores) * 100) : 0;
+      const crescimentoReconciliou = reconciliouAnteriores > 0 ? Math.round(((reconciliouRecentes || 0) / reconciliouAnteriores) * 100) : 0;
 
       setCrescimento({ 
         casas: crescimentoCasas, 
@@ -426,17 +444,29 @@ const AdminDashboard = () => {
 
         {/* Gráficos de Análise */}
         <div className="grid gap-6 lg:grid-cols-2 mb-8">
-          {/* Gráfico de Casas por Campus */}
+          {/* Gráfico de Pizza - Proporção por Campus */}
           <Card className="p-6 shadow-medium">
             <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
               <Home className="w-6 h-6 text-primary" />
-              Casas por Campus
+              Distribuição por Campus
             </h2>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={casasPorCampus}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="campus" angle={-45} textAnchor="end" height={100} className="text-xs" />
-                <YAxis allowDecimals={false} className="text-xs" />
+              <PieChart>
+                <Pie
+                  data={casasPorCampus}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ campus, total, percent }: any) => `${campus}: ${total} (${(percent * 100).toFixed(0)}%)`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="total"
+                  nameKey="campus"
+                >
+                  {casasPorCampus.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
                 <Tooltip 
                   contentStyle={{ 
                     backgroundColor: 'hsl(var(--card))',
@@ -444,8 +474,8 @@ const AdminDashboard = () => {
                     borderRadius: '8px'
                   }}
                 />
-                <Bar dataKey="total" fill="hsl(var(--primary))" name="Casas de Fé" radius={[8, 8, 0, 0]} />
-              </BarChart>
+                <Legend />
+              </PieChart>
             </ResponsiveContainer>
           </Card>
 
@@ -453,7 +483,7 @@ const AdminDashboard = () => {
           <Card className="p-6 shadow-medium">
             <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
               <TrendingUp className="w-6 h-6 text-accent" />
-              Evolução de Membros (20/10 - 14/11)
+              Evolução de Membros
             </h2>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={evolucaoMembros}>
