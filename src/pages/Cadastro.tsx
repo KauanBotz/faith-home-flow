@@ -101,6 +101,18 @@ const Cadastro = () => {
     }
   };
 
+  const handleAddAnother = () => {
+    // Resetar apenas os dados da casa de fé, mantendo login
+    setFormData({ 
+      nome: formData.nome,
+      email: formData.email,
+      telefone: formData.telefone,
+      senha: formData.senha,
+      membros: [] 
+    });
+    setCurrentStep(2); // Voltar para step 2 (Casa de Fé)
+  };
+
   const handleSubmit = async () => {
     // Verificar data limite
     const dataLimite = new Date("2025-10-26");
@@ -129,7 +141,19 @@ const Cadastro = () => {
 
         if (authError) {
           if (authError.message.includes("already registered")) {
-            toast.error("Este email já está cadastrado!");
+            // Email já cadastrado - tentar fazer login
+            const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+              email: formData.email!,
+              password: formData.senha!,
+            });
+
+            if (loginError) {
+              toast.error("Email já cadastrado. Verifique sua senha ou faça login.");
+              throw loginError;
+            }
+
+            // Login bem-sucedido - criar casa de fé
+            await createCasaFe(loginData.user.id);
           } else {
             toast.error("Erro ao criar conta: " + authError.message);
           }
@@ -332,6 +356,7 @@ const Cadastro = () => {
                 todasCasas={userCasas}
                 onSubmit={handleSubmit}
                 onBack={prevStep}
+                onAddAnother={userCasas.length > 0 ? handleAddAnother : undefined}
               />
             )}
           </Card>

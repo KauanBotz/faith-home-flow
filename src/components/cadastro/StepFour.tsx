@@ -10,9 +10,10 @@ interface StepFourProps {
   todasCasas?: any[];
   onSubmit: () => void;
   onBack: () => void;
+  onAddAnother?: () => void;
 }
 
-export const StepFour = ({ data, todasCasas = [], onSubmit, onBack }: StepFourProps) => {
+export const StepFour = ({ data, todasCasas = [], onSubmit, onBack, onAddAnother }: StepFourProps) => {
   const [acceptTerms, setAcceptTerms] = useState(false);
 
   const handleSubmit = () => {
@@ -162,25 +163,39 @@ export const StepFour = ({ data, todasCasas = [], onSubmit, onBack }: StepFourPr
         </div>
       </div>
 
-      <div className="flex gap-3">
-        <Button 
-          type="button" 
-          variant="outline" 
-          size="lg" 
-          onClick={onBack}
-          className="flex-1"
-        >
-          ← Voltar
-        </Button>
-        <Button 
-          onClick={handleSubmit}
-          variant="hero" 
-          size="lg" 
-          className="flex-1"
-          disabled={!acceptTerms}
-        >
-          Finalizar e Criar Casa de Fé
-        </Button>
+      <div className="flex flex-col gap-3">
+        {todasCasas.length > 0 && onAddAnother && (
+          <Button 
+            type="button"
+            variant="outline" 
+            size="lg" 
+            onClick={onAddAnother}
+            className="w-full border-2 border-primary/40 hover:border-primary bg-primary/5 hover:bg-primary/10"
+          >
+            + Adicionar Outra Casa de Fé
+          </Button>
+        )}
+        
+        <div className="flex gap-3">
+          <Button 
+            type="button" 
+            variant="outline" 
+            size="lg" 
+            onClick={onBack}
+            className="flex-1"
+          >
+            ← Voltar
+          </Button>
+          <Button 
+            onClick={handleSubmit}
+            variant="hero" 
+            size="lg" 
+            className="flex-1"
+            disabled={!acceptTerms}
+          >
+            Finalizar e Criar Casa de Fé
+          </Button>
+        </div>
       </div>
     </div>
   );
