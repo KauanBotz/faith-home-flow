@@ -5,8 +5,12 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Search, Users, MessageCircle } from "lucide-react";
+import { ArrowLeft, Search, Users, MessageCircle, FileDown, Download } from "lucide-react";
 import { toast } from "sonner";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+import * as XLSX from "xlsx";
+import { format } from "date-fns";
 
 interface Membro {
   id: string;
@@ -23,6 +27,7 @@ interface CasaFe {
   id: string;
   nome_lider: string;
   campus: string;
+  rede: string;
 }
 
 const AdminMembros = () => {
@@ -33,6 +38,8 @@ const AdminMembros = () => {
   const [filteredMembros, setFilteredMembros] = useState<Membro[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [convertidoFilter, setConvertidoFilter] = useState("todos");
+  const [campusFilter, setCampusFilter] = useState("todos");
+  const [redeFilter, setRedeFilter] = useState("todas");
 
   useEffect(() => {
     checkAdminAndLoad();
@@ -40,7 +47,7 @@ const AdminMembros = () => {
 
   useEffect(() => {
     filterMembros();
-  }, [searchTerm, convertidoFilter, membros]);
+  }, [searchTerm, convertidoFilter, campusFilter, redeFilter, membros]);
 
   const checkAdminAndLoad = async () => {
     try {
@@ -76,7 +83,7 @@ const AdminMembros = () => {
 
       const { data: casasData, error: casasError } = await supabase
         .from("casas_fe")
-        .select("id, nome_lider, campus");
+        .select("id, nome_lider, campus, rede");
 
       if (casasError) throw casasError;
 
@@ -111,7 +118,77 @@ const AdminMembros = () => {
       filtered = filtered.filter((membro) => !membro.aceitou_jesus);
     }
 
+    if (campusFilter !== "todos") {
+      filtered = filtered.filter((membro) => {
+        const casa = casas[membro.casa_fe_id];
+        return casa && casa.campus === campusFilter;
+      });
+    }
+
+    if (redeFilter !== "todas") {
+      filtered = filtered.filter((membro) => {
+        const casa = casas[membro.casa_fe_id];
+        return casa && casa.rede === redeFilter;
+      });
+    }
+
     setFilteredMembros(filtered);
+  };
+
+  const exportarPDF = () => {
+    const doc = new jsPDF();
+    
+    doc.setFontSize(18);
+    doc.text("Membros - Relatório Completo", 14, 20);
+    
+    doc.setFontSize(11);
+    doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm")}`, 14, 30);
+    doc.text(`Total: ${filteredMembros.length} membros`, 14, 37);
+    
+    const tableData = filteredMembros.map(m => {
+      const casa = casas[m.casa_fe_id];
+      return [
+        m.nome_completo,
+        casa?.nome_lider || '-',
+        casa?.campus || '-',
+        m.telefone,
+        m.aceitou_jesus ? 'Sim' : 'Não'
+      ];
+    });
+    
+    (doc as any).autoTable({
+      head: [['Nome', 'Casa de Fé', 'Campus', 'Telefone', 'Convertido']],
+      body: tableData,
+      startY: 45,
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [196, 161, 74] }
+    });
+    
+    doc.save(`membros-${format(new Date(), "yyyy-MM-dd")}.pdf`);
+    toast.success("PDF exportado com sucesso!");
+  };
+
+  const exportarExcel = () => {
+    const dados = filteredMembros.map(m => {
+      const casa = casas[m.casa_fe_id];
+      return {
+        'Nome': m.nome_completo,
+        'Casa de Fé': casa?.nome_lider || '-',
+        'Campus': casa?.campus || '-',
+        'Rede': casa?.rede || '-',
+        'Telefone': m.telefone,
+        'Idade': m.idade,
+        'Endereço': m.endereco,
+        'Convertido': m.aceitou_jesus ? 'Sim' : 'Não',
+        'Notas': m.notas || '-'
+      };
+    });
+    
+    const ws = XLSX.utils.json_to_sheet(dados);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Membros");
+    XLSX.writeFile(wb, `membros-${format(new Date(), "yyyy-MM-dd")}.xlsx`);
+    toast.success("Excel exportado com sucesso!");
   };
 
   if (loading) {
@@ -126,23 +203,34 @@ const AdminMembros = () => {
     <div className="min-h-screen gradient-subtle">
       <header className="bg-card shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate("/admin/dashboard")}
-            className="mb-2"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Voltar
-          </Button>
-          <h1 className="text-2xl font-bold">Todos os Membros</h1>
+          <div className="flex items-center justify-between mb-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/admin/dashboard")}
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Voltar
+            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={exportarPDF}>
+                <FileDown className="w-4 h-4 mr-2" />
+                PDF
+              </Button>
+              <Button variant="outline" size="sm" onClick={exportarExcel}>
+                <Download className="w-4 h-4 mr-2" />
+                Excel
+              </Button>
+            </div>
+          </div>
+          <h1 className="text-2xl font-bold">Todos os Membros ({filteredMembros.length})</h1>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         <Card className="p-6 mb-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 placeholder="Buscar por nome..."
@@ -151,9 +239,39 @@ const AdminMembros = () => {
                 className="pl-10"
               />
             </div>
+            <Select value={campusFilter} onValueChange={setCampusFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filtrar campus" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos os Campus</SelectItem>
+                <SelectItem value="MINC Pampulha">MINC Pampulha</SelectItem>
+                <SelectItem value="MINC Lagoa Santa">MINC Lagoa Santa</SelectItem>
+                <SelectItem value="MINC São José da Lapa">MINC São José da Lapa</SelectItem>
+                <SelectItem value="MINC Ribeirão das Neves">MINC Ribeirão das Neves</SelectItem>
+                <SelectItem value="MINC Rio">MINC Rio</SelectItem>
+                <SelectItem value="MINC São Paulo">MINC São Paulo</SelectItem>
+                <SelectItem value="MINC Juiz de Fora">MINC Juiz de Fora</SelectItem>
+                <SelectItem value="MINC Online">MINC Online</SelectItem>
+                <SelectItem value="MINC Sinop">MINC Sinop</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={redeFilter} onValueChange={setRedeFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filtrar rede" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todas">Todas as Redes</SelectItem>
+                <SelectItem value="Jovem">Jovem</SelectItem>
+                <SelectItem value="Adulto">Adulto</SelectItem>
+                <SelectItem value="Casais">Casais</SelectItem>
+                <SelectItem value="Masculino">Masculino</SelectItem>
+                <SelectItem value="Feminino">Feminino</SelectItem>
+              </SelectContent>
+            </Select>
             <Select value={convertidoFilter} onValueChange={setConvertidoFilter}>
-              <SelectTrigger className="w-full md:w-[200px]">
-                <SelectValue placeholder="Filtrar por conversão" />
+              <SelectTrigger>
+                <SelectValue placeholder="Filtrar conversão" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="todos">Todos</SelectItem>

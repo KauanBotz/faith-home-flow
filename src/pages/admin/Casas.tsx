@@ -5,8 +5,12 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Search, Home, MessageCircle } from "lucide-react";
+import { ArrowLeft, Search, Home, MessageCircle, FileDown, Download } from "lucide-react";
 import { toast } from "sonner";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+import * as XLSX from "xlsx";
+import { format } from "date-fns";
 
 interface CasaFe {
   id: string;
@@ -27,6 +31,7 @@ const AdminCasas = () => {
   const [filteredCasas, setFilteredCasas] = useState<CasaFe[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [campusFilter, setCampusFilter] = useState("todos");
+  const [redeFilter, setRedeFilter] = useState("todas");
 
   useEffect(() => {
     checkAdminAndLoad();
@@ -34,7 +39,7 @@ const AdminCasas = () => {
 
   useEffect(() => {
     filterCasas();
-  }, [searchTerm, campusFilter, casas]);
+  }, [searchTerm, campusFilter, redeFilter, casas]);
 
   const checkAdminAndLoad = async () => {
     try {
@@ -92,7 +97,60 @@ const AdminCasas = () => {
       filtered = filtered.filter((casa) => casa.campus === campusFilter);
     }
 
+    if (redeFilter !== "todas") {
+      filtered = filtered.filter((casa) => casa.rede === redeFilter);
+    }
+
     setFilteredCasas(filtered);
+  };
+
+  const exportarPDF = () => {
+    const doc = new jsPDF();
+    
+    doc.setFontSize(18);
+    doc.text("Casas de Fé - Relatório Completo", 14, 20);
+    
+    doc.setFontSize(11);
+    doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm")}`, 14, 30);
+    doc.text(`Total: ${filteredCasas.length} casas`, 14, 37);
+    
+    const tableData = filteredCasas.map(c => [
+      c.nome_lider,
+      c.campus,
+      c.rede,
+      c.telefone,
+      c.email
+    ]);
+    
+    (doc as any).autoTable({
+      head: [['Líder', 'Campus', 'Rede', 'Telefone', 'Email']],
+      body: tableData,
+      startY: 45,
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [196, 161, 74] }
+    });
+    
+    doc.save(`casas-fe-${format(new Date(), "yyyy-MM-dd")}.pdf`);
+    toast.success("PDF exportado com sucesso!");
+  };
+
+  const exportarExcel = () => {
+    const dados = filteredCasas.map(c => ({
+      'Líder': c.nome_lider,
+      'Campus': c.campus,
+      'Rede': c.rede,
+      'Endereço': c.endereco,
+      'Telefone': c.telefone,
+      'Email': c.email,
+      'Dupla': c.nome_dupla || '-',
+      'Telefone Dupla': c.telefone_dupla || '-'
+    }));
+    
+    const ws = XLSX.utils.json_to_sheet(dados);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Casas de Fé");
+    XLSX.writeFile(wb, `casas-fe-${format(new Date(), "yyyy-MM-dd")}.xlsx`);
+    toast.success("Excel exportado com sucesso!");
   };
 
   if (loading) {
@@ -107,16 +165,27 @@ const AdminCasas = () => {
     <div className="min-h-screen gradient-subtle">
       <header className="bg-card shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate("/admin/dashboard")}
-            className="mb-2"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Voltar
-          </Button>
-          <h1 className="text-2xl font-bold">Todas as Casas de Fé</h1>
+          <div className="flex items-center justify-between mb-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/admin/dashboard")}
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Voltar
+            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={exportarPDF}>
+                <FileDown className="w-4 h-4 mr-2" />
+                PDF
+              </Button>
+              <Button variant="outline" size="sm" onClick={exportarExcel}>
+                <Download className="w-4 h-4 mr-2" />
+                Excel
+              </Button>
+            </div>
+          </div>
+          <h1 className="text-2xl font-bold">Todas as Casas de Fé ({filteredCasas.length})</h1>
         </div>
       </header>
 
@@ -147,6 +216,19 @@ const AdminCasas = () => {
                 <SelectItem value="MINC Juiz de Fora">MINC Juiz de Fora</SelectItem>
                 <SelectItem value="MINC Online">MINC Online</SelectItem>
                 <SelectItem value="MINC Sinop">MINC Sinop</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={redeFilter} onValueChange={setRedeFilter}>
+              <SelectTrigger className="w-full md:w-[200px]">
+                <SelectValue placeholder="Filtrar rede" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todas">Todas as Redes</SelectItem>
+                <SelectItem value="Jovem">Jovem</SelectItem>
+                <SelectItem value="Adulto">Adulto</SelectItem>
+                <SelectItem value="Casais">Casais</SelectItem>
+                <SelectItem value="Masculino">Masculino</SelectItem>
+                <SelectItem value="Feminino">Feminino</SelectItem>
               </SelectContent>
             </Select>
           </div>

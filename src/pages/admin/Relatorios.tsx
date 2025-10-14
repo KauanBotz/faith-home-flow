@@ -318,28 +318,33 @@ const AdminRelatorios = () => {
     const doc = new jsPDF();
     
     doc.setFontSize(18);
-    doc.text("Relatório - Casas de Fé", 14, 20);
+    doc.text("Analytics - Casas de Fé", 14, 20);
     
     doc.setFontSize(11);
     doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`, 14, 30);
-    doc.text(`Total de Relatórios: ${relatoriosFiltrados.length}`, 14, 37);
+    doc.text(`Total de Casas: ${casasFiltradas.length}`, 14, 37);
     
-    const tableData = relatoriosFiltrados.map(r => [
-      r.casas_fe?.nome_lider || '',
-      r.casas_fe?.campus || '',
-      format(parseISO(r.data_reuniao), "dd/MM/yyyy"),
-      r.notas?.substring(0, 50) + '...' || 'Sem notas'
+    const tableData = casasFiltradas.map(c => [
+      c.nome_lider || '',
+      c.campus || '',
+      c.rede || '',
+      c.endereco?.substring(0, 30) + '...' || '',
+      c.horario_reuniao || '',
+      c.dias_semana?.join(', ') || ''
     ]);
     
     (doc as any).autoTable({
-      head: [['Líder', 'Campus', 'Data', 'Notas']],
+      head: [['Líder', 'Campus', 'Rede', 'Endereço', 'Horário', 'Dias']],
       body: tableData,
       startY: 45,
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [196, 161, 74] }
+      styles: { fontSize: 7 },
+      headStyles: { fillColor: [196, 161, 74] },
+      columnStyles: {
+        3: { cellWidth: 40 }
+      }
     });
     
-    doc.save(`relatorios-casas-fe-${format(new Date(), "yyyy-MM-dd")}.pdf`);
+    doc.save(`analytics-casas-fe-${format(new Date(), "yyyy-MM-dd")}.pdf`);
     toast.success("PDF exportado com sucesso!");
   };
 
