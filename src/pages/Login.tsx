@@ -6,13 +6,16 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Mail, Lock, Sparkles } from "lucide-react";
+import { Mail, Lock, Sparkles, Home } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showCasaSelection, setShowCasaSelection] = useState(false);
+  const [casasFe, setCasasFe] = useState<any[]>([]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,13 +34,35 @@ const Login = () => {
       if (email === "admin@mincbh.com.br") {
         navigate("/admin/dashboard");
       } else {
-        navigate("/dashboard");
+        // Verificar quantas casas de fé o usuário tem
+        const { data: casasData, error: casasError } = await supabase
+          .from("casas_fe")
+          .select("*")
+          .eq("user_id", data.user.id);
+
+        if (casasError) throw casasError;
+
+        if (casasData && casasData.length > 1) {
+          // Mais de uma casa - mostrar seleção
+          setCasasFe(casasData);
+          setShowCasaSelection(true);
+        } else {
+          // Apenas uma casa - ir direto
+          navigate("/dashboard");
+        }
       }
     } catch (error: any) {
       toast.error(error.message || "Erro ao fazer login");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSelectCasa = (casaId: string) => {
+    // Salvar casa selecionada no localStorage
+    localStorage.setItem("selected_casa_id", casaId);
+    setShowCasaSelection(false);
+    navigate("/dashboard");
   };
 
   return (
@@ -126,7 +151,7 @@ const Login = () => {
           </form>
         </Card>
 
-      <div className="mt-8 text-center">
+        <div className="mt-8 text-center">
           <p className="text-xs text-muted-foreground/70">
             Feito com 💛 por{" "}
             <a 
@@ -139,8 +164,36 @@ const Login = () => {
             </a>
           </p>
         </div>
-
       </div>
+
+      {/* Dialog de Seleção de Casa */}
+      <Dialog open={showCasaSelection} onOpenChange={setShowCasaSelection}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Selecione uma Casa de Fé</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            {casasFe.map((casa) => (
+              <Card
+                key={casa.id}
+                className="p-4 cursor-pointer hover:bg-accent/5 transition-all"
+                onClick={() => handleSelectCasa(casa.id)}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Home className="w-6 h-6 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-bold">{casa.nome_lider}</p>
+                    <p className="text-sm text-muted-foreground">{casa.campus} - {casa.rede}</p>
+                    <p className="text-xs text-muted-foreground">{casa.endereco}</p>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

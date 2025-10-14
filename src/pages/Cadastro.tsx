@@ -72,84 +72,98 @@ const Cadastro = () => {
 
   const handleSubmit = async () => {
     try {
-      // Verificar se já existe uma casa de fé com este email
-      const { data: existingCasa } = await supabase
-        .from("casas_fe")
-        .select("email")
-        .eq("email", formData.email!)
-        .single();
+      const { data: { user } } = await supabase.auth.getUser();
 
-      if (existingCasa) {
-        toast.error("Já existe uma Casa de Fé cadastrada com este email!");
-        return;
-      }
+      // Se já está logado (cadastrando +1), usar o user atual
+      const userId = user?.id;
 
-      // 1. Create user account
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email!,
-        password: formData.senha!,
-        options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-        },
-      });
-
-      if (authError) {
-        if (authError.message.includes("already registered")) {
-          toast.error("Este email já está cadastrado!");
-        } else {
-          toast.error("Erro ao criar conta: " + authError.message);
-        }
-        throw authError;
-      }
-
-      // 2. Create casa de fé
-      const { data: casaData, error: casaError } = await supabase
-        .from("casas_fe")
-        .insert({
-          user_id: authData.user!.id,
-          nome_lider: formData.nome!,
+      if (!userId) {
+        // Novo usuário - fazer signup
+        const { data: authData, error: authError } = await supabase.auth.signUp({
           email: formData.email!,
-          telefone: formData.telefone!,
-          endereco: formData.endereco!,
-          campus: formData.campus!,
-          rede: formData.rede!,
-          dias_semana: formData.diasSemana || [],
-          horario_reuniao: formData.horarioReuniao!,
-          nome_dupla: formData.nomeDupla || null,
-          telefone_dupla: formData.telefoneDupla || null,
-          email_dupla: formData.emailDupla || null,
-        })
-        .select()
-        .single();
+          password: formData.senha!,
+          options: {
+            emailRedirectTo: `${window.location.origin}/dashboard`,
+          },
+        });
 
-      if (casaError) throw casaError;
+        if (authError) {
+          if (authError.message.includes("already registered")) {
+            toast.error("Este email já está cadastrado!");
+          } else {
+            toast.error("Erro ao criar conta: " + authError.message);
+          }
+          throw authError;
+        }
 
-      // 3. Create membros
-      if (formData.membros && formData.membros.length > 0) {
-        const membrosData = formData.membros.map((membro) => ({
-          casa_fe_id: casaData.id,
-          nome_completo: membro.nome,
-          telefone: membro.telefone,
-          idade: membro.idade,
-          endereco: membro.endereco,
-          aceitou_jesus: membro.convertido,
-          notas: membro.notas || null,
-        }));
-
-        const { error: membrosError } = await supabase
-          .from("membros")
-          .insert(membrosData);
-
-        if (membrosError) throw membrosError;
+        // Criar casa de fé para novo usuário
+        await createCasaFe(authData.user!.id);
+      } else {
+        // Usuário já logado - cadastrar nova casa
+        await createCasaFe(userId);
       }
 
       toast.success("Casa de Fé criada com sucesso!");
-      navigate("/dashboard");
+      
+      // Mostrar opção de cadastrar mais uma
+      const cadastrarMais = window.confirm("Casa de Fé criada! Deseja cadastrar outra casa?");
+      
+      if (cadastrarMais) {
+        // Resetar formulário
+        setFormData({ membros: [] });
+        setCurrentStep(1);
+        toast.info("Preencha os dados da nova Casa de Fé");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (error: any) {
       console.error("Error creating casa de fé:", error);
       if (!error.message.includes("already registered")) {
         toast.error("Erro ao criar Casa de Fé: " + error.message);
       }
+    }
+  };
+
+  const createCasaFe = async (userId: string) => {
+    // Create casa de fé
+    const { data: casaData, error: casaError } = await supabase
+      .from("casas_fe")
+      .insert({
+        user_id: userId,
+        nome_lider: formData.nome!,
+        email: formData.email!,
+        telefone: formData.telefone!,
+        endereco: formData.endereco!,
+        campus: formData.campus!,
+        rede: formData.rede!,
+        dias_semana: formData.diasSemana || [],
+        horario_reuniao: formData.horarioReuniao!,
+        nome_dupla: formData.nomeDupla || null,
+        telefone_dupla: formData.telefoneDupla || null,
+        email_dupla: formData.emailDupla || null,
+      })
+      .select()
+      .single();
+
+    if (casaError) throw casaError;
+
+    // Create membros
+    if (formData.membros && formData.membros.length > 0) {
+      const membrosData = formData.membros.map((membro) => ({
+        casa_fe_id: casaData.id,
+        nome_completo: membro.nome,
+        telefone: membro.telefone,
+        idade: membro.idade,
+        endereco: membro.endereco,
+        aceitou_jesus: membro.convertido,
+        notas: membro.notas || null,
+      }));
+
+      const { error: membrosError } = await supabase
+        .from("membros")
+        .insert(membrosData);
+
+      if (membrosError) throw membrosError;
     }
   };
 

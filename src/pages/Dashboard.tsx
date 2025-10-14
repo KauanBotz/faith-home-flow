@@ -52,11 +52,19 @@ const Dashboard = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: casaData, error: casaError } = await supabase
+      // Verificar se há casa selecionada no localStorage
+      const selectedCasaId = localStorage.getItem("selected_casa_id");
+
+      let casaQuery = supabase
         .from("casas_fe")
         .select("*")
-        .eq("user_id", user.id)
-        .single();
+        .eq("user_id", user.id);
+
+      if (selectedCasaId) {
+        casaQuery = casaQuery.eq("id", selectedCasaId);
+      }
+
+      const { data: casaData, error: casaError } = await casaQuery.single();
 
       if (casaError) throw casaError;
       setCasaFe(casaData);
