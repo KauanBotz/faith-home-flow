@@ -43,27 +43,24 @@ const diasDaSemana = [
 ];
 
 export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
-  // Casa de Fé
   const [campus, setCampus] = useState(data.campus || "");
   const [rede, setRede] = useState(data.rede || "");
   const [horarioReuniao, setHorarioReuniao] = useState(data.horarioReuniao || "");
   const [diaSemana, setDiaSemana] = useState<string>(data.diasSemana?.[0] || "");
   
-  // Facilitador 1 (usuário)
   const [redeMincFacilitador1, setRedeMincFacilitador1] = useState(data.redeMincFacilitador1 || "");
+  const [redeFacilitador1, setRedeFacilitador1] = useState(data.redeFacilitador1 || "");
   const [facilitador1Batizado, setFacilitador1Batizado] = useState(data.facilitador1Batizado || false);
   
-  // Facilitador 2 (dupla)
   const [nomeDupla, setNomeDupla] = useState(data.nomeDupla || "");
   const [telefoneDupla, setTelefoneDupla] = useState(data.telefoneDupla || "");
   const [redeMincFacilitador2, setRedeMincFacilitador2] = useState(data.redeMincFacilitador2 || "");
+  const [redeFacilitador2, setRedeFacilitador2] = useState(data.redeFacilitador2 || "");
   const [facilitador2Batizado, setFacilitador2Batizado] = useState(data.facilitador2Batizado || false);
   
-  // Anfitrião
   const [nomeAnfitriao, setNomeAnfitriao] = useState(data.nomeAnfitriao || "");
   const [whatsappAnfitriao, setWhatsappAnfitriao] = useState(data.whatsappAnfitriao || "");
   
-  // Endereço detalhado
   const [ruaAvenida, setRuaAvenida] = useState(data.ruaAvenida || "");
   const [numeroCasa, setNumeroCasa] = useState(data.numeroCasa || "");
   const [bairro, setBairro] = useState(data.bairro || "");
@@ -101,10 +98,16 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
     const newErrors: Record<string, string> = {};
 
     if (!campus) newErrors.campus = "Campus é obrigatório";
-    if (!redeMincFacilitador1) newErrors.redeMincFacilitador1 = "Rede/MINC do Facilitador 1 é obrigatório";
+    if (!redeMincFacilitador1) newErrors.redeMincFacilitador1 = "MINC do Facilitador 1 é obrigatório";
+    if (redeMincFacilitador1 === "MINC Pampulha" && !redeFacilitador1) {
+      newErrors.redeFacilitador1 = "Rede do Facilitador 1 é obrigatória";
+    }
     if (!nomeDupla.trim()) newErrors.nomeDupla = "Nome do Facilitador 2 é obrigatório";
     if (!telefoneDupla.trim()) newErrors.telefoneDupla = "WhatsApp do Facilitador 2 é obrigatório";
-    if (!redeMincFacilitador2) newErrors.redeMincFacilitador2 = "Rede/MINC do Facilitador 2 é obrigatório";
+    if (!redeMincFacilitador2) newErrors.redeMincFacilitador2 = "MINC do Facilitador 2 é obrigatório";
+    if (redeMincFacilitador2 === "MINC Pampulha" && !redeFacilitador2) {
+      newErrors.redeFacilitador2 = "Rede do Facilitador 2 é obrigatória";
+    }
     if (!nomeAnfitriao.trim()) newErrors.nomeAnfitriao = "Nome do Anfitrião é obrigatório";
     if (!whatsappAnfitriao.trim()) newErrors.whatsappAnfitriao = "WhatsApp do Anfitrião é obrigatório";
     if (!ruaAvenida.trim()) newErrors.ruaAvenida = "Rua/Avenida é obrigatória";
@@ -130,10 +133,12 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
         horarioReuniao,
         diasSemana: [diaSemana],
         redeMincFacilitador1,
+        redeFacilitador1: redeMincFacilitador1 === "MINC Pampulha" ? redeFacilitador1 : "",
         facilitador1Batizado,
         nomeDupla,
         telefoneDupla,
         redeMincFacilitador2,
+        redeFacilitador2: redeMincFacilitador2 === "MINC Pampulha" ? redeFacilitador2 : "",
         facilitador2Batizado,
         nomeAnfitriao,
         whatsappAnfitriao,
@@ -167,8 +172,13 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
           
           <div className="space-y-4">
             <div>
-              <Label htmlFor="redeMincFacilitador1">Rede/MINC do Facilitador 1 *</Label>
-              <Select value={redeMincFacilitador1} onValueChange={setRedeMincFacilitador1}>
+              <Label htmlFor="redeMincFacilitador1">MINC do Facilitador 1 *</Label>
+              <Select value={redeMincFacilitador1} onValueChange={(value) => {
+                setRedeMincFacilitador1(value);
+                if (value !== "MINC Pampulha") {
+                  setRedeFacilitador1("");
+                }
+              }}>
                 <SelectTrigger id="redeMincFacilitador1">
                   <SelectValue placeholder="Selecione" />
                 </SelectTrigger>
@@ -184,6 +194,27 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
                 <p className="text-destructive text-sm mt-1">{errors.redeMincFacilitador1}</p>
               )}
             </div>
+
+            {redeMincFacilitador1 === "MINC Pampulha" && (
+              <div>
+                <Label htmlFor="redeFacilitador1">Rede do Facilitador 1 *</Label>
+                <Select value={redeFacilitador1} onValueChange={setRedeFacilitador1}>
+                  <SelectTrigger id="redeFacilitador1">
+                    <SelectValue placeholder="Selecione a rede" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {redeOptions.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.redeFacilitador1 && (
+                  <p className="text-destructive text-sm mt-1">{errors.redeFacilitador1}</p>
+                )}
+              </div>
+            )}
 
             <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
               <Checkbox
@@ -236,8 +267,13 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
             </div>
 
             <div>
-              <Label htmlFor="redeMincFacilitador2">Rede/MINC do Facilitador 2 *</Label>
-              <Select value={redeMincFacilitador2} onValueChange={setRedeMincFacilitador2}>
+              <Label htmlFor="redeMincFacilitador2">MINC do Facilitador 2 *</Label>
+              <Select value={redeMincFacilitador2} onValueChange={(value) => {
+                setRedeMincFacilitador2(value);
+                if (value !== "MINC Pampulha") {
+                  setRedeFacilitador2("");
+                }
+              }}>
                 <SelectTrigger id="redeMincFacilitador2">
                   <SelectValue placeholder="Selecione" />
                 </SelectTrigger>
@@ -253,6 +289,27 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
                 <p className="text-destructive text-sm mt-1">{errors.redeMincFacilitador2}</p>
               )}
             </div>
+
+            {redeMincFacilitador2 === "MINC Pampulha" && (
+              <div>
+                <Label htmlFor="redeFacilitador2">Rede do Facilitador 2 *</Label>
+                <Select value={redeFacilitador2} onValueChange={setRedeFacilitador2}>
+                  <SelectTrigger id="redeFacilitador2">
+                    <SelectValue placeholder="Selecione a rede" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {redeOptions.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.redeFacilitador2 && (
+                  <p className="text-destructive text-sm mt-1">{errors.redeFacilitador2}</p>
+                )}
+              </div>
+            )}
 
             <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
               <Checkbox

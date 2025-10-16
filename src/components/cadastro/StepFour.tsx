@@ -1,202 +1,374 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { CadastroData } from "@/pages/Cadastro";
-import { Home, User, MapPin, Building, Network, Clock, Users, CheckCircle2, Calendar, Edit, Plus } from "lucide-react";
+import { Home, Users, Calendar, CheckCircle } from "lucide-react";
+import { StepOne } from "@/components/cadastro/StepOne";
+import { StepTwo } from "@/components/cadastro/StepTwo";
+import { StepThree } from "@/components/cadastro/StepThree";
+import { StepFour } from "@/components/cadastro/StepFour";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-interface StepFourProps {
-  data: CadastroData;
-  todasCasas?: any[];
-  onSubmit: () => void;
-  onBack: () => void;
-  onAddAnother?: () => void;
-  onEditCasa?: (casaId: string) => void;
+export interface CadastroData {
+  nome: string;
+  tipoDocumento: string;
+  numeroDocumento: string;
+  email: string;
+  telefone: string;
+  senha: string;
+  redeMincFacilitador1?: string;
+  redeFacilitador1?: string;
+  facilitador1Batizado?: boolean;
+  
+  endereco: string;
+  campus: string;
+  rede: string;
+  diasSemana: string[];
+  horarioReuniao: string;
+  nomeDupla?: string;
+  telefoneDupla?: string;
+  emailDupla?: string;
+  redeMincFacilitador2?: string;
+  redeFacilitador2?: string;
+  facilitador2Batizado?: boolean;
+  
+  nomeAnfitriao?: string;
+  whatsappAnfitriao?: string;
+  
+  ruaAvenida?: string;
+  numeroCasa?: string;
+  bairro?: string;
+  cep?: string;
+  cidade?: string;
+  pontoReferencia?: string;
+  
+  membros: Array<{
+    nome: string;
+    telefone: string;
+    idade: number;
+    endereco: string;
+    convertido: boolean;
+    notas?: string;
+  }>;
 }
 
-export const StepFour = ({ data, todasCasas = [], onSubmit, onBack, onAddAnother, onEditCasa }: StepFourProps) => {
-  const [acceptTerms, setAcceptTerms] = useState(false);
+const Cadastro = () => {
+  const navigate = useNavigate();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [formData, setFormData] = useState<Partial<CadastroData>>({
+    membros: [],
+  });
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userCasas, setUserCasas] = useState<any[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
 
-  const handleSubmit = () => {
-    if (acceptTerms) {
-      onSubmit();
+  const steps = [
+    { number: 1, title: "Seus Dados", icon: Users },
+    { number: 2, title: "Casa de Fé", icon: Home },
+    { number: 3, title: "Membros", icon: Users },
+    { number: 4, title: "Confirmação", icon: CheckCircle },
+  ];
+
+  const progress = (currentStep / 4) * 100;
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setIsLoggedIn(true);
+        setUserId(user.id);
+        
+        const { data: casas } = await supabase
+          .from("casas_fe")
+          .select("*")
+          .eq("user_id", user.id);
+        
+        if (casas && casas.length > 0) {
+          setUserCasas(casas);
+          setFormData({
+            nome: casas[0].nome_lider,
+            email: casas[0].email,
+            telefone: casas[0].telefone,
+            membros: [],
+          });
+          setCurrentStep(2);
+        }
+      }
+    };
+    checkAuth();
+  }, []);
+
+  const updateFormData = (data: Partial<CadastroData>) => {
+    setFormData(prev => ({ ...prev, ...data }));
+  };
+
+  const nextStep = () => {
+    if (currentStep < 4) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleAddAnother = () => {
+    setFormData({ 
+      nome: formData.nome,
+      email: formData.email,
+      telefone: formData.telefone,
+      senha: formData.senha,
+      membros: [] 
+    });
+    setCurrentStep(2);
+  };
+
+  const handleSubmit = async () => {
+    const dataLimite = new Date("2025-10-26");
+    const hoje = new Date();
+    
+    if (hoje >= dataLimite) {
+      toast.error("O período de cadastro de novas Casas de Fé foi encerrado em 26/10/2025.");
+      return;
+    }
+
+    try {
+      let finalUserId = userId;
+
+      if (!finalUserId) {
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: formData.email!,
+          password: formData.senha!,
+          options: {
+            emailRedirectTo: `${window.location.origin}/dashboard`,
+          },
+        });
+
+        if (authError) {
+          if (authError.message.includes("already registered")) {
+            const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+              email: formData.email!,
+              password: formData.senha!,
+            });
+
+            if (loginError) {
+              toast.error("Email já cadastrado. Verifique sua senha ou faça login.");
+              throw loginError;
+            }
+
+            finalUserId = loginData.user.id;
+          } else {
+            toast.error("Erro ao criar conta: " + authError.message);
+            throw authError;
+          }
+        } else {
+          finalUserId = authData.user!.id;
+        }
+      }
+
+      await createCasaFe(finalUserId!);
+
+      toast.success("Casa de Fé criada com sucesso!");
+      
+      const { data: casasAtualizadas } = await supabase
+        .from("casas_fe")
+        .select("*")
+        .eq("user_id", finalUserId);
+      
+      if (casasAtualizadas) {
+        setUserCasas(casasAtualizadas);
+        
+        if (casasAtualizadas.length > 1) {
+          navigate("/login");
+        } else {
+          navigate("/dashboard");
+        }
+      }
+    } catch (error: any) {
+      console.error("Error creating casa de fé:", error);
+      if (!error.message?.includes("already registered")) {
+        toast.error("Erro ao criar Casa de Fé: " + error.message);
+      }
+    }
+  };
+
+  const createCasaFe = async (userId: string) => {
+    const { data: casaData, error: casaError } = await supabase
+      .from("casas_fe")
+      .insert({
+        user_id: userId,
+        nome_lider: formData.nome!,
+        tipo_documento: formData.tipoDocumento!,
+        numero_documento: formData.numeroDocumento!,
+        email: formData.email!,
+        telefone: formData.telefone!,
+        endereco: formData.endereco!,
+        campus: formData.campus!,
+        rede: formData.rede!,
+        dias_semana: formData.diasSemana || [],
+        horario_reuniao: formData.horarioReuniao!,
+        nome_dupla: formData.nomeDupla || null,
+        telefone_dupla: formData.telefoneDupla || null,
+        email_dupla: formData.emailDupla || null,
+        rede_minc_facilitador_1: formData.redeMincFacilitador1 || null,
+        rede_facilitador_1: formData.redeFacilitador1 || null,
+        facilitador_1_batizado: formData.facilitador1Batizado || false,
+        rede_minc_facilitador_2: formData.redeMincFacilitador2 || null,
+        rede_facilitador_2: formData.redeFacilitador2 || null,
+        facilitador_2_batizado: formData.facilitador2Batizado || false,
+        nome_anfitriao: formData.nomeAnfitriao || null,
+        whatsapp_anfitriao: formData.whatsappAnfitriao || null,
+        rua_avenida: formData.ruaAvenida || null,
+        numero_casa: formData.numeroCasa || null,
+        bairro: formData.bairro || null,
+        cep: formData.cep || null,
+        cidade: formData.cidade || null,
+        ponto_referencia: formData.pontoReferencia || null,
+      })
+      .select()
+      .single();
+
+    if (casaError) throw casaError;
+
+    if (formData.membros && formData.membros.length > 0) {
+      const membrosData = formData.membros.map((membro) => ({
+        casa_fe_id: casaData.id,
+        nome_completo: membro.nome,
+        telefone: membro.telefone,
+        idade: membro.idade,
+        endereco: membro.endereco,
+        aceitou_jesus: membro.convertido,
+        notas: membro.notas || null,
+      }));
+
+      const { error: membrosError } = await supabase
+        .from("membros")
+        .insert(membrosData);
+
+      if (membrosError) throw membrosError;
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold mb-2">Confirmação</h2>
-        <p className="text-muted-foreground">
-          Revise seus dados antes de finalizar
-        </p>
-      </div>
+    <div className="min-h-screen gradient-subtle flex flex-col">
+      <header className="p-4 md:p-6">
+        <div className="max-w-4xl mx-auto">
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/login")}
+            className="mb-4"
+          >
+            ← Voltar para Login
+          </Button>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-3">
+            <img src="favicon.png" alt="" className="w-8 h-8" />
+            VAMOS DAR START NA SUA CASA DE FÉ! 
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Vamos começar essa jornada juntos
+          </p>
+        </div>
+      </header>
 
-      <div className="space-y-4">
-        {/* Lista de Todas as Casas de Fé */}
-        {todasCasas.length > 0 && (
-          <Card className="p-4 bg-primary/5 border-primary/20">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Home className="w-5 h-5 text-primary" />
-                <h3 className="font-semibold">Suas Casas de Fé ({todasCasas.length})</h3>
-              </div>
-              {onAddAnother && (
-                <Button 
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={onAddAnother}
-                  className="border-primary/40 hover:border-primary bg-background"
+      <div className="px-4 pb-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="h-2 bg-muted rounded-full overflow-hidden">
+            <div 
+              className="h-full gradient-primary transition-smooth"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          
+          <div className="flex justify-between mt-4">
+            {steps.map((step) => {
+              const Icon = step.icon;
+              const isActive = currentStep === step.number;
+              const isCompleted = currentStep > step.number;
+              
+              return (
+                <div 
+                  key={step.number}
+                  className="flex flex-col items-center gap-2 flex-1"
                 >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Adicionar
-                </Button>
-              )}
-            </div>
-            <div className="space-y-2 max-h-[200px] overflow-y-auto">
-              {todasCasas.map((casa, idx) => (
-                <div key={casa.id} className="p-3 bg-background rounded-lg border border-border group hover:border-primary/40 transition-colors">
-                  <div className="flex items-start gap-2">
-                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
-                      {idx + 1}
-                    </span>
-                    <div className="flex-1 text-sm">
-                      <p className="font-semibold">{casa.nome_lider}</p>
-                      <p className="text-muted-foreground">{casa.endereco}</p>
-                      <p className="text-xs text-muted-foreground">{casa.campus} - {casa.rede}</p>
-                    </div>
-                    {onEditCasa && (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => onEditCasa(casa.id)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                    )}
+                  <div 
+                    className={`
+                      w-10 h-10 rounded-full flex items-center justify-center transition-smooth
+                      ${isActive ? 'bg-primary text-primary-foreground shadow-glow' : ''}
+                      ${isCompleted ? 'bg-success text-success-foreground' : ''}
+                      ${!isActive && !isCompleted ? 'bg-muted text-muted-foreground' : ''}
+                    `}
+                  >
+                    <Icon className="w-5 h-5" />
                   </div>
-                </div>
-              ))}
-            </div>
-          </Card>
-        )}
-
-        {/* Dados do Facilitador */}
-        <Card className="p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <User className="w-5 h-5 text-primary" />
-            <h3 className="font-semibold">Seus Dados</h3>
-          </div>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Nome:</span>
-              <span className="font-medium">{data.nome}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Email:</span>
-              <span className="font-medium">{data.email}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Telefone:</span>
-              <span className="font-medium">{data.telefone}</span>
-            </div>
-          </div>
-        </Card>
-
-        {/* Dados da Casa de Fé NOVA */}
-        <Card className="p-4 border-2 border-success/30 bg-success/5">
-          <div className="flex items-center gap-2 mb-3">
-            <Home className="w-5 h-5 text-success" />
-            <h3 className="font-semibold">Nova Casa de Fé</h3>
-          </div>
-          <div className="space-y-2 text-sm">
-            <div className="flex gap-2">
-              <MapPin className="w-4 h-4 text-muted-foreground mt-0.5" />
-              <span>{data.endereco}</span>
-            </div>
-            <div className="flex gap-2">
-              <Building className="w-4 h-4 text-muted-foreground mt-0.5" />
-              <span>{data.campus}</span>
-            </div>
-            <div className="flex gap-2">
-              <Network className="w-4 h-4 text-muted-foreground mt-0.5" />
-              <span>{data.rede}</span>
-            </div>
-            <div className="flex gap-2">
-              <Clock className="w-4 h-4 text-muted-foreground mt-0.5" />
-              <span>{data.horarioReuniao}</span>
-            </div>
-            <div className="flex gap-2">
-              <Calendar className="w-4 h-4 text-muted-foreground mt-0.5" />
-              <div className="flex flex-wrap gap-1">
-                {data.diasSemana?.map((dia, idx) => (
-                  <span key={idx} className="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs">
-                    {dia.replace('-feira', '')}
+                  <span className={`
+                    text-xs font-medium hidden md:block
+                    ${isActive ? 'text-primary' : 'text-muted-foreground'}
+                  `}>
+                    {step.title}
                   </span>
-                ))}
-              </div>
-            </div>
+                </div>
+              );
+            })}
           </div>
-        </Card>
-
-        {/* Membros */}
-        <Card className="p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Users className="w-5 h-5 text-success" />
-            <h3 className="font-semibold">
-              Membros ({data.membros?.length || 0})
-            </h3>
-          </div>
-          <div className="space-y-2 text-sm max-h-[200px] overflow-y-auto">
-            {data.membros?.map((membro, index) => (
-              <div key={index} className="flex items-center justify-between p-2 bg-muted/30 rounded">
-                <span className="font-medium">{membro.nome}</span>
-                {membro.convertido && (
-                  <CheckCircle2 className="w-4 h-4 text-success" />
-                )}
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        {/* Termos */}
-        <div className="flex items-start gap-3 p-4 bg-accent/10 border border-accent/20 rounded-lg">
-          <Checkbox
-            id="terms"
-            checked={acceptTerms}
-            onCheckedChange={(checked) => setAcceptTerms(checked === true)}
-          />
-          <label htmlFor="terms" className="text-sm cursor-pointer">
-            Confirmo que estarei comprometido(a), junto com meu facilitador(a), em iniciar e concluir a Casa de Fé pelo período de 4 semanas do projeto evangelístico.
-          </label>
         </div>
       </div>
 
-      <div className="flex flex-col gap-3">        
-        <div className="flex flex-col sm:flex-row gap-3">
-          <Button 
-            type="button" 
-            variant="outline" 
-            size="lg" 
-            onClick={onBack}
-            className="w-full sm:flex-1"
-          >
-            ← Voltar
-          </Button>
-          <Button 
-            onClick={handleSubmit}
-            variant="hero" 
-            size="lg" 
-            className="w-full sm:flex-1"
-            disabled={!acceptTerms}
-          >
-            Finalizar e Criar Casa de Fé
-          </Button>
+      <div className="flex-1 px-4">
+        <div className="max-w-4xl mx-auto">
+          <Card className="p-6 md:p-8 shadow-medium">
+            {currentStep === 1 && !isLoggedIn && (
+              <StepOne 
+                data={formData}
+                onNext={(data) => {
+                  updateFormData(data);
+                  nextStep();
+                }}
+              />
+            )}
+            
+            {currentStep === 2 && (
+              <StepTwo 
+                data={formData}
+                onNext={(data) => {
+                  updateFormData(data);
+                  nextStep();
+                }}
+                onBack={prevStep}
+              />
+            )}
+            
+            {currentStep === 3 && (
+              <StepThree 
+                data={formData}
+                onNext={(data) => {
+                  updateFormData(data);
+                  nextStep();
+                }}
+                onBack={prevStep}
+              />
+            )}
+            
+            {currentStep === 4 && (
+              <StepFour 
+                data={formData as CadastroData}
+                todasCasas={userCasas}
+                onSubmit={handleSubmit}
+                onBack={prevStep}
+                onAddAnother={handleAddAnother}
+              />
+            )}
+          </Card>
         </div>
       </div>
+
+      <footer className="p-5 text-center text-sm text-muted-foreground">
+        <p>MINC - Minha Igreja Na Cidade © 2025</p>
+      </footer>
     </div>
   );
 };
+
+export default Cadastro;

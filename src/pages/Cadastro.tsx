@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -11,7 +11,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export interface CadastroData {
-  // Step 1 - Facilitator data
   nome: string;
   tipoDocumento: string;
   numeroDocumento: string;
@@ -19,9 +18,9 @@ export interface CadastroData {
   telefone: string;
   senha: string;
   redeMincFacilitador1?: string;
+  redeFacilitador1?: string;
   facilitador1Batizado?: boolean;
   
-  // Step 2 - Casa de Fé e Facilitador 2
   endereco: string;
   campus: string;
   rede: string;
@@ -31,13 +30,12 @@ export interface CadastroData {
   telefoneDupla?: string;
   emailDupla?: string;
   redeMincFacilitador2?: string;
+  redeFacilitador2?: string;
   facilitador2Batizado?: boolean;
   
-  // Anfitrião
   nomeAnfitriao?: string;
   whatsappAnfitriao?: string;
   
-  // Endereço detalhado
   ruaAvenida?: string;
   numeroCasa?: string;
   bairro?: string;
@@ -45,7 +43,6 @@ export interface CadastroData {
   cidade?: string;
   pontoReferencia?: string;
   
-  // Step 3 - Members
   membros: Array<{
     nome: string;
     telefone: string;
@@ -64,6 +61,7 @@ const Cadastro = () => {
   });
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userCasas, setUserCasas] = useState<any[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
 
   const steps = [
     { number: 1, title: "Seus Dados", icon: Users },
@@ -74,13 +72,13 @@ const Cadastro = () => {
 
   const progress = (currentStep / 4) * 100;
 
-  // Verificar se está logado e carregar casas
-  useState(() => {
+  useEffect(() => {
     const checkAuth = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setIsLoggedIn(true);
-        // Carregar casas existentes
+        setUserId(user.id);
+        
         const { data: casas } = await supabase
           .from("casas_fe")
           .select("*")
@@ -88,20 +86,18 @@ const Cadastro = () => {
         
         if (casas && casas.length > 0) {
           setUserCasas(casas);
-          // Preencher dados do primeiro cadastro
           setFormData({
             nome: casas[0].nome_lider,
             email: casas[0].email,
             telefone: casas[0].telefone,
             membros: [],
           });
-          // Pular para step 2
           setCurrentStep(2);
         }
       }
     };
     checkAuth();
-  });
+  }, []);
 
   const updateFormData = (data: Partial<CadastroData>) => {
     setFormData(prev => ({ ...prev, ...data }));
@@ -120,7 +116,6 @@ const Cadastro = () => {
   };
 
   const handleAddAnother = () => {
-    // Resetar apenas os dados da casa de fé, mantendo login
     setFormData({ 
       nome: formData.nome,
       email: formData.email,
@@ -128,11 +123,10 @@ const Cadastro = () => {
       senha: formData.senha,
       membros: [] 
     });
-    setCurrentStep(2); // Voltar para step 2 (Casa de Fé)
+    setCurrentStep(2);
   };
 
   const handleSubmit = async () => {
-    // Verificar data limite
     const dataLimite = new Date("2025-10-26");
     const hoje = new Date();
     
@@ -142,13 +136,9 @@ const Cadastro = () => {
     }
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      let finalUserId = userId;
 
-      // Se já está logado (cadastrando +1), usar o user atual
-      const userId = user?.id;
-
-      if (!userId) {
-        // Novo usuário - fazer signup
+      if (!finalUserId) {
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email: formData.email!,
           password: formData.senha!,
@@ -159,7 +149,6 @@ const Cadastro = () => {
 
         if (authError) {
           if (authError.message.includes("already registered")) {
-            // Email já cadastrado - tentar fazer login
             const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
               email: formData.email!,
               password: formData.senha!,
@@ -170,50 +159,43 @@ const Cadastro = () => {
               throw loginError;
             }
 
-            // Login bem-sucedido - criar casa de fé
-            await createCasaFe(loginData.user.id);
+            finalUserId = loginData.user.id;
           } else {
             toast.error("Erro ao criar conta: " + authError.message);
+            throw authError;
           }
-          throw authError;
+        } else {
+          finalUserId = authData.user!.id;
         }
-
-        // Criar casa de fé para novo usuário
-        await createCasaFe(authData.user!.id);
-      } else {
-        // Usuário já logado - cadastrar nova casa
-        await createCasaFe(userId);
       }
+
+      await createCasaFe(finalUserId!);
 
       toast.success("Casa de Fé criada com sucesso!");
       
-      // Recarregar lista de casas
       const { data: casasAtualizadas } = await supabase
         .from("casas_fe")
         .select("*")
-        .eq("user_id", userId || (await supabase.auth.getUser()).data.user?.id);
+        .eq("user_id", finalUserId);
       
       if (casasAtualizadas) {
         setUserCasas(casasAtualizadas);
-      }
-      
-      // Se já tem casas cadastradas (>1), voltar pro login
-      // Se é a primeira casa, ir pro dashboard
-      if (casasAtualizadas && casasAtualizadas.length > 1) {
-        navigate("/login");
-      } else {
-        navigate("/dashboard");
+        
+        if (casasAtualizadas.length > 1) {
+          navigate("/login");
+        } else {
+          navigate("/dashboard");
+        }
       }
     } catch (error: any) {
       console.error("Error creating casa de fé:", error);
-      if (!error.message.includes("already registered")) {
+      if (!error.message?.includes("already registered")) {
         toast.error("Erro ao criar Casa de Fé: " + error.message);
       }
     }
   };
 
   const createCasaFe = async (userId: string) => {
-    // Create casa de fé
     const { data: casaData, error: casaError } = await supabase
       .from("casas_fe")
       .insert({
@@ -231,8 +213,11 @@ const Cadastro = () => {
         nome_dupla: formData.nomeDupla || null,
         telefone_dupla: formData.telefoneDupla || null,
         email_dupla: formData.emailDupla || null,
+        rede_minc_facilitador_1: formData.redeMincFacilitador1 || null,
+        rede_facilitador_1: formData.redeFacilitador1 || null,
         facilitador_1_batizado: formData.facilitador1Batizado || false,
         rede_minc_facilitador_2: formData.redeMincFacilitador2 || null,
+        rede_facilitador_2: formData.redeFacilitador2 || null,
         facilitador_2_batizado: formData.facilitador2Batizado || false,
         nome_anfitriao: formData.nomeAnfitriao || null,
         whatsapp_anfitriao: formData.whatsappAnfitriao || null,
@@ -248,7 +233,6 @@ const Cadastro = () => {
 
     if (casaError) throw casaError;
 
-    // Create membros
     if (formData.membros && formData.membros.length > 0) {
       const membrosData = formData.membros.map((membro) => ({
         casa_fe_id: casaData.id,
@@ -270,7 +254,6 @@ const Cadastro = () => {
 
   return (
     <div className="min-h-screen gradient-subtle flex flex-col">
-      {/* Header */}
       <header className="p-4 md:p-6">
         <div className="max-w-4xl mx-auto">
           <Button
@@ -290,7 +273,6 @@ const Cadastro = () => {
         </div>
       </header>
 
-      {/* Progress Bar */}
       <div className="px-4 pb-6">
         <div className="max-w-4xl mx-auto">
           <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -300,7 +282,6 @@ const Cadastro = () => {
             />
           </div>
           
-          {/* Steps Indicator */}
           <div className="flex justify-between mt-4">
             {steps.map((step) => {
               const Icon = step.icon;
@@ -335,7 +316,6 @@ const Cadastro = () => {
         </div>
       </div>
 
-      {/* Content */}
       <div className="flex-1 px-4">
         <div className="max-w-4xl mx-auto">
           <Card className="p-6 md:p-8 shadow-medium">
@@ -377,14 +357,13 @@ const Cadastro = () => {
                 todasCasas={userCasas}
                 onSubmit={handleSubmit}
                 onBack={prevStep}
-                onAddAnother={userCasas.length > 0 ? handleAddAnother : undefined}
+                onAddAnother={isLoggedIn ? handleAddAnother : undefined}
               />
             )}
           </Card>
         </div>
       </div>
 
-      {/* Footer */}
       <footer className="p-5 text-center text-sm text-muted-foreground">
         <p>MINC - Minha Igreja Na Cidade © 2025</p>
       </footer>
