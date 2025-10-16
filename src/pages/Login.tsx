@@ -11,27 +11,50 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 
 const Login = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
+  const [emailOrPhone, setEmailOrPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [showCasaSelection, setShowCasaSelection] = useState(false);
   const [casasFe, setCasasFe] = useState<any[]>([]);
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      // Verificar se é email ou telefone
+      const isEmail = emailOrPhone.includes("@");
+      let loginEmail = emailOrPhone;
+
+      if (!isEmail) {
+        // É telefone - buscar email correspondente
+        const { data: casaData, error: casaError } = await supabase
+          .from("casas_fe")
+          .select("email")
+          .eq("telefone", emailOrPhone)
+          .limit(1)
+          .maybeSingle();
+
+        if (casaError || !casaData) {
+          toast.error("Telefone não encontrado. Verifique o número digitado.");
+          setLoading(false);
+          return;
+        }
+
+        loginEmail = casaData.email;
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password: senha,
+        email: loginEmail,
+        password: "123456", // Senha padrão
       });
 
       if (error) throw error;
 
       toast.success("Login realizado. Graça e paz!");
       
-      if (email === "admin@mincbh.com.br") {
+      if (loginEmail === "admin@mincbh.com.br") {
         navigate("/admin/dashboard");
       } else {
         // Verificar quantas casas de fé o usuário tem
@@ -43,8 +66,9 @@ const Login = () => {
         if (casasError) throw casasError;
 
         if (casasData && casasData.length > 1) {
-          // Mais de uma casa - mostrar seleção
-          setCasasFe(casasData);
+          // Mais de uma casa - mostrar seleção (sem duplicação)
+          const casasUnicas = Array.from(new Map(casasData.map(casa => [casa.id, casa])).values());
+          setCasasFe(casasUnicas);
           setShowCasaSelection(true);
         } else {
           // Apenas uma casa - ir direto
@@ -55,6 +79,27 @@ const Login = () => {
       toast.error(error.message || "Erro ao fazer login");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!newPassword || newPassword.length < 6) {
+      toast.error("A senha deve ter pelo menos 6 caracteres");
+      return;
+    }
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error;
+
+      toast.success("Senha atualizada com sucesso!");
+      setShowResetPassword(false);
+      setNewPassword("");
+    } catch (error: any) {
+      toast.error("Erro ao atualizar senha: " + error.message);
     }
   };
 
@@ -85,32 +130,23 @@ const Login = () => {
           </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-base font-semibold">Email</Label>
-              <div className="relative group">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="seu@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-11 h-12 text-base border-primary/20 focus:border-primary transition-all"
-                  required
-                />
-              </div>
+            <div className="p-4 bg-accent/10 border border-accent/20 rounded-lg">
+              <p className="text-sm text-center">
+                <strong>Senha padrão: 123456</strong><br />
+                Após o login, você poderá redefinir sua senha.
+              </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="senha" className="text-base font-semibold">Senha</Label>
+              <Label htmlFor="emailOrPhone" className="text-base font-semibold">Email ou Telefone</Label>
               <div className="relative group">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                 <Input
-                  id="senha"
-                  type="password"
-                  placeholder="••••••••"
-                  value={senha}
-                  onChange={(e) => setSenha(e.target.value)}
+                  id="emailOrPhone"
+                  type="text"
+                  placeholder="seu@email.com ou +55 (00) 00000-0000"
+                  value={emailOrPhone}
+                  onChange={(e) => setEmailOrPhone(e.target.value)}
                   className="pl-11 h-12 text-base border-primary/20 focus:border-primary transition-all"
                   required
                 />
@@ -136,6 +172,16 @@ const Login = () => {
             </Button>
 
             <div className="text-center pt-6 border-t border-primary/10 space-y-4">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowResetPassword(true)}
+                className="text-primary hover:underline"
+              >
+                Redefinir Senha (opcional)
+              </Button>
+              
               <p className="text-sm text-muted-foreground">Ainda não tem cadastro?</p>
               <Link to="/cadastro" className="block">
                 <Button 
@@ -191,6 +237,37 @@ const Login = () => {
                 </div>
               </Card>
             ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Redefinir Senha */}
+      <Dialog open={showResetPassword} onOpenChange={setShowResetPassword}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Redefinir Senha</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="newPassword">Nova Senha</Label>
+              <Input
+                id="newPassword"
+                type="password"
+                placeholder="Digite sua nova senha"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="mt-1.5"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Mínimo 6 caracteres</p>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowResetPassword(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleResetPassword}>
+                Atualizar Senha
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

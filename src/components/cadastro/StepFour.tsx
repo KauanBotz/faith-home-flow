@@ -170,21 +170,7 @@ export const StepFour = ({ data, todasCasas = [], onSubmit, onBack, onAddAnother
             onCheckedChange={(checked) => setAcceptTerms(checked === true)}
           />
           <label htmlFor="terms" className="text-sm cursor-pointer">
-            Li e concordo com as{" "}
-            <button
-              type="button"
-              onClick={() => {
-                const link = document.createElement("a");
-                link.href = "/instrucoes-casa-de-fe.pdf";
-                link.download = "instrucoes-casa-de-fe.pdf";
-                link.click();
-                setAcceptTerms(true);
-              }}
-              className="text-primary font-semibold hover:underline"
-            >
-              instruções da Casa de Fé (clique aqui)
-            </button>
-            {" "}e autorizo o uso dos meus dados para fins de gestão das Casas de Fé.
+            Confirmo que estarei comprometido(a), junto com meu facilitador(a), em iniciar e concluir a Casa de Fé pelo período de 4 semanas do projeto evangelístico.
           </label>
         </div>
       </div>

@@ -13,11 +13,15 @@ import { toast } from "sonner";
 export interface CadastroData {
   // Step 1 - Facilitator data
   nome: string;
+  tipoDocumento: string;
+  numeroDocumento: string;
   email: string;
   telefone: string;
   senha: string;
+  redeMincFacilitador1?: string;
+  facilitador1Batizado?: boolean;
   
-  // Step 2 - Casa de Fé data
+  // Step 2 - Casa de Fé e Facilitador 2
   endereco: string;
   campus: string;
   rede: string;
@@ -26,6 +30,20 @@ export interface CadastroData {
   nomeDupla?: string;
   telefoneDupla?: string;
   emailDupla?: string;
+  redeMincFacilitador2?: string;
+  facilitador2Batizado?: boolean;
+  
+  // Anfitrião
+  nomeAnfitriao?: string;
+  whatsappAnfitriao?: string;
+  
+  // Endereço detalhado
+  ruaAvenida?: string;
+  numeroCasa?: string;
+  bairro?: string;
+  cep?: string;
+  cidade?: string;
+  pontoReferencia?: string;
   
   // Step 3 - Members
   membros: Array<{
@@ -201,6 +219,8 @@ const Cadastro = () => {
       .insert({
         user_id: userId,
         nome_lider: formData.nome!,
+        tipo_documento: formData.tipoDocumento!,
+        numero_documento: formData.numeroDocumento!,
         email: formData.email!,
         telefone: formData.telefone!,
         endereco: formData.endereco!,
@@ -211,6 +231,17 @@ const Cadastro = () => {
         nome_dupla: formData.nomeDupla || null,
         telefone_dupla: formData.telefoneDupla || null,
         email_dupla: formData.emailDupla || null,
+        facilitador_1_batizado: formData.facilitador1Batizado || false,
+        rede_minc_facilitador_2: formData.redeMincFacilitador2 || null,
+        facilitador_2_batizado: formData.facilitador2Batizado || false,
+        nome_anfitriao: formData.nomeAnfitriao || null,
+        whatsapp_anfitriao: formData.whatsappAnfitriao || null,
+        rua_avenida: formData.ruaAvenida || null,
+        numero_casa: formData.numeroCasa || null,
+        bairro: formData.bairro || null,
+        cep: formData.cep || null,
+        cidade: formData.cidade || null,
+        ponto_referencia: formData.pontoReferencia || null,
       })
       .select()
       .single();

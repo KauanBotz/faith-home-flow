@@ -16,58 +16,97 @@ export type Database = {
     Tables: {
       casas_fe: {
         Row: {
+          bairro: string | null
           campus: string
+          cep: string | null
+          cidade: string | null
           created_at: string
           dias_semana: string[]
           email: string
           email_dupla: string | null
           endereco: string
+          facilitador_1_batizado: boolean | null
+          facilitador_2_batizado: boolean | null
           geracao: string
           horario_reuniao: string
           id: string
+          nome_anfitriao: string | null
           nome_dupla: string | null
           nome_lider: string
+          numero_casa: string | null
+          numero_documento: string | null
+          ponto_referencia: string | null
           rede: string
+          rede_minc_facilitador_2: string | null
+          rua_avenida: string | null
           telefone: string
           telefone_dupla: string | null
+          tipo_documento: string | null
           updated_at: string
           user_id: string
+          whatsapp_anfitriao: string | null
         }
         Insert: {
+          bairro?: string | null
           campus: string
+          cep?: string | null
+          cidade?: string | null
           created_at?: string
           dias_semana?: string[]
           email: string
           email_dupla?: string | null
           endereco: string
+          facilitador_1_batizado?: boolean | null
+          facilitador_2_batizado?: boolean | null
           geracao?: string
           horario_reuniao: string
           id?: string
+          nome_anfitriao?: string | null
           nome_dupla?: string | null
           nome_lider: string
+          numero_casa?: string | null
+          numero_documento?: string | null
+          ponto_referencia?: string | null
           rede: string
+          rede_minc_facilitador_2?: string | null
+          rua_avenida?: string | null
           telefone: string
           telefone_dupla?: string | null
+          tipo_documento?: string | null
           updated_at?: string
           user_id: string
+          whatsapp_anfitriao?: string | null
         }
         Update: {
+          bairro?: string | null
           campus?: string
+          cep?: string | null
+          cidade?: string | null
           created_at?: string
           dias_semana?: string[]
           email?: string
           email_dupla?: string | null
           endereco?: string
+          facilitador_1_batizado?: boolean | null
+          facilitador_2_batizado?: boolean | null
           geracao?: string
           horario_reuniao?: string
           id?: string
+          nome_anfitriao?: string | null
           nome_dupla?: string | null
           nome_lider?: string
+          numero_casa?: string | null
+          numero_documento?: string | null
+          ponto_referencia?: string | null
           rede?: string
+          rede_minc_facilitador_2?: string | null
+          rua_avenida?: string | null
           telefone?: string
           telefone_dupla?: string | null
+          tipo_documento?: string | null
           updated_at?: string
           user_id?: string
+          whatsapp_anfitriao?: string | null
         }
         Relationships: []
       }

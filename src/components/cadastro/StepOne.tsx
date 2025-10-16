@@ -2,20 +2,29 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CadastroData } from "@/pages/Cadastro";
-import { Mail, Phone, User, Lock } from "lucide-react";
+import { Mail, Phone, User, IdCard, CreditCard } from "lucide-react";
 
 interface StepOneProps {
   data: Partial<CadastroData>;
   onNext: (data: Partial<CadastroData>) => void;
 }
 
+const tiposDocumento = [
+  "CPF",
+  "RG",
+  "CNH",
+  "Passaporte",
+  "Outro"
+];
+
 export const StepOne = ({ data, onNext }: StepOneProps) => {
   const [nome, setNome] = useState(data.nome || "");
+  const [tipoDocumento, setTipoDocumento] = useState(data.tipoDocumento || "");
+  const [numeroDocumento, setNumeroDocumento] = useState(data.numeroDocumento || "");
   const [email, setEmail] = useState(data.email || "");
   const [telefone, setTelefone] = useState(data.telefone || "");
-  const [senha, setSenha] = useState(data.senha || "");
-  const [confirmSenha, setConfirmSenha] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const formatPhone = (value: string) => {
@@ -23,7 +32,6 @@ export const StepOne = ({ data, onNext }: StepOneProps) => {
     
     if (numbers.length === 0) return '';
     
-    // Remove +55 se já existir para reprocessar
     const localNumbers = numbers.startsWith('55') ? numbers.slice(2) : numbers;
     
     if (localNumbers.length <= 2) {
@@ -46,12 +54,11 @@ export const StepOne = ({ data, onNext }: StepOneProps) => {
     const newErrors: Record<string, string> = {};
 
     if (!nome.trim()) newErrors.nome = "Nome é obrigatório";
+    if (!tipoDocumento) newErrors.tipoDocumento = "Tipo de documento é obrigatório";
+    if (!numeroDocumento.trim()) newErrors.numeroDocumento = "Número do documento é obrigatório";
     if (!email.trim()) newErrors.email = "Email é obrigatório";
     else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = "Email inválido";
     if (!telefone.trim()) newErrors.telefone = "Telefone é obrigatório";
-    if (!senha) newErrors.senha = "Senha é obrigatória";
-    else if (senha.length < 6) newErrors.senha = "Senha deve ter no mínimo 6 caracteres";
-    if (senha !== confirmSenha) newErrors.confirmSenha = "As senhas não coincidem";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -60,7 +67,7 @@ export const StepOne = ({ data, onNext }: StepOneProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validate()) {
-      onNext({ nome, email, telefone, senha });
+      onNext({ nome, tipoDocumento, numeroDocumento, email, telefone, senha: "123456" });
     }
   };
 
@@ -73,14 +80,14 @@ export const StepOne = ({ data, onNext }: StepOneProps) => {
         </p>
         <div className="mt-4 p-3 bg-accent/10 border border-accent/20 rounded-lg">
           <p className="text-sm text-accent-foreground">
-            💡 <strong>Já tem uma Casa de Fé?</strong> Use o mesmo email e senha para cadastrar outra.
+            💡 <strong>Já tem uma Casa de Fé?</strong> Use o mesmo email para cadastrar outra.
           </p>
         </div>
       </div>
 
       <div className="space-y-4">
         <div>
-          <Label htmlFor="nome">Nome Completo</Label>
+          <Label htmlFor="nome">Nome Completo *</Label>
           <div className="relative mt-1.5">
             <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -98,7 +105,47 @@ export const StepOne = ({ data, onNext }: StepOneProps) => {
         </div>
 
         <div>
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="tipoDocumento">Tipo de Documento *</Label>
+          <div className="relative mt-1.5">
+            <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
+            <Select value={tipoDocumento} onValueChange={setTipoDocumento}>
+              <SelectTrigger id="tipoDocumento" className="pl-10">
+                <SelectValue placeholder="Selecione o tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                {tiposDocumento.map((tipo) => (
+                  <SelectItem key={tipo} value={tipo}>
+                    {tipo}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {errors.tipoDocumento && (
+            <p className="text-destructive text-sm mt-1">{errors.tipoDocumento}</p>
+          )}
+        </div>
+
+        <div>
+          <Label htmlFor="numeroDocumento">Número do Documento *</Label>
+          <div className="relative mt-1.5">
+            <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              id="numeroDocumento"
+              type="text"
+              placeholder="Digite o número do documento"
+              value={numeroDocumento}
+              onChange={(e) => setNumeroDocumento(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          {errors.numeroDocumento && (
+            <p className="text-destructive text-sm mt-1">{errors.numeroDocumento}</p>
+          )}
+        </div>
+
+        <div>
+          <Label htmlFor="email">Email *</Label>
           <div className="relative mt-1.5">
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -116,7 +163,7 @@ export const StepOne = ({ data, onNext }: StepOneProps) => {
         </div>
 
         <div>
-          <Label htmlFor="telefone">Telefone (WhatsApp)</Label>
+          <Label htmlFor="telefone">WhatsApp (DDD + número sem traços) *</Label>
           <div className="relative mt-1.5">
             <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -131,42 +178,6 @@ export const StepOne = ({ data, onNext }: StepOneProps) => {
           </div>
           {errors.telefone && (
             <p className="text-destructive text-sm mt-1">{errors.telefone}</p>
-          )}
-        </div>
-
-        <div>
-          <Label htmlFor="senha">Criar Senha</Label>
-          <div className="relative mt-1.5">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              id="senha"
-              type="password"
-              placeholder="Mínimo 6 caracteres"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          {errors.senha && (
-            <p className="text-destructive text-sm mt-1">{errors.senha}</p>
-          )}
-        </div>
-
-        <div>
-          <Label htmlFor="confirmSenha">Confirmar Senha</Label>
-          <div className="relative mt-1.5">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              id="confirmSenha"
-              type="password"
-              placeholder="Digite a senha novamente"
-              value={confirmSenha}
-              onChange={(e) => setConfirmSenha(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          {errors.confirmSenha && (
-            <p className="text-destructive text-sm mt-1">{errors.confirmSenha}</p>
           )}
         </div>
       </div>
