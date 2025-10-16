@@ -80,7 +80,7 @@ export const StepOne = ({ data, onNext }: StepOneProps) => {
         </p>
         <div className="mt-4 p-3 bg-accent/10 border border-accent/20 rounded-lg">
           <p className="text-sm text-accent-foreground">
-            💡 <strong>Já tem uma Casa de Fé?</strong> Use o mesmo email para cadastrar outra.
+            💡 <strong>Já tem uma Casa de Fé?</strong> Use o mesmo email e os mesmos dados para cadastrar outra.
           </p>
         </div>
       </div>

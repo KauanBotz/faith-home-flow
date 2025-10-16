@@ -6,7 +6,6 @@ import { Home, Users, Calendar, CheckCircle } from "lucide-react";
 import { StepOne } from "@/components/cadastro/StepOne";
 import { StepTwo } from "@/components/cadastro/StepTwo";
 import { StepThree } from "@/components/cadastro/StepThree";
-import { StepFour } from "@/components/cadastro/StepFour";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
