@@ -32,26 +32,31 @@ const Relatorio = () => {
         return;
       }
 
-      const { data: casaData, error: casaError } = await supabase
+      // Verificar localStorage primeiro (pra múltiplas casas)
+      const selectedCasaId = localStorage.getItem("selected_casa_id");
+
+      let casaQuery = supabase
         .from("casas_fe")
         .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
+        .eq("user_id", user.id);
+
+      // Se tem casa selecionada, filtrar por ela
+      if (selectedCasaId) {
+        casaQuery = casaQuery.eq("id", selectedCasaId);
+      }
+
+      const { data: casaData, error: casaError } = await casaQuery.single();
 
       if (casaError) {
         console.error("Erro ao buscar casa:", casaError);
-        throw casaError;
-      }
-      
-      if (!casaData) {
-        toast.error("Nenhuma casa de fé encontrada para este usuário");
+        toast.error("Erro ao carregar Casa de Fé");
         setLoading(false);
         return;
       }
       
       setCasaFe(casaData);
 
-      // Primeiro buscar os membros da casa
+      // Buscar membros da casa
       const { data: membros, error: membrosError } = await supabase
         .from("membros")
         .select("id")
@@ -70,11 +75,12 @@ const Relatorio = () => {
         return;
       }
 
-      // Buscar todas as datas onde há presença registrada
+      // Buscar todas as datas ÚNICAS de presença
       const { data: presencas, error: presencasError } = await supabase
         .from("presencas")
         .select("data_reuniao")
         .in("membro_id", membroIds)
+        .eq("presente", true)
         .order("data_reuniao", { ascending: false });
       
       if (presencasError) {
@@ -83,27 +89,27 @@ const Relatorio = () => {
       }
 
       if (presencas && presencas.length > 0) {
-        // Pegar datas únicas de presença
+        // Pegar datas únicas
         const datasUnicas = [...new Set(presencas.map(p => p.data_reuniao))];
         
-        // Verificar quais datas já têm relatório
+        // Verificar quais datas já têm relatório PREENCHIDO
         const { data: relatorios } = await supabase
           .from("relatorios")
           .select("data_reuniao, notas")
           .eq("casa_fe_id", casaData.id);
 
-        const datasComRelatorioPreenchido = relatorios
-          ?.filter((r) => r.notas && r.notas.trim() !== "")
-          .map((r) => r.data_reuniao) || [];
+        const datasComRelatorio = relatorios
+          ?.filter(r => r.notas && r.notas.trim() !== "")
+          .map(r => r.data_reuniao) || [];
         
-        // Datas com presença e SEM relatório preenchido
+        // Apenas datas SEM relatório preenchido
         const datasPendentes = datasUnicas.filter(
-          (data) => !datasComRelatorioPreenchido.includes(data)
+          data => !datasComRelatorio.includes(data)
         );
 
         setDatasDisponiveis(datasPendentes);
 
-        // Pré-selecionar data vinda da URL (se disponível)
+        // Selecionar data da URL ou a mais recente
         const params = new URLSearchParams(location.search);
         const dataParam = params.get("data");
         
@@ -115,7 +121,7 @@ const Relatorio = () => {
       }
     } catch (error: any) {
       console.error("Error loading data:", error);
-      toast.error("Erro ao carregar dados");
+      toast.error("Erro ao carregar dados: " + (error.message || ""));
     } finally {
       setLoading(false);
     }
@@ -142,47 +148,24 @@ const Relatorio = () => {
     setSending(true);
 
     try {
-      // Verificar se já existe relatório para esta data
-      const { data: relatorioExistente } = await supabase
+      // Usar upsert pra simplificar
+      const { error } = await supabase
         .from("relatorios")
-        .select("id, notas")
-        .eq("casa_fe_id", casaFe.id)
-        .eq("data_reuniao", dataSelecionada)
-        .maybeSingle();
+        .upsert({
+          casa_fe_id: casaFe.id,
+          data_reuniao: dataSelecionada,
+          notas: notas.trim(),
+        }, {
+          onConflict: 'casa_fe_id,data_reuniao'
+        });
 
-      if (relatorioExistente) {
-        // Se existe e está vazio, atualizar
-        if (!relatorioExistente.notas || relatorioExistente.notas.trim() === "") {
-          const { error } = await supabase
-            .from("relatorios")
-            .update({ notas: notas.trim() })
-            .eq("id", relatorioExistente.id);
-
-          if (error) throw error;
-        } else {
-          // Se já tem notas, avisar o usuário
-          toast.error("Já existe um relatório preenchido para esta data");
-          setSending(false);
-          return;
-        }
-      } else {
-        // Não existe, criar novo
-        const { error } = await supabase
-          .from("relatorios")
-          .insert({
-            casa_fe_id: casaFe.id,
-            data_reuniao: dataSelecionada,
-            notas: notas.trim(),
-          });
-
-        if (error) throw error;
-      }
+      if (error) throw error;
       
       toast.success("Relatório enviado com sucesso!");
       navigate("/dashboard");
     } catch (error: any) {
       console.error("Error submitting relatório:", error);
-      toast.error(`Erro ao enviar relatório: ${error.message || "Tente novamente"}`);
+      toast.error("Erro ao enviar relatório: " + (error.message || ""));
     } finally {
       setSending(false);
     }

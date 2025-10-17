@@ -69,7 +69,6 @@ const Presenca = () => {
           throw error;
         }
 
-        console.log("Membros carregados:", membrosData?.length || 0);
         setMembros(membrosData || []);
 
         const initialPresencas: Record<string, boolean> = {};
@@ -158,28 +157,52 @@ const Presenca = () => {
         return;
       }
 
-      // Salvar presenças - apenas membros marcados como presentes
+      // Verificar se já existem presenças para essa data
+      const membroIds = Object.keys(presencas);
+      
+      // Buscar presenças existentes para essa data
+      const { data: presencasExistentes } = await supabase
+        .from("presencas")
+        .select("membro_id")
+        .in("membro_id", membroIds)
+        .eq("data_reuniao", selectedDate);
+
+      const membrosComPresenca = new Set(presencasExistentes?.map(p => p.membro_id) || []);
+
+      // DELETAR presenças antigas dessa data (para permitir atualização)
+      if (membrosComPresenca.size > 0) {
+        await supabase
+          .from("presencas")
+          .delete()
+          .in("membro_id", Array.from(membrosComPresenca))
+          .eq("data_reuniao", selectedDate);
+      }
+
+      // Inserir apenas os marcados como presentes
       const presencasData = Object.entries(presencas)
         .filter(([_, presente]) => presente)
-        .map(([membroId, presente]) => ({
+        .map(([membroId]) => ({
           membro_id: membroId,
           data_reuniao: selectedDate,
           presente: true,
         }));
 
       if (presencasData.length === 0) {
-        setSaving(false);
         toast.error("Marque pelo menos um membro como presente.");
+        setSaving(false);
         return;
       }
 
-      const { error: presencasError } = await supabase.from("presencas").insert(presencasData);
+      const { error: presencasError } = await supabase
+        .from("presencas")
+        .insert(presencasData);
+
       if (presencasError) {
         console.error("Erro ao salvar presenças:", presencasError);
         throw presencasError;
       }
 
-      // Atualizar membros que aceitaram ou reconciliaram com Jesus
+      // Atualizar status de conversão dos membros
       const updatePromises = membros.map((membro) => {
         const needsUpdate = 
           aceitouJesus[membro.id] !== membro.aceitou_jesus ||
@@ -204,7 +227,7 @@ const Presenca = () => {
 
     } catch (error: any) {
       console.error("Error saving presencas:", error);
-      toast.error("Erro ao salvar presenças");
+      toast.error("Erro ao salvar presenças: " + (error.message || ""));
     } finally {
       setSaving(false);
     }
