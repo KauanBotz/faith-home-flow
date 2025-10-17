@@ -224,11 +224,11 @@ useEffect(() => {
   };
 
   const handleSubmit = async () => {
-    const dataLimite = new Date("2025-10-26");
+    const dataLimite = new Date("2025-10-25");
     const hoje = new Date();
     
     if (hoje >= dataLimite) {
-      toast.error("O período de cadastro de novas Casas de Fé foi encerrado em 26/10/2025.");
+      toast.error("O período de cadastro de novas Casas de Fé foi encerrado em 25/10/2025.");
       return;
     }
 

@@ -458,10 +458,6 @@ const AdminRelatorios = () => {
             </div>
             
             <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={exportarPDF} className="gap-2">
-                <FileDown className="w-4 h-4" />
-                PDF
-              </Button>
               <Button variant="outline" onClick={exportarExcel} className="gap-2">
                 <Download className="w-4 h-4" />
                 Excel

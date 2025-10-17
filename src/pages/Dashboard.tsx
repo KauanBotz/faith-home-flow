@@ -49,126 +49,146 @@ const Dashboard = () => {
     }
   };
 
-  const loadDashboardData = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+const loadDashboardData = async () => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
 
-      // Verificar se há casa selecionada no localStorage
-      const selectedCasaId = localStorage.getItem("selected_casa_id");
+    // Verificar se há casa selecionada no localStorage
+    const selectedCasaId = localStorage.getItem("selected_casa_id");
 
-      let casaQuery = supabase
-        .from("casas_fe")
-        .select("*")
-        .eq("user_id", user.id);
+    let casaQuery = supabase
+      .from("casas_fe")
+      .select("*")
+      .eq("user_id", user.id);
 
-      if (selectedCasaId) {
-        casaQuery = casaQuery.eq("id", selectedCasaId);
-      }
+    if (selectedCasaId) {
+      casaQuery = casaQuery.eq("id", selectedCasaId);
+    }
 
-      const { data: casaData, error: casaError } = await casaQuery.single();
+    const { data: casaData, error: casaError } = await casaQuery.single();
 
-      if (casaError) throw casaError;
-      setCasaFe(casaData);
+    if (casaError) {
+      console.error("Erro ao carregar casa:", casaError);
+      toast.error("Erro ao carregar Casa de Fé");
+      return;
+    }
 
-      if (casaData) {
-        // ... keep existing code (membros, presenças, relatórios pendentes)
-        
-        const { data: membrosData, count } = await supabase
-          .from("membros")
-          .select("*", { count: "exact" })
-          .eq("casa_fe_id", casaData.id);
-        
-        setMembrosCount(count || 0);
-        setMembrosData(membrosData || []);
+    setCasaFe(casaData);
 
-        const aceitouCount = (membrosData || []).filter(m => m.aceitou_jesus).length;
-        const reconciliouCount = (membrosData || []).filter(m => m.reconciliou_jesus).length;
-        setAceitouJesusCount(aceitouCount);
-        setReconciliouCount(reconciliouCount);
+    if (casaData) {
+      // Buscar membros
+      const { data: membrosData, count } = await supabase
+        .from("membros")
+        .select("*", { count: "exact" })
+        .eq("casa_fe_id", casaData.id);
+      
+      setMembrosCount(count || 0);
+      setMembrosData(membrosData || []);
 
-        const membroIds = (membrosData || []).map(m => m.id);
-        if (membroIds.length > 0) {
-          const { data: presencasData } = await supabase
-            .from("presencas")
-            .select("*")
-            .in("membro_id", membroIds)
-            .order("data_reuniao", { ascending: false });
-          
-          setPresencasData(presencasData || []);
-        }
+      const aceitouCount = (membrosData || []).filter(m => m.aceitou_jesus).length;
+      const reconciliouCount = (membrosData || []).filter(m => m.reconciliou_jesus).length;
+      setAceitouJesusCount(aceitouCount);
+      setReconciliouCount(reconciliouCount);
 
-        const { data: presencas } = await supabase
+      // Buscar presenças
+      const membroIds = (membrosData || []).map(m => m.id);
+      if (membroIds.length > 0) {
+        const { data: presencasData } = await supabase
           .from("presencas")
-          .select("data_reuniao")
+          .select("*")
           .in("membro_id", membroIds)
-          .eq("presente", true)
           .order("data_reuniao", { ascending: false });
+        
+        setPresencasData(presencasData || []);
 
-        if (presencas && presencas.length > 0) {
-          const datasPresenca = [...new Set(presencas.map(p => p.data_reuniao))];
-          
-          const { data: relatorios } = await supabase
-            .from("relatorios")
-            .select("data_reuniao, notas")
-            .eq("casa_fe_id", casaData.id);
+        // Calcular relatórios pendentes de forma simplificada
+        try {
+          // Buscar datas únicas de presença
+          const { data: presencas } = await supabase
+            .from("presencas")
+            .select("data_reuniao")
+            .in("membro_id", membroIds)
+            .eq("presente", true)
+            .order("data_reuniao", { ascending: false });
 
-          const datasComRelatorioPreenchido = relatorios
-            ?.filter(r => r.notas && r.notas.trim() !== "")
-            .map(r => r.data_reuniao) || [];
-          
-          const pendentes = datasPresenca.filter(
-            data => !datasComRelatorioPreenchido.includes(data)
-          ).length;
-          
-          setRelatoriosPendentes(pendentes);
-        } else {
+          if (presencas && presencas.length > 0) {
+            const datasPresenca = [...new Set(presencas.map(p => p.data_reuniao))];
+            
+            // Buscar relatórios existentes
+            const { data: relatorios } = await supabase
+              .from("relatorios")
+              .select("data_reuniao, notas")
+              .eq("casa_fe_id", casaData.id);
+
+            // Filtrar apenas relatórios que têm conteúdo
+            const datasComRelatorioPreenchido = (relatorios || [])
+              .filter(r => r.notas && r.notas.trim() !== "")
+              .map(r => r.data_reuniao);
+            
+            // Contar pendentes
+            const pendentes = datasPresenca.filter(
+              data => !datasComRelatorioPreenchido.includes(data)
+            ).length;
+            
+            setRelatoriosPendentes(pendentes);
+          } else {
+            setRelatoriosPendentes(0);
+          }
+        } catch (relError) {
+          console.error("Erro ao calcular relatórios pendentes:", relError);
           setRelatoriosPendentes(0);
         }
-
-        // Carregar palavra do pastor (mais recente)
-        const { data: palavraData } = await supabase
-          .from("palavra_pastor")
-          .select("*")
-          .order("data_publicacao", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        
-        setPalavraPastor(palavraData);
-
-        // Carregar palavras anteriores
-        const { data: palavrasAnterioresData } = await supabase
-          .from("palavra_pastor")
-          .select("*")
-          .order("data_publicacao", { ascending: false })
-          .limit(10);
-        
-        setPalavrasAnteriores(palavrasAnterioresData || []);
-
-        // Carregar testemunhos recentes
-        const { data: testemunhosData } = await supabase
-          .from("testemunhos")
-          .select("*")
-          .order("data_testemunho", { ascending: false })
-          .limit(10);
-        
-        setTestemunhos(testemunhosData || []);
-
-        // Carregar orações recentes
-        const { data: oracoesData } = await supabase
-          .from("oracoes")
-          .select("*")
-          .order("data_oracao", { ascending: false })
-          .limit(10);
-        
-        setOracoes(oracoesData || []);
+      } else {
+        setRelatoriosPendentes(0);
       }
-    } catch (error: any) {
-      console.error("Error loading dashboard:", error);
-    } finally {
-      setLoading(false);
+
+      // Carregar palavra do pastor
+      const { data: palavraData } = await supabase
+        .from("palavra_pastor")
+        .select("*")
+        .order("data_publicacao", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      setPalavraPastor(palavraData);
+
+      // Carregar palavras anteriores
+      const { data: palavrasAnterioresData } = await supabase
+        .from("palavra_pastor")
+        .select("*")
+        .order("data_publicacao", { ascending: false })
+        .limit(10);
+      
+      setPalavrasAnteriores(palavrasAnterioresData || []);
+
+      // Carregar testemunhos
+      const { data: testemunhosData } = await supabase
+        .from("testemunhos")
+        .select("*")
+        .eq("casa_fe_id", casaData.id)
+        .order("data_testemunho", { ascending: false })
+        .limit(10);
+      
+      setTestemunhos(testemunhosData || []);
+
+      // Carregar orações
+      const { data: oracoesData } = await supabase
+        .from("oracoes")
+        .select("*")
+        .eq("casa_fe_id", casaData.id)
+        .order("data_oracao", { ascending: false })
+        .limit(10);
+      
+      setOracoes(oracoesData || []);
     }
-  };
+  } catch (error: any) {
+    console.error("Error loading dashboard:", error);
+    toast.error("Erro ao carregar dados do dashboard");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

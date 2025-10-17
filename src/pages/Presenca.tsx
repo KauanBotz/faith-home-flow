@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Save, CheckCircle2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Save, CheckCircle2, AlertTriangle, Users as UsersIcon } from "lucide-react";
 import { toast } from "sonner";
 import { format, getDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -22,6 +22,7 @@ const Presenca = () => {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [historico, setHistorico] = useState<Record<string, string[]>>({});
   const hoje = new Date();
+
   useEffect(() => {
     loadMembros();
   }, []);
@@ -34,11 +35,26 @@ const Presenca = () => {
         return;
       }
 
-      const { data: casaData } = await supabase
+      // Verificar se há casa selecionada no localStorage
+      const selectedCasaId = localStorage.getItem("selected_casa_id");
+
+      let casaQuery = supabase
         .from("casas_fe")
         .select("*")
-        .eq("user_id", user.id)
-        .single();
+        .eq("user_id", user.id);
+
+      if (selectedCasaId) {
+        casaQuery = casaQuery.eq("id", selectedCasaId);
+      }
+
+      const { data: casaData, error: casaError } = await casaQuery.single();
+
+      if (casaError) {
+        console.error("Error loading casa:", casaError);
+        toast.error("Erro ao carregar Casa de Fé. Verifique se você tem uma casa cadastrada.");
+        setLoading(false);
+        return;
+      }
 
       if (casaData) {
         setCasaFe(casaData);
@@ -48,7 +64,12 @@ const Presenca = () => {
           .eq("casa_fe_id", casaData.id)
           .order("nome_completo");
 
-        if (error) throw error;
+        if (error) {
+          console.error("Error loading membros:", error);
+          throw error;
+        }
+
+        console.log("Membros carregados:", membrosData?.length || 0);
         setMembros(membrosData || []);
 
         const initialPresencas: Record<string, boolean> = {};
@@ -67,7 +88,7 @@ const Presenca = () => {
       }
     } catch (error: any) {
       console.error("Error loading membros:", error);
-      toast.error("Erro ao carregar membros");
+      toast.error("Erro ao carregar membros: " + (error.message || "Erro desconhecido"));
     } finally {
       setLoading(false);
     }
@@ -139,14 +160,13 @@ const Presenca = () => {
 
       // Salvar presenças - apenas membros marcados como presentes
       const presencasData = Object.entries(presencas)
-        .filter(([_, presente]) => presente) // Apenas salvar quem está presente
+        .filter(([_, presente]) => presente)
         .map(([membroId, presente]) => ({
           membro_id: membroId,
           data_reuniao: selectedDate,
           presente: true,
         }));
 
-      // Se nenhum membro foi marcado como presente, avisar
       if (presencasData.length === 0) {
         setSaving(false);
         toast.error("Marque pelo menos um membro como presente.");
@@ -231,6 +251,7 @@ const Presenca = () => {
             />
           </div>
         </Card>
+
         <Card className="p-5 mb-6 shadow-soft gradient-primary text-white">
           <div className="flex items-center justify-between">
             <div>
@@ -246,15 +267,19 @@ const Presenca = () => {
 
         {membros.length === 0 ? (
           <Card className="p-12 text-center shadow-soft">
-            <p className="text-muted-foreground text-lg">
+            <UsersIcon className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+            <p className="text-muted-foreground text-lg mb-2">
               Nenhum membro cadastrado ainda
+            </p>
+            <p className="text-sm text-muted-foreground mb-4">
+              Adicione membros à sua Casa de Fé antes de registrar presença.
             </p>
             <Button 
               variant="outline" 
               className="mt-4"
               onClick={() => navigate("/membros")}
             >
-              Adicionar Membros
+              Ir para Membros
             </Button>
           </Card>
         ) : (
