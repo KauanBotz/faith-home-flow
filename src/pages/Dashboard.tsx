@@ -461,7 +461,7 @@ const loadDashboardData = async () => {
             className="h-20 hover:bg-success/5 hover:border-success transition-all hover:scale-[1.02] flex-col gap-1"
           >
             <User className="w-7 h-7" />
-            <span className="text-sm font-semibold">Editar Perfil</span>
+            <span className="text-sm font-semibold">Minha Casa de Fé</span>
           </Button>
 
           <Button

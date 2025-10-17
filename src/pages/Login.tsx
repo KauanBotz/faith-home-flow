@@ -159,7 +159,7 @@ const Login = () => {
                   <Input
                     id="phone"
                     type="tel"
-                    placeholder="+55 (31) 98288-6064"
+                    placeholder="+55 (31) 9XXXX-XXXX"
                     value={phone}
                     onChange={handlePhoneChange}
                     className="pl-11 h-12 text-base border-primary/20 focus:border-primary transition-all"
