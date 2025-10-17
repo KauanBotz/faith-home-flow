@@ -37,11 +37,9 @@ const Login = () => {
     const newEmail = e.target.value;
     setEmail(newEmail);
     
-    // Quando digitar o email admin, limpa a senha para o usuário digitar
     if (newEmail === "admin@mincbh.com.br") {
       setSenha("");
     } else {
-      // Para outros emails, mantém a senha padrão
       setSenha("123456");
     }
   };
@@ -51,30 +49,61 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const loginData = loginType === "email" 
-        ? { email, password: senha }
-        : { phone: phone.replace(/\D/g, ""), password: senha };
+      if (loginType === "email") {
+        // Login por email usando Supabase Auth
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password: senha
+        });
 
-      const { data, error } = await supabase.auth.signInWithPassword(loginData);
+        if (error) throw error;
 
-      if (error) throw error;
+        toast.success("Login realizado. Graça e paz!");
+        
+        if (email === "admin@mincbh.com.br") {
+          navigate("/admin/dashboard");
+        } else {
+          const { data: casasData, error: casasError } = await supabase
+            .from("casas_fe")
+            .select("*")
+            .eq("user_id", data.user.id);
 
-      toast.success("Login realizado. Graça e paz!");
-      
-      if (email === "admin@mincbh.com.br") {
-        navigate("/admin/dashboard");
+          if (casasError) throw casasError;
+
+          if (casasData && casasData.length > 1) {
+            setCasasFe(casasData);
+            setShowCasaSelection(true);
+          } else {
+            navigate("/dashboard");
+          }
+        }
       } else {
-        const { data: casasData, error: casasError } = await supabase
+        // Login por telefone - busca EXATAMENTE como está no input
+        console.log("Buscando telefone:", phone); // Debug
+        
+        const { data: casasData, error } = await supabase
           .from("casas_fe")
           .select("*")
-          .eq("user_id", data.user.id);
+          .eq("telefone", phone); // Busca EXATAMENTE como está digitado
 
-        if (casasError) throw casasError;
+        console.log("Resultado:", casasData, error); // Debug
 
-        if (casasData && casasData.length > 1) {
+        if (error || !casasData || casasData.length === 0) {
+          toast.error("Telefone não encontrado!");
+          return;
+        }
+
+        toast.success("Login realizado. Graça e paz!");
+        
+        // Se encontrou mais de uma casa com esse telefone
+        if (casasData.length > 1) {
           setCasasFe(casasData);
           setShowCasaSelection(true);
         } else {
+          // Armazena os dados da casa e do usuário
+          localStorage.setItem("user_id", casasData[0].user_id);
+          localStorage.setItem("selected_casa_id", casasData[0].id);
+          
           navigate("/dashboard");
         }
       }
@@ -84,14 +113,13 @@ const Login = () => {
       setLoading(false);
     }
   };
-
+  
   const handleSelectCasa = (casaId: string) => {
     localStorage.setItem("selected_casa_id", casaId);
     setShowCasaSelection(false);
     navigate("/dashboard");
   };
 
-  // Verifica se deve mostrar o campo de senha
   const shouldShowPasswordField = email === "admin@mincbh.com.br";
 
   return (
@@ -170,7 +198,6 @@ const Login = () => {
               </div>
             )}
 
-            {/* Campo de senha só aparece para o email admin */}
             {shouldShowPasswordField && (
               <div className="space-y-2">
                 <Label htmlFor="senha" className="text-base font-semibold">Senha</Label>
