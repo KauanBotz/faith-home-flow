@@ -68,14 +68,13 @@ const Cadastro = () => {
 
   const progress = (currentStep / 4) * 100;
 
-useEffect(() => {
+  useEffect(() => {
     const checkAuth = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUserId(user.id);
         await carregarCasasCadastradas(user.id);
         
-        // Carregar dados pessoais do localStorage se existir
         const dadosSalvos = localStorage.getItem('dados_pessoais_casa_fe');
         if (dadosSalvos) {
           const dados = JSON.parse(dadosSalvos);
@@ -147,7 +146,7 @@ useEffect(() => {
       cidade: "",
       pontoReferencia: "",
     });
-    setCurrentStep(2); // Pula direto pro Step 2 (já tem dados pessoais)
+    setCurrentStep(2);
   };
 
   const editarCasa = async (casaId: string) => {
@@ -262,7 +261,6 @@ useEffect(() => {
         setUserId(finalUserId);
       }
 
-      // Salvar dados pessoais no localStorage
       const dadosPessoais = {
         nome: formData.nome,
         tipoDocumento: formData.tipoDocumento,
@@ -406,40 +404,47 @@ useEffect(() => {
 
   return (
     <div className="min-h-screen gradient-subtle flex flex-col">
-      <header className="p-4 md:p-6">
+      {/* Header Responsivo */}
+      <header className="p-3 sm:p-4 md:p-6">
         <div className="max-w-4xl mx-auto">
-          <Button variant="ghost" onClick={() => navigate("/login")} className="mb-4">
-            ← Voltar para Login
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate("/login")} 
+            className="mb-3 sm:mb-4 text-sm sm:text-base"
+            size="sm"
+          >
+            ← Voltar
           </Button>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-3">
-            <img src="favicon.png" alt="" className="w-8 h-8" />
-            VAMOS DAR START NA SUA CASA DE FÉ!
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2 sm:gap-3">
+            <img src="favicon.png" alt="" className="w-6 h-6 sm:w-8 sm:h-8" />
+            <span className="leading-tight">VAMOS DAR START NA SUA CASA DE FÉ!</span>
           </h1>
-          <p className="text-muted-foreground mt-1">Vamos começar essa jornada juntos</p>
+          <p className="text-sm sm:text-base text-muted-foreground mt-1">Vamos começar essa jornada juntos</p>
         </div>
       </header>
 
-      <div className="px-4 pb-6">
+      {/* Progress Bar e Steps */}
+      <div className="px-3 sm:px-4 pb-4 sm:pb-6">
         <div className="max-w-4xl mx-auto">
           <div className="h-2 bg-muted rounded-full overflow-hidden">
             <div className="h-full gradient-primary transition-smooth" style={{ width: `${progress}%` }} />
           </div>
           
-          <div className="flex justify-between mt-4">
+          <div className="flex justify-between mt-3 sm:mt-4 gap-1 sm:gap-2">
             {steps.map((step) => {
               const Icon = step.icon;
               const isActive = currentStep === step.number;
               const isCompleted = currentStep > step.number;
               
               return (
-                <div key={step.number} className="flex flex-col items-center gap-2 flex-1">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-smooth
+                <div key={step.number} className="flex flex-col items-center gap-1 sm:gap-2 flex-1">
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-smooth
                       ${isActive ? 'bg-primary text-primary-foreground shadow-glow' : ''}
                       ${isCompleted ? 'bg-success text-success-foreground' : ''}
                       ${!isActive && !isCompleted ? 'bg-muted text-muted-foreground' : ''}`}>
-                    <Icon className="w-5 h-5" />
+                    <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
-                  <span className={`text-xs font-medium hidden md:block ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+                  <span className={`text-[10px] sm:text-xs font-medium text-center hidden sm:block ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
                     {step.title}
                   </span>
                 </div>
@@ -449,9 +454,10 @@ useEffect(() => {
         </div>
       </div>
 
-      <div className="flex-1 px-4">
+      {/* Main Content */}
+      <div className="flex-1 px-3 sm:px-4 pb-4 sm:pb-6">
         <div className="max-w-4xl mx-auto">
-          <Card className="p-6 md:p-8 shadow-medium">
+          <Card className="p-4 sm:p-6 md:p-8 shadow-medium">
             {currentStep === 1 && (
               <StepOne 
                 data={formData}
@@ -485,57 +491,71 @@ useEffect(() => {
             )}
             
             {currentStep === 4 && mostrarConfirmacao && (
-              <div className="space-y-6">
-                {/* Card de Dados Pessoais */}
+              <div className="space-y-4 sm:space-y-6">
+                {/* Card de Dados Pessoais Responsivo */}
                 {dadosPessoaisSalvos && (
-                  <Card className="p-6 bg-primary/5 border-primary/20">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                        <User className="w-6 h-6 text-primary" />
+                  <Card className="p-4 sm:p-6 bg-primary/5 border-primary/20">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <User className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                       </div>
-                      <h3 className="text-xl font-bold">Seus Dados Pessoais</h3>
+                      <h3 className="text-lg sm:text-xl font-bold">Seus Dados Pessoais</h3>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       <div>
-                        <p className="text-sm text-muted-foreground">Nome Completo</p>
-                        <p className="font-semibold">{dadosPessoaisSalvos.nome}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">Nome Completo</p>
+                        <p className="font-semibold text-sm sm:text-base break-words">{dadosPessoaisSalvos.nome}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Documento</p>
-                        <p className="font-semibold">{dadosPessoaisSalvos.tipoDocumento}: {dadosPessoaisSalvos.numeroDocumento}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">Documento</p>
+                        <p className="font-semibold text-sm sm:text-base break-words">{dadosPessoaisSalvos.tipoDocumento}: {dadosPessoaisSalvos.numeroDocumento}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Email</p>
-                        <p className="font-semibold">{dadosPessoaisSalvos.email}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">Email</p>
+                        <p className="font-semibold text-sm sm:text-base break-all">{dadosPessoaisSalvos.email}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Telefone</p>
-                        <p className="font-semibold">{dadosPessoaisSalvos.telefone}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">Telefone</p>
+                        <p className="font-semibold text-sm sm:text-base">{dadosPessoaisSalvos.telefone}</p>
                       </div>
                     </div>
                   </Card>
                 )}
 
-                {/* Casas de Fé Cadastradas */}
+                {/* Casas de Fé Cadastradas Responsivo */}
                 <div>
-                  <h2 className="text-2xl font-bold mb-4">Casas de Fé Cadastradas ({casasCadastradas.length})</h2>
+                  <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">
+                    Casas de Fé Cadastradas ({casasCadastradas.length})
+                  </h2>
                   
-                  <div className="space-y-4 mb-6">
+                  <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
                     {casasCadastradas.map((casa) => (
-                      <Card key={casa.id} className="p-4 hover:shadow-medium transition-all">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h3 className="font-bold text-lg">{casa.nome_lider}</h3>
-                            <p className="text-sm text-muted-foreground">{casa.campus} - {casa.rede}</p>
-                            <p className="text-sm text-muted-foreground">{casa.endereco}</p>
+                      <Card key={casa.id} className="p-3 sm:p-4 hover:shadow-medium transition-all">
+                        <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
+                          <div className="flex-1 w-full sm:w-auto">
+                            <h3 className="font-bold text-base sm:text-lg break-words">{casa.nome_lider}</h3>
+                            <p className="text-xs sm:text-sm text-muted-foreground break-words">
+                              {casa.campus} - {casa.rede}
+                            </p>
+                            <p className="text-xs sm:text-sm text-muted-foreground break-words">{casa.endereco}</p>
                           </div>
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="outline" onClick={() => editarCasa(casa.id)}>
-                              <Edit className="w-4 h-4 mr-1" />
+                          <div className="flex gap-2 w-full sm:w-auto">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={() => editarCasa(casa.id)}
+                              className="flex-1 sm:flex-none text-xs sm:text-sm"
+                            >
+                              <Edit className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                               Editar
                             </Button>
-                            <Button size="sm" variant="destructive" onClick={() => deletarCasa(casa.id)}>
-                              <Trash2 className="w-4 h-4 mr-1" />
+                            <Button 
+                              size="sm" 
+                              variant="destructive" 
+                              onClick={() => deletarCasa(casa.id)}
+                              className="flex-1 sm:flex-none text-xs sm:text-sm"
+                            >
+                              <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                               Deletar
                             </Button>
                           </div>
@@ -545,14 +565,23 @@ useEffect(() => {
                   </div>
                 </div>
 
-                {/* Botões de Ação */}
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Button size="lg" variant="hero" className="flex-1" onClick={adicionarNovaCasa}>
-                    <Plus className="w-5 h-5 mr-2" />
+                {/* Botões de Ação Responsivos */}
+                <div className="flex flex-col gap-2 sm:gap-3">
+                  <Button 
+                    size="lg" 
+                    variant="hero" 
+                    className="w-full text-sm sm:text-base" 
+                    onClick={adicionarNovaCasa}
+                  >
+                    <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                     Adicionar Nova Casa de Fé
                   </Button>
                   
-                  <Button size="lg" onClick={() => navigate("/login")} className="flex-1">
+                  <Button 
+                    size="lg" 
+                    onClick={() => navigate("/login")} 
+                    className="w-full text-sm sm:text-base"
+                  >
                     Ir para o Login
                   </Button>
                 </div>
@@ -574,7 +603,8 @@ useEffect(() => {
         </div>
       </div>
 
-      <footer className="p-5 text-center text-sm text-muted-foreground">
+      {/* Footer Responsivo */}
+      <footer className="p-3 sm:p-5 text-center text-xs sm:text-sm text-muted-foreground">
         <p>MINC - Minha Igreja Na Cidade © 2025</p>
       </footer>
     </div>

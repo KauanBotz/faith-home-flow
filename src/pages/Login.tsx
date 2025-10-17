@@ -97,6 +97,8 @@ const Login = () => {
         
         // Se encontrou mais de uma casa com esse telefone
         if (casasData.length > 1) {
+          // Armazena o user_id antes de mostrar o modal
+          localStorage.setItem("user_id", casasData[0].user_id);
           setCasasFe(casasData);
           setShowCasaSelection(true);
         } else {
@@ -266,11 +268,11 @@ const Login = () => {
       </div>
 
       <Dialog open={showCasaSelection} onOpenChange={setShowCasaSelection}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[80vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Selecione uma Casa de Fé</DialogTitle>
           </DialogHeader>
-          <div className="space-y-3">
+          <div className="space-y-3 overflow-y-auto pr-2 max-h-[60vh]">
             {casasFe.map((casa) => (
               <Card
                 key={casa.id}
