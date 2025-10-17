@@ -26,11 +26,20 @@ const RelatoriosLeitura = () => {
         return;
       }
 
-      const { data: casaData, error: casaError } = await supabase
+      // ✅ Verificar se há casa selecionada no localStorage
+      const selectedCasaId = localStorage.getItem("selected_casa_id");
+
+      let casaQuery = supabase
         .from("casas_fe")
         .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
+        .eq("user_id", user.id);
+
+      // ✅ Se tem casa selecionada, filtrar por ela
+      if (selectedCasaId) {
+        casaQuery = casaQuery.eq("id", selectedCasaId);
+      }
+
+      const { data: casaData, error: casaError } = await casaQuery.single();
 
       if (casaError) {
         console.error("Erro ao buscar casa:", casaError);
