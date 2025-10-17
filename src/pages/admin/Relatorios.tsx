@@ -238,8 +238,10 @@ const AdminRelatorios = () => {
   const getDistribuicaoRedes = () => {
     const redesCount: Record<string, number> = {};
     casasFiltradas.forEach(casa => {
-      const rede = casa.rede || "Sem Rede";
-      redesCount[rede] = (redesCount[rede] || 0) + 1;
+      // Filtrar casas sem rede
+      if (casa.rede && casa.rede.trim() !== "") {
+        redesCount[casa.rede] = (redesCount[casa.rede] || 0) + 1;
+      }
     });
     return Object.entries(redesCount).map(([name, value]) => ({ name, value }));
   };

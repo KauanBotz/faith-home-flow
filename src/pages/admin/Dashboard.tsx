@@ -105,13 +105,17 @@ const AdminDashboard = () => {
 
       setCasasRecentes(casas || []);
 
-      // Buscar TODAS as casas, não apenas as 5 recentes
-      const { data: todasCasas } = await supabase
+      // Buscar TODAS as casas para verificar relatórios pendentes
+      const { data: todasCasas, error: casasError } = await supabase
         .from("casas_fe")
         .select("*");
 
+      if (casasError) {
+        console.error("Erro ao buscar casas:", casasError);
+      }
+
       // Calcular casas pendentes de relatório
-      if (todasCasas) {
+      if (todasCasas && todasCasas.length > 0) {
         const hoje = new Date();
         const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
         
@@ -130,28 +134,41 @@ const AdminDashboard = () => {
           let diasDesdeReuniao = diaAtual - diaReuniaoIndex;
           if (diasDesdeReuniao < 0) diasDesdeReuniao += 7;
           
+          // Apenas verificar se passou pelo menos 1 dia desde a reunião
           if (diasDesdeReuniao > 0 && diasDesdeReuniao <= 7) {
             const ultimaReuniao = new Date(hoje);
             ultimaReuniao.setDate(hoje.getDate() - diasDesdeReuniao);
             
-            // Verificar se existe relatório preenchido para a última reunião
-            const { data: relatorio } = await supabase
-              .from("relatorios")
-              .select("*")
-              .eq("casa_fe_id", casa.id)
-              .eq("data_reuniao", ultimaReuniao.toISOString().split('T')[0])
-              .maybeSingle();
-            
-            if (!relatorio || !relatorio.notas || relatorio.notas.trim() === "") {
-              pendentes.push({
-                ...casa,
-                dias_desde_reuniao: diasDesdeReuniao
-              });
+            try {
+              // Verificar se existe relatório preenchido para a última reunião
+              const { data: relatorio, error: relError } = await supabase
+                .from("relatorios")
+                .select("*")
+                .eq("casa_fe_id", casa.id)
+                .eq("data_reuniao", ultimaReuniao.toISOString().split('T')[0])
+                .maybeSingle();
+              
+              if (relError) {
+                console.error("Erro ao buscar relatório:", relError);
+                continue;
+              }
+              
+              // Se não existe relatório OU existe mas está vazio
+              if (!relatorio || !relatorio.notas || relatorio.notas.trim() === "") {
+                pendentes.push({
+                  ...casa,
+                  dias_desde_reuniao: diasDesdeReuniao
+                });
+              }
+            } catch (err) {
+              console.error("Erro ao verificar relatório da casa:", casa.id, err);
             }
           }
         }
         
         setCasasPendentesRelatorio(pendentes);
+      } else {
+        setCasasPendentesRelatorio([]);
       }
 
       // Calcular crescimento (últimos 30 dias)

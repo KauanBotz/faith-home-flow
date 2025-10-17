@@ -30,9 +30,19 @@ const RelatoriosLeitura = () => {
         .from("casas_fe")
         .select("*")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
-      if (casaError) throw casaError;
+      if (casaError) {
+        console.error("Erro ao buscar casa:", casaError);
+        throw casaError;
+      }
+      
+      if (!casaData) {
+        toast.error("Nenhuma casa de fé encontrada para este usuário");
+        setLoading(false);
+        return;
+      }
+      
       setCasaFe(casaData);
 
       // Buscar todos os relatórios da casa de fé

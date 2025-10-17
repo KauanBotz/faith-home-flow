@@ -32,20 +32,35 @@ const Relatorio = () => {
         return;
       }
 
-      const { data: casaData, error } = await supabase
+      const { data: casaData, error: casaError } = await supabase
         .from("casas_fe")
         .select("*")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      if (casaError) {
+        console.error("Erro ao buscar casa:", casaError);
+        throw casaError;
+      }
+      
+      if (!casaData) {
+        toast.error("Nenhuma casa de fé encontrada para este usuário");
+        setLoading(false);
+        return;
+      }
+      
       setCasaFe(casaData);
 
       // Primeiro buscar os membros da casa
-      const { data: membros } = await supabase
+      const { data: membros, error: membrosError } = await supabase
         .from("membros")
         .select("id")
         .eq("casa_fe_id", casaData.id);
+      
+      if (membrosError) {
+        console.error("Erro ao buscar membros:", membrosError);
+        throw membrosError;
+      }
       
       const membroIds = membros?.map(m => m.id) || [];
       
@@ -56,11 +71,16 @@ const Relatorio = () => {
       }
 
       // Buscar todas as datas onde há presença registrada
-      const { data: presencas } = await supabase
+      const { data: presencas, error: presencasError } = await supabase
         .from("presencas")
         .select("data_reuniao")
         .in("membro_id", membroIds)
         .order("data_reuniao", { ascending: false });
+      
+      if (presencasError) {
+        console.error("Erro ao buscar presenças:", presencasError);
+        throw presencasError;
+      }
 
       if (presencas && presencas.length > 0) {
         // Pegar datas únicas de presença
