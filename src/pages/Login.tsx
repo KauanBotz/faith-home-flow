@@ -14,7 +14,7 @@ const Login = () => {
   const [loginType, setLoginType] = useState<"email" | "phone">("email");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [senha, setSenha] = useState("");
+  const [senha, setSenha] = useState("123456");
   const [loading, setLoading] = useState(false);
   const [showCasaSelection, setShowCasaSelection] = useState(false);
   const [casasFe, setCasasFe] = useState<any[]>([]);
@@ -31,6 +31,19 @@ const Login = () => {
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatPhone(e.target.value);
     setPhone(formatted);
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+    
+    // Quando digitar o email admin, limpa a senha para o usuário digitar
+    if (newEmail === "admin@mincbh.com.br") {
+      setSenha("");
+    } else {
+      // Para outros emails, mantém a senha padrão
+      setSenha("123456");
+    }
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -78,6 +91,9 @@ const Login = () => {
     navigate("/dashboard");
   };
 
+  // Verifica se deve mostrar o campo de senha
+  const shouldShowPasswordField = email === "admin@mincbh.com.br";
+
   return (
     <div className="min-h-screen gradient-subtle flex flex-col items-center justify-center p-4 relative overflow-hidden">
       <div className="absolute top-0 left-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
@@ -95,15 +111,6 @@ const Login = () => {
             <p className="text-muted-foreground text-xs flex items-center justify-center gap-2">
               Minha Igreja Na Cidade
             </p>
-          </div>
-
-          <div className="flex items-start gap-1 p-4 mb-6 bg-primary/10 rounded-2xl border border-primary/30">
-            <Sparkles className="w-6 h-6 text-primary mt-0.5" />
-            <div className="text-sm text-primary/90 leading-snug">
-              <p>
-                Você que cadastrou sua Casa de Fé no formulário da <strong className="color">Minha Igreja na Cidade</strong> e está acessando o sistema pela primeira vez, utilize o <strong>e-mail ou telefone cadastrados no formulário do <br></br> e-inscrição</strong> e entre com a <strong>senha padrão: 123456</strong>.
-              </p>
-            </div>
           </div>
 
           <div className="flex gap-2 mb-6 p-1 bg-muted/50 rounded-lg">
@@ -138,7 +145,7 @@ const Login = () => {
                     type="email"
                     placeholder="seu@email.com"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={handleEmailChange}
                     className="pl-11 h-12 text-base border-primary/20 focus:border-primary transition-all"
                     required
                   />
@@ -163,21 +170,24 @@ const Login = () => {
               </div>
             )}
 
-            <div className="space-y-2">
-              <Label htmlFor="senha" className="text-base font-semibold">Senha</Label>
-              <div className="relative group">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                <Input
-                  id="senha"
-                  type="password"
-                  placeholder="Senha Padrão: 123456"
-                  value={senha}
-                  onChange={(e) => setSenha(e.target.value)}
-                  className="pl-11 h-12 text-base border-primary/20 focus:border-primary transition-all"
-                  required
-                />
+            {/* Campo de senha só aparece para o email admin */}
+            {shouldShowPasswordField && (
+              <div className="space-y-2">
+                <Label htmlFor="senha" className="text-base font-semibold">Senha</Label>
+                <div className="relative group">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                  <Input
+                    id="senha"
+                    type="password"
+                    placeholder="Digite sua senha"
+                    value={senha}
+                    onChange={(e) => setSenha(e.target.value)}
+                    className="pl-11 h-12 text-base border-primary/20 focus:border-primary transition-all"
+                    required
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
             <Button
               type="submit"
