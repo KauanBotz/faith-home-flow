@@ -6,6 +6,7 @@ import { Home, Users, Calendar, CheckCircle, Edit, Trash2, Plus, User } from "lu
 import { StepOne } from "@/components/cadastro/StepOne";
 import { StepTwo } from "@/components/cadastro/StepTwo";
 import { StepThree } from "@/components/cadastro/StepThree";
+import { StepFour } from "@/components/cadastro/StepFour";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -71,26 +72,19 @@ useEffect(() => {
     const checkAuth = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        setIsLoggedIn(true);
         setUserId(user.id);
+        await carregarCasasCadastradas(user.id);
         
-        const { data: casas } = await supabase
-          .from("casas_fe")
-          .select("*")
-          .eq("user_id", user.id);
-        
-        if (casas && casas.length > 0) {
-          setUserCasas(casas);
-          setFormData({
-            nome: casas[0].nome_lider,
-            tipoDocumento: casas[0].tipo_documento || "",
-            numeroDocumento: casas[0].numero_documento || "",
-            email: casas[0].email,
-            telefone: casas[0].telefone,
-            senha: "123456", // senha padrão
-            membros: [],
-          });
-          // Não pula para step 2, deixa no step 1 com dados preenchidos
+        // Carregar dados pessoais do localStorage se existir
+        const dadosSalvos = localStorage.getItem('dados_pessoais_casa_fe');
+        if (dadosSalvos) {
+          const dados = JSON.parse(dadosSalvos);
+          setDadosPessoaisSalvos(dados);
+          setFormData(prev => ({
+            ...prev,
+            ...dados,
+            membros: []
+          }));
         }
       }
     };
@@ -566,9 +560,15 @@ useEffect(() => {
             )}
             
             {currentStep === 4 && !mostrarConfirmacao && (
-              <Button size="lg" variant="hero" className="w-full" onClick={handleSubmit}>
-                {editandoCasaId ? "Salvar Alterações" : "Finalizar Cadastro"}
-              </Button>
+              <StepFour 
+                data={formData as CadastroData}
+                todasCasas={casasCadastradas}
+                onSubmit={handleSubmit}
+                onBack={prevStep}
+                onAddAnother={adicionarNovaCasa}
+                onEditCasa={editarCasa}
+                onDeleteCasa={deletarCasa}
+              />
             )}
           </Card>
         </div>

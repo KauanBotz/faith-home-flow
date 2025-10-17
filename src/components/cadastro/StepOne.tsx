@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CadastroData } from "@/pages/Cadastro";
 import { Mail, Phone, User, IdCard, CreditCard } from "lucide-react";
+import { formatPhone } from "@/lib/phoneUtils";
 
 interface StepOneProps {
   data: Partial<CadastroData>;
@@ -27,23 +28,18 @@ export const StepOne = ({ data, onNext }: StepOneProps) => {
   const [telefone, setTelefone] = useState(data.telefone || "");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const formatPhone = (value: string) => {
-    const numbers = value.replace(/\D/g, '');
-    
-    if (numbers.length === 0) return '';
-    
-    const localNumbers = numbers.startsWith('55') ? numbers.slice(2) : numbers;
-    
-    if (localNumbers.length <= 2) {
-      return `+55 (${localNumbers}`;
-    } else if (localNumbers.length <= 7) {
-      return `+55 (${localNumbers.slice(0, 2)}) ${localNumbers.slice(2)}`;
-    } else if (localNumbers.length <= 11) {
-      return `+55 (${localNumbers.slice(0, 2)}) ${localNumbers.slice(2, 7)}-${localNumbers.slice(7, 11)}`;
+  // Carregar dados do localStorage ao montar o componente
+  useEffect(() => {
+    const dadosSalvos = localStorage.getItem('dados_pessoais_casa_fe');
+    if (dadosSalvos) {
+      const dados = JSON.parse(dadosSalvos);
+      setNome(dados.nome || "");
+      setTipoDocumento(dados.tipoDocumento || "");
+      setNumeroDocumento(dados.numeroDocumento || "");
+      setEmail(dados.email || "");
+      setTelefone(dados.telefone || "");
     }
-    
-    return `+55 (${localNumbers.slice(0, 2)}) ${localNumbers.slice(2, 7)}-${localNumbers.slice(7, 11)}`;
-  };
+  }, []);
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatPhone(e.target.value);

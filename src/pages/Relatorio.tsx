@@ -41,17 +41,25 @@ const Relatorio = () => {
       if (error) throw error;
       setCasaFe(casaData);
 
+      // Primeiro buscar os membros da casa
+      const { data: membros } = await supabase
+        .from("membros")
+        .select("id")
+        .eq("casa_fe_id", casaData.id);
+      
+      const membroIds = membros?.map(m => m.id) || [];
+      
+      if (membroIds.length === 0) {
+        setDatasDisponiveis([]);
+        setLoading(false);
+        return;
+      }
+
       // Buscar todas as datas onde há presença registrada
       const { data: presencas } = await supabase
         .from("presencas")
         .select("data_reuniao")
-        .in("membro_id", 
-          await supabase
-            .from("membros")
-            .select("id")
-            .eq("casa_fe_id", casaData.id)
-            .then(({ data }) => data?.map(m => m.id) || [])
-        )
+        .in("membro_id", membroIds)
         .order("data_reuniao", { ascending: false });
 
       if (presencas && presencas.length > 0) {

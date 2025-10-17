@@ -105,14 +105,19 @@ const AdminDashboard = () => {
 
       setCasasRecentes(casas || []);
 
+      // Buscar TODAS as casas, não apenas as 5 recentes
+      const { data: todasCasas } = await supabase
+        .from("casas_fe")
+        .select("*");
+
       // Calcular casas pendentes de relatório
-      if (casas) {
+      if (todasCasas) {
         const hoje = new Date();
-        const diasSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+        const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
         
         const pendentes: CasaPendente[] = [];
         
-        for (const casa of casas) {
+        for (const casa of todasCasas) {
           if (!casa.dias_semana || casa.dias_semana.length === 0) continue;
           
           const diaReuniaoNome = casa.dias_semana[0];
@@ -125,11 +130,11 @@ const AdminDashboard = () => {
           let diasDesdeReuniao = diaAtual - diaReuniaoIndex;
           if (diasDesdeReuniao < 0) diasDesdeReuniao += 7;
           
-          if (diasDesdeReuniao > 0) {
+          if (diasDesdeReuniao > 0 && diasDesdeReuniao <= 7) {
             const ultimaReuniao = new Date(hoje);
             ultimaReuniao.setDate(hoje.getDate() - diasDesdeReuniao);
             
-            // Verificar se existe relatório para a última reunião
+            // Verificar se existe relatório preenchido para a última reunião
             const { data: relatorio } = await supabase
               .from("relatorios")
               .select("*")
@@ -137,7 +142,7 @@ const AdminDashboard = () => {
               .eq("data_reuniao", ultimaReuniao.toISOString().split('T')[0])
               .maybeSingle();
             
-            if (!relatorio || !relatorio.notas) {
+            if (!relatorio || !relatorio.notas || relatorio.notas.trim() === "") {
               pendentes.push({
                 ...casa,
                 dias_desde_reuniao: diasDesdeReuniao

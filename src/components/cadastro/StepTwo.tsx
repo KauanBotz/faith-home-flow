@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { CadastroData } from "@/pages/Cadastro";
 import { MapPin, Building, Network, Clock, Calendar, Users, Phone, Mail, Info, Home } from "lucide-react";
+import { formatPhone } from "@/lib/phoneUtils";
 
 interface StepTwoProps {
   data: Partial<CadastroData>;
@@ -69,20 +70,6 @@ export const StepTwo = ({ data, onNext, onBack }: StepTwoProps) => {
   const [pontoReferencia, setPontoReferencia] = useState(data.pontoReferencia || "");
   
   const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const formatPhone = (value: string) => {
-    const numbers = value.replace(/\D/g, '');
-    if (numbers.length === 0) return '';
-    const localNumbers = numbers.startsWith('55') ? numbers.slice(2) : numbers;
-    if (localNumbers.length <= 2) {
-      return `+55 (${localNumbers}`;
-    } else if (localNumbers.length <= 7) {
-      return `+55 (${localNumbers.slice(0, 2)}) ${localNumbers.slice(2)}`;
-    } else if (localNumbers.length <= 11) {
-      return `+55 (${localNumbers.slice(0, 2)}) ${localNumbers.slice(2, 7)}-${localNumbers.slice(7, 11)}`;
-    }
-    return `+55 (${localNumbers.slice(0, 2)}) ${localNumbers.slice(2, 7)}-${localNumbers.slice(7, 11)}`;
-  };
 
   const handlePhoneDuplaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatPhone(e.target.value);
