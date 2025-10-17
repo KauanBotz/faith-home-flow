@@ -93,7 +93,7 @@ const Login = () => {
               Bem-vindo de volta!
             </h1>
             <p className="text-muted-foreground text-xs flex items-center justify-center gap-2">
-              Minha Igreja Na Cidade.
+              Minha Igreja Na Cidade
             </p>
           </div>
 
