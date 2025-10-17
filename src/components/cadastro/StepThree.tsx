@@ -142,17 +142,6 @@ export const StepThree = ({ data, onNext, onBack }: StepThreeProps) => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                <Label htmlFor={`convertido-${index}`} className="cursor-pointer">
-                  Já é convertido?
-                </Label>
-                <Switch
-                  id={`convertido-${index}`}
-                  checked={membro.convertido}
-                  onCheckedChange={(checked) => updateMembro(index, "convertido", checked)}
-                />
-              </div>
-
               <div>
                 <Label htmlFor={`notas-${index}`}>Notas (opcional)</Label>
                 <Textarea

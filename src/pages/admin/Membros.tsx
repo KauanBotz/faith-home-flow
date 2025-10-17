@@ -125,7 +125,7 @@ const AdminMembros = () => {
       });
     }
 
-    if (redeFilter !== "todas") {
+    if (campusFilter === "MINC Pampulha" && redeFilter !== "todas") {
       filtered = filtered.filter((membro) => {
         const casa = casas[membro.casa_fe_id];
         return casa && casa.rede === redeFilter;
@@ -213,10 +213,6 @@ const AdminMembros = () => {
               Voltar
             </Button>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={exportarPDF}>
-                <FileDown className="w-4 h-4 mr-2" />
-                PDF
-              </Button>
               <Button variant="outline" size="sm" onClick={exportarExcel}>
                 <Download className="w-4 h-4 mr-2" />
                 Excel
@@ -256,19 +252,22 @@ const AdminMembros = () => {
                 <SelectItem value="MINC Sinop">MINC Sinop</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={redeFilter} onValueChange={setRedeFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filtrar rede" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todas">Todas as Redes</SelectItem>
-                <SelectItem value="Jovem">Jovem</SelectItem>
-                <SelectItem value="Adulto">Adulto</SelectItem>
-                <SelectItem value="Casais">Casais</SelectItem>
-                <SelectItem value="Masculino">Masculino</SelectItem>
-                <SelectItem value="Feminino">Feminino</SelectItem>
-              </SelectContent>
-            </Select>
+                {campusFilter === "MINC Pampulha" && (
+                  <Select value={redeFilter} onValueChange={setRedeFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Filtrar rede" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todas">Todas as Redes</SelectItem>
+                      <SelectItem value="Gerar">Gerar</SelectItem>
+                      <SelectItem value="Gerações">Gerações</SelectItem>
+                      <SelectItem value="Ative">Ative</SelectItem>
+                      <SelectItem value="Avance">Avance</SelectItem>
+                      <SelectItem value="Nexo">Nexo</SelectItem>
+                      <SelectItem value="Plug">Plug</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
             <Select value={convertidoFilter} onValueChange={setConvertidoFilter}>
               <SelectTrigger>
                 <SelectValue placeholder="Filtrar conversão" />

@@ -97,6 +97,18 @@ const Login = () => {
             </p>
           </div>
 
+          <div className="flex items-start gap-1 p-4 mb-6 bg-primary/10 rounded-2xl border border-primary/30">
+            <Sparkles className="w-6 h-6 text-primary mt-0.5" />
+            <div className="text-sm text-primary/90 leading-snug">
+              <p>
+                Você que cadastrou sua Casa de Fé no formulário da <strong className="color">Minha Igreja na Cidade</strong> e está acessando pela primeira vez, utilize o <strong>e-mail cadastrado</strong> e a <strong>senha padrão 123456</strong>.
+              </p>
+              <p className="mt-1">
+                Quem se cadastrou diretamente no nosso sistema, use a <strong>senha escolhida</strong>.
+              </p>
+            </div>
+          </div>
+
           <div className="flex gap-2 mb-6 p-1 bg-muted/50 rounded-lg">
             <Button
               type="button"
@@ -161,7 +173,7 @@ const Login = () => {
                 <Input
                   id="senha"
                   type="password"
-                  placeholder="••••••••"
+                  placeholder="123456"
                   value={senha}
                   onChange={(e) => setSenha(e.target.value)}
                   className="pl-11 h-12 text-base border-primary/20 focus:border-primary transition-all"

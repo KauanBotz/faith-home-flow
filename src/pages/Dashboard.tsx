@@ -13,6 +13,7 @@ import ReactMarkdown from "react-markdown";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -34,6 +35,7 @@ const Dashboard = () => {
   const [showHistoricoOracoes, setShowHistoricoOracoes] = useState(false);
   const [showHistoricoPalavra, setShowHistoricoPalavra] = useState(false);
   const [palavrasAnteriores, setPalavrasAnteriores] = useState<any[]>([]);
+  const [palavraSelecionada, setPalavraSelecionada] = useState(null);
 
   useEffect(() => {
     checkAuth();
@@ -255,9 +257,6 @@ const Dashboard = () => {
             <div className="flex items-start justify-between mb-6">
               <div>
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center shadow-glow">
-                    <Home className="w-8 h-8 text-white" />
-                  </div>
                   <div>
                     <h2 className="text-3xl font-bold">{casaFe?.nome_lider}</h2>
                     <p className="text-muted-foreground flex items-center gap-2 mt-1">
@@ -412,7 +411,7 @@ const Dashboard = () => {
             className="h-20 hover:bg-accent/5 hover:border-accent transition-all hover:scale-[1.02] flex-col gap-1"
           >
             <Calendar className="w-7 h-7" />
-            <span className="text-sm font-semibold">Registrar Presença</span>
+            <span className="text-sm font-semibold">Acompanhar Membros</span>
           </Button>
 
           <Button
@@ -432,7 +431,7 @@ const Dashboard = () => {
             className="h-20 hover:bg-primary/5 hover:border-primary transition-all hover:scale-[1.02] flex-col gap-1"
           >
             <FileText className="w-7 h-7" />
-            <span className="text-sm font-semibold">Ver Relatórios</span>
+            <span className="text-sm font-semibold">Histórico de Relatórios</span>
           </Button>
 
           <Button
@@ -458,161 +457,220 @@ const Dashboard = () => {
           </Button>
         </div>
 
-        {/* Seções: Palavra do Pastor, Testemunho e Oração */}
-        <div className="grid gap-6 lg:grid-cols-3 mb-8">
-          {/* Palavra do Pastor */}
-          <Card className="p-6 shadow-medium">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold flex items-center gap-2">
-                <BookMarked className="w-5 h-5 text-primary" />
-                Palavra do Pastor
-              </h3>
-            </div>
-            
-            {palavraPastor ? (
-              <div>
-                <p className="text-xs text-muted-foreground mb-2">
-                  {format(parseISO(palavraPastor.data_publicacao), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+          {/* Seções: Palavra do Pastor, Testemunho e Oração */}
+          <div className="grid gap-6 lg:grid-cols-3 mb-8">
+            {/* Palavra do Pastor */}
+            <Card className="p-6 shadow-medium hover:shadow-lg transition-all">
+              <div className="flex flex-col mb-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold flex items-center gap-2">
+                    <BookMarked className="w-5 h-5 text-primary" />
+                    Palavra do Pastor
+                  </h3>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Acompanhe semanalmente a palavra da <br></br>jornada da Casa de Fé.
                 </p>
-                <h4 className="font-bold text-lg mb-3">{palavraPastor.titulo}</h4>
-                <div className="prose prose-sm max-w-none text-muted-foreground">
-                  <ReactMarkdown>
-                    {palavraPastor.conteudo.substring(0, 200) + (palavraPastor.conteudo.length > 200 ? "..." : "")}
-                  </ReactMarkdown>
-                </div>
-                
-                {palavrasAnteriores.length > 1 && (
-                  <Collapsible open={showHistoricoPalavra} onOpenChange={setShowHistoricoPalavra}>
-                    <CollapsibleTrigger asChild>
-                      <Button variant="ghost" size="sm" className="mt-4 w-full">
-                        <ChevronDown className={`w-4 h-4 mr-2 transition-transform ${showHistoricoPalavra ? 'rotate-180' : ''}`} />
-                        Ver histórico
-                      </Button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="mt-4 space-y-3">
-                      {palavrasAnteriores.slice(1).map((palavra) => (
-                        <div key={palavra.id} className="p-3 bg-muted/30 rounded-lg">
-                          <p className="text-xs text-muted-foreground">
-                            {format(parseISO(palavra.data_publicacao), "dd/MM/yyyy")}
-                          </p>
-                          <p className="font-semibold text-sm">{palavra.titulo}</p>
-                        </div>
-                      ))}
-                    </CollapsibleContent>
-                  </Collapsible>
-                )}
               </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">Nenhuma palavra publicada ainda</p>
-            )}
-          </Card>
+              
+              {palavraPastor ? (
+                <div>
+                  <div 
+                    className="cursor-pointer hover:bg-muted/30 p-4 rounded-lg transition-all border border-transparent hover:border-primary/20"
+                    onClick={() => setPalavraSelecionada(palavraPastor)}
+                  >
+                    <p className="text-xs text-muted-foreground mb-2">
+                      {format(parseISO(palavraPastor.data_publicacao), "dd 'de' MMMM", { locale: ptBR })}
+                    </p>
+                    <h4 className="font-bold text-base mb-2">{palavraPastor.titulo}</h4>
+                    <p className="text-sm text-muted-foreground line-clamp-3">
+                      {palavraPastor.conteudo}
+                    </p>
+                  </div>
 
-          {/* Testemunho da Semana */}
-          <Card className="p-6 shadow-medium">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold flex items-center gap-2">
-                <Heart className="w-5 h-5 text-primary" />
-                Testemunhos
-              </h3>
-              <Button size="sm" onClick={() => setShowTestemunho(true)}>
-                <Plus className="w-4 h-4 mr-1" />
-                Adicionar
+                  {palavrasAnteriores.length > 1 && (
+                    <Collapsible open={showHistoricoPalavra} onOpenChange={setShowHistoricoPalavra} className="mt-4">
+                      <CollapsibleTrigger asChild>
+                        <Button variant="ghost" size="sm" className="w-full">
+                          <ChevronDown className={`w-4 h-4 mr-2 transition-transform ${showHistoricoPalavra ? 'rotate-180' : ''}`} />
+                          Anteriores ({palavrasAnteriores.length - 1})
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-3 space-y-2">
+                        {palavrasAnteriores.slice(1).map((palavra) => (
+                          <div 
+                            key={palavra.id} 
+                            className="p-3 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50 transition-all"
+                            onClick={() => setPalavraSelecionada(palavra)}
+                          >
+                            <p className="text-xs text-muted-foreground mb-1">
+                              {format(parseISO(palavra.data_publicacao), "dd/MM/yyyy")}
+                            </p>
+                            <p className="font-semibold text-sm">{palavra.titulo}</p>
+                          </div>
+                        ))}
+                      </CollapsibleContent>
+                    </Collapsible>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Nenhuma palavra ainda</p>
+              )}
+            </Card>
+
+            {/* Testemunhos */}
+            <Card className="p-6 shadow-medium hover:shadow-lg transition-all">
+              <div className="flex flex-col mb-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold flex items-center gap-2">
+                    <Heart className="w-5 h-5 text-primary" />
+                    Testemunhos
+                  </h3>
+                  <Button size="sm" onClick={() => setShowTestemunho(true)}>
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Acompanhe os testemunhos que estão <br></br>acontecendo durante a Casa de Fé.
+                </p>
+              </div>
+
+              {testemunhos.length > 0 ? (
+                <div>
+                  <div className="p-4 bg-muted/30 rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-1">
+                      {format(parseISO(testemunhos[0].data_testemunho), "dd 'de' MMMM", { locale: ptBR })}
+                    </p>
+                    <p className="font-bold text-sm mb-2">{testemunhos[0].nome_pessoa}</p>
+                    <p className="text-sm text-muted-foreground line-clamp-4">
+                      {testemunhos[0].testemunho}
+                    </p>
+                  </div>
+
+                  {testemunhos.length > 1 && (
+                    <Collapsible open={showHistoricoTestemunhos} onOpenChange={setShowHistoricoTestemunhos} className="mt-4">
+                      <CollapsibleTrigger asChild>
+                        <Button variant="ghost" size="sm" className="w-full">
+                          <ChevronDown className={`w-4 h-4 mr-2 transition-transform ${showHistoricoTestemunhos ? 'rotate-180' : ''}`} />
+                          Anteriores ({testemunhos.length - 1})
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-3 space-y-2">
+                        {testemunhos.slice(1).map((test) => (
+                          <div key={test.id} className="p-3 bg-muted/30 rounded-lg">
+                            <p className="text-xs text-muted-foreground mb-1">
+                              {format(parseISO(test.data_testemunho), "dd/MM/yyyy")} • {test.nome_pessoa}
+                            </p>
+                            <p className="text-xs text-muted-foreground line-clamp-2">
+                              {test.testemunho}
+                            </p>
+                          </div>
+                        ))}
+                      </CollapsibleContent>
+                    </Collapsible>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Nenhum testemunho ainda</p>
+              )}
+            </Card>
+
+            {/* Orações */}
+            <Card className="p-6 shadow-medium hover:shadow-lg transition-all">
+              <div className="flex flex-col mb-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold flex items-center gap-2">
+                    <Heart className="w-5 h-5 text-primary" />
+                    Pedidos de Oração
+                  </h3>
+                  <Button size="sm" onClick={() => setShowOracao(true)}>
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Veja pedidos de todos os facilitadores da MINC <br></br> e membros das Casas de Fé.
+                </p>
+              </div>
+
+              {oracoes.length > 0 ? (
+                <div>
+                  <div className="p-4 bg-muted/30 rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-2">
+                      {format(parseISO(oracoes[0].data_oracao), "dd 'de' MMMM", { locale: ptBR })}
+                    </p>
+                    <p className="text-sm text-muted-foreground line-clamp-4">
+                      {oracoes[0].pedido}
+                    </p>
+                  </div>
+
+                  {oracoes.length > 1 && (
+                    <Collapsible open={showHistoricoOracoes} onOpenChange={setShowHistoricoOracoes} className="mt-4">
+                      <CollapsibleTrigger asChild>
+                        <Button variant="ghost" size="sm" className="w-full">
+                          <ChevronDown className={`w-4 h-4 mr-2 transition-transform ${showHistoricoOracoes ? 'rotate-180' : ''}`} />
+                          Anteriores ({oracoes.length - 1})
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-3 space-y-2">
+                        {oracoes.slice(1).map((oracao) => (
+                          <div key={oracao.id} className="p-3 bg-muted/30 rounded-lg">
+                            <p className="text-xs text-muted-foreground mb-1">
+                              {format(parseISO(oracao.data_oracao), "dd/MM/yyyy")}
+                            </p>
+                            <p className="text-xs text-muted-foreground line-clamp-2">
+                              {oracao.pedido}
+                            </p>
+                          </div>
+                        ))}
+                      </CollapsibleContent>
+                    </Collapsible>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Nenhum pedido ainda</p>
+              )}
+            </Card>
+          </div>
+
+          {/* Dialog palavra */}
+          <Dialog open={!!palavraSelecionada} onOpenChange={(open) => !open && setPalavraSelecionada(null)}>
+            <DialogContent 
+              className="max-w-3xl max-h-[85vh] overflow-y-auto"
+              onInteractOutside={(e) => e.preventDefault()}
+              onEscapeKeyDown={(e) => e.preventDefault()}
+            >
+              <DialogHeader>
+                <DialogTitle className="text-2xl">{palavraSelecionada?.titulo}</DialogTitle>
+                <p className="text-sm text-muted-foreground">
+                  {palavraSelecionada && format(parseISO(palavraSelecionada.data_publicacao), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                </p>
+              </DialogHeader>
+              <div className="prose prose-lg max-w-none mt-4">
+                <ReactMarkdown
+                  components={{
+                    h1: ({node, ...props}) => <h1 className="text-3xl font-bold mb-4" {...props} />,
+                    h2: ({node, ...props}) => <h2 className="text-2xl font-bold mb-3" {...props} />,
+                    h3: ({node, ...props}) => <h3 className="text-xl font-bold mb-2" {...props} />,
+                    p: ({node, ...props}) => <p className="mb-4 text-base leading-relaxed" {...props} />,
+                    strong: ({node, ...props}) => <strong className="font-bold" {...props} />,
+                    em: ({node, ...props}) => <em className="italic" {...props} />,
+                    ul: ({node, ...props}) => <ul className="list-disc ml-6 mb-4" {...props} />,
+                    ol: ({node, ...props}) => <ol className="list-decimal ml-6 mb-4" {...props} />,
+                    li: ({node, ...props}) => <li className="mb-1" {...props} />,
+                  }}
+                >
+                  {palavraSelecionada?.conteudo}
+                </ReactMarkdown>
+              </div>
+              <Button 
+                onClick={() => setPalavraSelecionada(null)} 
+                className="mt-4"
+                variant="outline"
+              >
+                Fechar
               </Button>
-            </div>
-            
-            {testemunhos.length > 0 ? (
-              <div>
-                <div className="mb-4">
-                  <p className="text-xs text-muted-foreground mb-1">
-                    {format(parseISO(testemunhos[0].data_testemunho), "dd 'de' MMMM", { locale: ptBR })}
-                  </p>
-                  <p className="font-bold text-sm mb-2">{testemunhos[0].nome_pessoa}</p>
-                  <p className="text-sm text-muted-foreground line-clamp-4">
-                    {testemunhos[0].testemunho}
-                  </p>
-                </div>
-
-                {testemunhos.length > 1 && (
-                  <Collapsible open={showHistoricoTestemunhos} onOpenChange={setShowHistoricoTestemunhos}>
-                    <CollapsibleTrigger asChild>
-                      <Button variant="ghost" size="sm" className="w-full">
-                        <ChevronDown className={`w-4 h-4 mr-2 transition-transform ${showHistoricoTestemunhos ? 'rotate-180' : ''}`} />
-                        Ver histórico ({testemunhos.length - 1})
-                      </Button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="mt-4 space-y-3">
-                      {testemunhos.slice(1).map((test) => (
-                        <div key={test.id} className="p-3 bg-muted/30 rounded-lg">
-                          <p className="text-xs text-muted-foreground">
-                            {format(parseISO(test.data_testemunho), "dd/MM/yyyy")}
-                          </p>
-                          <p className="font-semibold text-sm">{test.nome_pessoa}</p>
-                          <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
-                            {test.testemunho}
-                          </p>
-                        </div>
-                      ))}
-                    </CollapsibleContent>
-                  </Collapsible>
-                )}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">Nenhum testemunho compartilhado</p>
-            )}
-          </Card>
-
-          {/* Oração da Semana */}
-          <Card className="p-6 shadow-medium">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold flex items-center gap-2">
-                <Heart className="w-5 h-5 text-primary" />
-                Pedidos de Oração
-              </h3>
-              <Button size="sm" onClick={() => setShowOracao(true)}>
-                <Plus className="w-4 h-4 mr-1" />
-                Adicionar
-              </Button>
-            </div>
-            
-            {oracoes.length > 0 ? (
-              <div>
-                <div className="mb-4">
-                  <p className="text-xs text-muted-foreground mb-2">
-                    {format(parseISO(oracoes[0].data_oracao), "dd 'de' MMMM", { locale: ptBR })}
-                  </p>
-                  <p className="text-sm text-muted-foreground line-clamp-4">
-                    {oracoes[0].pedido}
-                  </p>
-                </div>
-
-                {oracoes.length > 1 && (
-                  <Collapsible open={showHistoricoOracoes} onOpenChange={setShowHistoricoOracoes}>
-                    <CollapsibleTrigger asChild>
-                      <Button variant="ghost" size="sm" className="w-full">
-                        <ChevronDown className={`w-4 h-4 mr-2 transition-transform ${showHistoricoOracoes ? 'rotate-180' : ''}`} />
-                        Ver histórico ({oracoes.length - 1})
-                      </Button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="mt-4 space-y-3">
-                      {oracoes.slice(1).map((oracao) => (
-                        <div key={oracao.id} className="p-3 bg-muted/30 rounded-lg">
-                          <p className="text-xs text-muted-foreground">
-                            {format(parseISO(oracao.data_oracao), "dd/MM/yyyy")}
-                          </p>
-                          <p className="text-xs text-muted-foreground line-clamp-2">
-                            {oracao.pedido}
-                          </p>
-                        </div>
-                      ))}
-                    </CollapsibleContent>
-                  </Collapsible>
-                )}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">Nenhum pedido de oração</p>
-            )}
-          </Card>
-        </div>
+            </DialogContent>
+          </Dialog>
 
         {/* Gráfico de Presença */}
         <Card className="p-6 shadow-medium">
