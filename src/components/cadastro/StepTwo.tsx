@@ -23,6 +23,7 @@ const campusOptions = [
   "MINC São Paulo",
   "MINC Juiz de Fora",
   "MINC Online",
+  "MINC Sinop"
 ];
 
 const redeOptions = [
