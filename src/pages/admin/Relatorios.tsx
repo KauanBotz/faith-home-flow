@@ -733,7 +733,7 @@ const AdminRelatorios = () => {
           <Card className="p-6 shadow-medium">
             <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
               <Network className="w-5 h-5 text-secondary" />
-              Distribuição por Rede
+              Distribuição por Rede - Pampulha
             </h2>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
