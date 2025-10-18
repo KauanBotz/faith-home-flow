@@ -113,10 +113,17 @@ const Login = () => {
           setCasasFe(casasData);
           setShowCasaSelection(true);
         } else {
-          // Armazena os dados da casa e do usuário
+          // Faz login com o email da casa usando senha padrão
+          const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+            email: casasData[0].email,
+            password: "123456",
+          });
+          if (loginError) {
+            toast.error("Erro ao entrar. Verifique as credenciais.");
+            return;
+          }
           localStorage.setItem("user_id", casasData[0].user_id);
           localStorage.setItem("selected_casa_id", casasData[0].id);
-          
           navigate("/dashboard");
         }
       }
@@ -127,10 +134,26 @@ const Login = () => {
     }
   };
   
-  const handleSelectCasa = (casaId: string) => {
-    localStorage.setItem("selected_casa_id", casaId);
-    setShowCasaSelection(false);
-    navigate("/dashboard");
+  const handleSelectCasa = async (casa: any) => {
+    try {
+      setLoading(true);
+      const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+        email: casa.email,
+        password: "123456",
+      });
+      if (loginError) {
+        toast.error("Erro ao entrar. Verifique as credenciais.");
+        return;
+      }
+      localStorage.setItem("user_id", casa.user_id);
+      localStorage.setItem("selected_casa_id", casa.id);
+      setShowCasaSelection(false);
+      navigate("/dashboard");
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao entrar com telefone");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const shouldShowPasswordField = email === "admin@mincbh.com.br";
@@ -288,7 +311,7 @@ const Login = () => {
               <Card
                 key={casa.id}
                 className="p-4 cursor-pointer hover:bg-accent/5 transition-all"
-                onClick={() => handleSelectCasa(casa.id)}
+                onClick={() => handleSelectCasa(casa)}
               >
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
