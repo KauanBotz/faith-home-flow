@@ -44,7 +44,6 @@ export function OracaoDialog({ open, onOpenChange, casaFeId, onSaved }: OracaoDi
       onSaved();
       onOpenChange(false);
     } catch (error: any) {
-      console.error("Error saving oração:", error);
       toast.error("Erro ao salvar pedido de oração");
     } finally {
       setLoading(false);

@@ -62,7 +62,6 @@ const AdminCasaDetail = () => {
 
       await loadCasaDetails();
     } catch (error) {
-      console.error("Error:", error);
       navigate("/login");
     }
   };
@@ -87,7 +86,6 @@ const AdminCasaDetail = () => {
       if (membrosError) throw membrosError;
       setMembros(membrosData || []);
     } catch (error: any) {
-      console.error("Error loading details:", error);
       toast.error("Erro ao carregar detalhes");
     } finally {
       setLoading(false);

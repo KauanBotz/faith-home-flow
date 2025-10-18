@@ -37,6 +37,9 @@ export type Database = {
           numero_documento: string | null
           ponto_referencia: string | null
           rede: string
+          rede_facilitador_1: string | null
+          rede_facilitador_2: string | null
+          rede_minc_facilitador_1: string | null
           rede_minc_facilitador_2: string | null
           rua_avenida: string | null
           telefone: string
@@ -68,6 +71,9 @@ export type Database = {
           numero_documento?: string | null
           ponto_referencia?: string | null
           rede: string
+          rede_facilitador_1?: string | null
+          rede_facilitador_2?: string | null
+          rede_minc_facilitador_1?: string | null
           rede_minc_facilitador_2?: string | null
           rua_avenida?: string | null
           telefone: string
@@ -99,6 +105,9 @@ export type Database = {
           numero_documento?: string | null
           ponto_referencia?: string | null
           rede?: string
+          rede_facilitador_1?: string | null
+          rede_facilitador_2?: string | null
+          rede_minc_facilitador_1?: string | null
           rede_minc_facilitador_2?: string | null
           rua_avenida?: string | null
           telefone?: string

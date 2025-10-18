@@ -47,7 +47,6 @@ export function TestemunhoDialog({ open, onOpenChange, casaFeId, onSaved }: Test
       onSaved();
       onOpenChange(false);
     } catch (error: any) {
-      console.error("Error saving testemunho:", error);
       toast.error("Erro ao salvar testemunho");
     } finally {
       setLoading(false);

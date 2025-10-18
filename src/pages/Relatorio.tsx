@@ -48,7 +48,6 @@ const Relatorio = () => {
       const { data: casaData, error: casaError } = await casaQuery.single();
 
       if (casaError) {
-        console.error("Erro ao buscar casa:", casaError);
         toast.error("Erro ao carregar Casa de Fé");
         setLoading(false);
         return;
@@ -63,7 +62,6 @@ const Relatorio = () => {
         .eq("casa_fe_id", casaData.id);
       
       if (membrosError) {
-        console.error("Erro ao buscar membros:", membrosError);
         throw membrosError;
       }
       
@@ -84,7 +82,6 @@ const Relatorio = () => {
         .order("data_reuniao", { ascending: false });
       
       if (presencasError) {
-        console.error("Erro ao buscar presenças:", presencasError);
         throw presencasError;
       }
 
@@ -120,7 +117,6 @@ const Relatorio = () => {
         }
       }
     } catch (error: any) {
-      console.error("Error loading data:", error);
       toast.error("Erro ao carregar dados: " + (error.message || ""));
     } finally {
       setLoading(false);
@@ -164,7 +160,6 @@ const Relatorio = () => {
       toast.success("Relatório enviado com sucesso!");
       navigate("/dashboard");
     } catch (error: any) {
-      console.error("Error submitting relatório:", error);
       toast.error("Erro ao enviar relatório: " + (error.message || ""));
     } finally {
       setSending(false);

@@ -73,7 +73,6 @@ const AdminDashboard = () => {
 
       await loadDashboardData();
     } catch (error: any) {
-      console.error("Auth check error:", error);
       navigate("/login");
     }
   };
@@ -111,7 +110,7 @@ const AdminDashboard = () => {
         .select("*");
 
       if (casasError) {
-        console.error("Erro ao buscar casas:", casasError);
+        // Erro ao buscar casas
       }
 
       // Calcular casas pendentes de relatório
@@ -149,7 +148,6 @@ const AdminDashboard = () => {
                 .maybeSingle();
               
               if (relError) {
-                console.error("Erro ao buscar relatório:", relError);
                 continue;
               }
               
@@ -161,7 +159,7 @@ const AdminDashboard = () => {
                 });
               }
             } catch (err) {
-              console.error("Erro ao verificar relatório da casa:", casa.id, err);
+              // Erro ao verificar relatório
             }
           }
         }
@@ -221,7 +219,6 @@ const AdminDashboard = () => {
       // Processar dados para gráficos
       await loadChartData();
     } catch (error: any) {
-      console.error("Error loading dashboard:", error);
       toast.error("Erro ao carregar dados");
     } finally {
       setLoading(false);
@@ -302,7 +299,6 @@ const AdminDashboard = () => {
         setEvolucaoMembros([]);
       }
     } catch (error: any) {
-      console.error("Error loading chart data:", error);
       toast.error("Erro ao carregar gráficos");
     }
   };

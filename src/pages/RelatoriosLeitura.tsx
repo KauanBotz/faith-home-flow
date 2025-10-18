@@ -42,7 +42,6 @@ const RelatoriosLeitura = () => {
       const { data: casaData, error: casaError } = await casaQuery.single();
 
       if (casaError) {
-        console.error("Erro ao buscar casa:", casaError);
         throw casaError;
       }
       
@@ -64,7 +63,6 @@ const RelatoriosLeitura = () => {
       if (relatoriosError) throw relatoriosError;
       setRelatorios(relatoriosData || []);
     } catch (error: any) {
-      console.error("Error loading data:", error);
       toast.error("Erro ao carregar relatórios");
     } finally {
       setLoading(false);

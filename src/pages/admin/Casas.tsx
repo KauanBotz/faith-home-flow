@@ -59,7 +59,6 @@ const AdminCasas = () => {
 
       await loadCasas();
     } catch (error) {
-      console.error("Error:", error);
       navigate("/login");
     }
   };
@@ -75,7 +74,6 @@ const AdminCasas = () => {
       setCasas(data || []);
       setFilteredCasas(data || []);
     } catch (error: any) {
-      console.error("Error loading casas:", error);
       toast.error("Erro ao carregar casas");
     } finally {
       setLoading(false);

@@ -50,7 +50,6 @@ const Presenca = () => {
       const { data: casaData, error: casaError } = await casaQuery.single();
 
       if (casaError) {
-        console.error("Error loading casa:", casaError);
         toast.error("Erro ao carregar Casa de Fé. Verifique se você tem uma casa cadastrada.");
         setLoading(false);
         return;
@@ -65,7 +64,6 @@ const Presenca = () => {
           .order("nome_completo");
 
         if (error) {
-          console.error("Error loading membros:", error);
           throw error;
         }
 
@@ -86,7 +84,6 @@ const Presenca = () => {
         setReconciliouJesus(initialReconciliou);
       }
     } catch (error: any) {
-      console.error("Error loading membros:", error);
       toast.error("Erro ao carregar membros: " + (error.message || "Erro desconhecido"));
     } finally {
       setLoading(false);
@@ -111,7 +108,7 @@ const Presenca = () => {
         presencasDia?.forEach((p: any) => { presMap[p.membro_id] = true; });
         setPresencas(presMap);
       } catch (e) {
-        console.error("Erro ao carregar presenças da data:", e);
+        // Erro ao carregar presenças
       }
     };
     carregar();
@@ -139,7 +136,7 @@ const Presenca = () => {
         });
         setHistorico(map);
       } catch (e) {
-        console.error("Erro ao carregar histórico:", e);
+        // Erro ao carregar histórico
       }
     };
     carregarHistorico();
@@ -198,7 +195,6 @@ const Presenca = () => {
         .insert(presencasData);
 
       if (presencasError) {
-        console.error("Erro ao salvar presenças:", presencasError);
         throw presencasError;
       }
 
@@ -226,7 +222,6 @@ const Presenca = () => {
       navigate(`/relatorio?data=${selectedDate}`);
 
     } catch (error: any) {
-      console.error("Error saving presencas:", error);
       toast.error("Erro ao salvar presenças: " + (error.message || ""));
     } finally {
       setSaving(false);

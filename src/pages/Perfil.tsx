@@ -38,7 +38,6 @@ const Perfil = () => {
       if (error) throw error;
       setCasaFe(data);
     } catch (error) {
-      console.error("Error loading casa fe:", error);
       toast.error("Erro ao carregar dados");
     } finally {
       setLoading(false);
@@ -77,7 +76,6 @@ const Perfil = () => {
       toast.success("Perfil atualizado com sucesso!");
       navigate("/dashboard");
     } catch (error) {
-      console.error("Error updating perfil:", error);
       toast.error("Erro ao atualizar perfil");
     } finally {
       setSaving(false);

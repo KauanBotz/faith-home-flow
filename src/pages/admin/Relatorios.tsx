@@ -124,7 +124,6 @@ const AdminRelatorios = () => {
         .order("data_reuniao", { ascending: false });
       setRelatorios(relatoriosData || []);
     } catch (error: any) {
-      console.error("Error loading data:", error);
       toast.error("Erro ao carregar dados");
     } finally {
       setLoading(false);

@@ -62,7 +62,6 @@ export const AddMembroDialog = ({ open, onOpenChange, casaFeId, onSuccess }: Add
       });
       onSuccess();
     } catch (error: any) {
-      console.error("Error adding membro:", error);
       toast.error("Erro ao adicionar membro");
     } finally {
       setLoading(false);

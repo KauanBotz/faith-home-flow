@@ -71,7 +71,6 @@ export function PalavraPastorDialog({ open, onOpenChange, palavra, onSaved }: Pa
       onSaved();
       onOpenChange(false);
     } catch (error: any) {
-      console.error("Error saving palavra:", error);
       toast.error("Erro ao salvar palavra do pastor");
     } finally {
       setLoading(false);

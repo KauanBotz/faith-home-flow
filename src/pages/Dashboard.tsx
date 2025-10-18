@@ -69,7 +69,6 @@ const loadDashboardData = async () => {
     const { data: casaData, error: casaError } = await casaQuery.single();
 
     if (casaError) {
-      console.error("Erro ao carregar casa:", casaError);
       toast.error("Erro ao carregar Casa de Fé");
       return;
     }
@@ -136,7 +135,6 @@ const loadDashboardData = async () => {
             setRelatoriosPendentes(0);
           }
         } catch (relError) {
-          console.error("Erro ao calcular relatórios pendentes:", relError);
           setRelatoriosPendentes(0);
         }
       } else {
@@ -183,7 +181,6 @@ const loadDashboardData = async () => {
       setOracoes(oracoesData || []);
     }
   } catch (error: any) {
-    console.error("Error loading dashboard:", error);
     toast.error("Erro ao carregar dados do dashboard");
   } finally {
     setLoading(false);

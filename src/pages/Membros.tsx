@@ -49,7 +49,6 @@ const Membros = () => {
         setMembros(membrosData || []);
       }
     } catch (error: any) {
-      console.error("Error loading membros:", error);
       toast.error("Erro ao carregar membros");
     } finally {
       setLoading(false);
@@ -77,7 +76,6 @@ const Membros = () => {
       setIsDialogOpen(false);
       loadMembros();
     } catch (error: any) {
-      console.error("Error updating membro:", error);
       toast.error("Erro ao atualizar membro");
     }
   };

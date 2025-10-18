@@ -282,7 +282,6 @@ const Cadastro = () => {
       setMostrarConfirmacao(true);
       setCurrentStep(4);
     } catch (error: any) {
-      console.error("Error:", error);
       if (!error.message?.includes("already registered")) {
         toast.error("Erro ao salvar Casa de Fé: " + error.message);
       }

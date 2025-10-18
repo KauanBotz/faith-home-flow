@@ -67,7 +67,6 @@ const AdminMembros = () => {
 
       await loadMembros();
     } catch (error) {
-      console.error("Error:", error);
       navigate("/login");
     }
   };
@@ -96,7 +95,6 @@ const AdminMembros = () => {
       setCasas(casasMap);
       setFilteredMembros(membrosData || []);
     } catch (error: any) {
-      console.error("Error loading membros:", error);
       toast.error("Erro ao carregar membros");
     } finally {
       setLoading(false);
