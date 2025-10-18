@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Mail, Lock, Sparkles, Home, Phone } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { getPhoneNumbers } from "@/lib/phoneUtils";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -78,17 +79,27 @@ const Login = () => {
           }
         }
       } else {
-        // Login por telefone - busca EXATAMENTE como está no input
-        console.log("Buscando telefone:", phone); // Debug
+        // Login por telefone - normaliza o número antes de buscar
+        const phoneNumbers = getPhoneNumbers(phone);
         
-        const { data: casasData, error } = await supabase
+        // Busca todas as casas e filtra pelo telefone normalizado
+        const { data: allCasas, error: fetchError } = await supabase
           .from("casas_fe")
-          .select("*")
-          .eq("telefone", phone); // Busca EXATAMENTE como está digitado
+          .select("*");
 
-        console.log("Resultado:", casasData, error); // Debug
+        if (fetchError) {
+          toast.error("Erro ao buscar dados!");
+          return;
+        }
 
-        if (error || !casasData || casasData.length === 0) {
+        // Filtra as casas comparando apenas os números
+        const casasData = allCasas?.filter(casa => {
+          if (!casa.telefone) return false;
+          const casaPhoneNumbers = getPhoneNumbers(casa.telefone);
+          return casaPhoneNumbers === phoneNumbers;
+        });
+
+        if (!casasData || casasData.length === 0) {
           toast.error("Telefone não encontrado!");
           return;
         }
