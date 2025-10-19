@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Mail, Lock, Sparkles, Home, Phone } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { getPhoneNumbers } from "@/lib/phoneUtils";
+import { CompletarDadosModal } from "@/components/dashboard/CompletarDadosModal";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -19,6 +20,8 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [showCasaSelection, setShowCasaSelection] = useState(false);
   const [casasFe, setCasasFe] = useState<any[]>([]);
+  const [showCompletarDados, setShowCompletarDados] = useState(false);
+  const [casaSelecionada, setCasaSelecionada] = useState<any>(null);
 
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, "");
@@ -74,6 +77,14 @@ const Login = () => {
           if (casasData && casasData.length > 1) {
             setCasasFe(casasData);
             setShowCasaSelection(true);
+          } else if (casasData && casasData.length === 1) {
+            // Verifica se há dados pendentes
+            if (verificarDadosPendentes(casasData[0])) {
+              setCasaSelecionada(casasData[0]);
+              setShowCompletarDados(true);
+            } else {
+              navigate("/dashboard");
+            }
           } else {
             navigate("/dashboard");
           }
@@ -124,7 +135,14 @@ const Login = () => {
           }
           localStorage.setItem("user_id", casasData[0].user_id);
           localStorage.setItem("selected_casa_id", casasData[0].id);
-          navigate("/dashboard");
+          
+          // Verifica se há dados pendentes
+          if (verificarDadosPendentes(casasData[0])) {
+            setCasaSelecionada(casasData[0]);
+            setShowCompletarDados(true);
+          } else {
+            navigate("/dashboard");
+          }
         }
       }
     } catch (error: any) {
@@ -134,6 +152,11 @@ const Login = () => {
     }
   };
   
+  const verificarDadosPendentes = (casa: any) => {
+    return !casa.telefone_dupla || !casa.whatsapp_anfitriao || !casa.cep || 
+           !casa.rua_avenida || !casa.numero_casa || !casa.bairro || !casa.cidade;
+  };
+
   const handleSelectCasa = async (casa: any) => {
     try {
       setLoading(true);
@@ -148,12 +171,24 @@ const Login = () => {
       localStorage.setItem("user_id", casa.user_id);
       localStorage.setItem("selected_casa_id", casa.id);
       setShowCasaSelection(false);
-      navigate("/dashboard");
+      
+      // Verifica se há dados pendentes
+      if (verificarDadosPendentes(casa)) {
+        setCasaSelecionada(casa);
+        setShowCompletarDados(true);
+      } else {
+        navigate("/dashboard");
+      }
     } catch (e: any) {
       toast.error(e.message || "Erro ao entrar com telefone");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCompletarDadosComplete = () => {
+    setShowCompletarDados(false);
+    navigate("/dashboard");
   };
 
   const shouldShowPasswordField = email === "admin@mincbh.com.br";
@@ -328,6 +363,14 @@ const Login = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {casaSelecionada && (
+        <CompletarDadosModal 
+          casaFe={casaSelecionada}
+          open={showCompletarDados}
+          onComplete={handleCompletarDadosComplete}
+        />
+      )}
     </div>
   );
 };

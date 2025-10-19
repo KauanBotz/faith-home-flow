@@ -46,6 +46,33 @@ export const StepOne = ({ data, onNext }: StepOneProps) => {
     setTelefone(formatted);
   };
 
+  const handleDocumentoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "");
+    let formatted = value;
+
+    if (tipoDocumento === "CPF") {
+      // Formato: 000.000.000-00
+      if (value.length <= 11) {
+        formatted = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+      }
+    } else if (tipoDocumento === "RG") {
+      // Formato: 00.000.000-0
+      if (value.length <= 9) {
+        formatted = value.replace(/(\d{2})(\d{3})(\d{3})(\d{1})/, "$1.$2.$3-$4");
+      }
+    } else if (tipoDocumento === "CNH") {
+      // Formato: 00000000000 (11 dígitos sem máscara)
+      formatted = value.slice(0, 11);
+    } else if (tipoDocumento === "Passaporte") {
+      // Formato: AA000000 (2 letras + 6 números)
+      const letters = e.target.value.replace(/[^A-Za-z]/g, "").slice(0, 2).toUpperCase();
+      const numbers = value.slice(0, 6);
+      formatted = letters + numbers;
+    }
+
+    setNumeroDocumento(formatted);
+  };
+
   const validate = () => {
     const newErrors: Record<string, string> = {};
 
@@ -129,10 +156,23 @@ export const StepOne = ({ data, onNext }: StepOneProps) => {
             <Input
               id="numeroDocumento"
               type="text"
-              placeholder="Digite o número do documento"
+              placeholder={
+                tipoDocumento === "CPF" ? "000.000.000-00" :
+                tipoDocumento === "RG" ? "00.000.000-0" :
+                tipoDocumento === "CNH" ? "00000000000" :
+                tipoDocumento === "Passaporte" ? "AA000000" :
+                "Digite o número do documento"
+              }
               value={numeroDocumento}
-              onChange={(e) => setNumeroDocumento(e.target.value)}
+              onChange={tipoDocumento === "Outro" ? (e) => setNumeroDocumento(e.target.value) : handleDocumentoChange}
               className="pl-10"
+              maxLength={
+                tipoDocumento === "CPF" ? 14 :
+                tipoDocumento === "RG" ? 12 :
+                tipoDocumento === "CNH" ? 11 :
+                tipoDocumento === "Passaporte" ? 8 :
+                undefined
+              }
             />
           </div>
           {errors.numeroDocumento && (
