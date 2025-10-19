@@ -6,54 +6,81 @@ import { toast } from "sonner";
 
 const ImportarCasas = () => {
   const [sqlOutput, setSqlOutput] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const processarCSV = () => {
-    // Dados do CSV FINAL.csv
-    const csvData = `Nome,Tipo do documento,Número do documento,Email,WhatsApp do FACILITADOR 1 (com DDD e sem traços),Rede/MINC do FACILITADOR 1,O FACILITADOR 1 é batizado(a)?,Nome completo do FACILITADOR 2,WhatsApp do FACILITADOR 2 (com DDD e sem traços),Rede/MINC do FACILITADOR 2,O FACILITADOR 2 é batizado (a)?,Nome completo do ANFITRIÃO da Casa de Fé,WhatsApp do ANFITRIÃO (com DDD e sem traços),Rua/Avenida da Casa de Fé,Número da Casa de Fé,Bairro da Casa de Fé,CEP da Casa de Fé,COMPROMISSO,Cidade da Casa de Fé,Ponto de referência da Casa de Fé
-1 Jairo Luciano Lourenço da Costa ,CPF,968.501.086-20,jairolucianu@gmail.com,318909-9837,Gerar (Pampulha),SIM,BRENDA E ELIANE,31989099837,Gerar (Pampulha),SIM,Geiza,31 98330-6461,rua Sertãozinho,222,Jardim Leblon,31540180,"Confirmo que estarei comprometido(a), junto com meu facilitador (a), em iniciar e concluir a Casa de Fé pelo período de 4 semanas do projeto evangelístico.",Belo Horizonte,Proximo da Casa do Vitor`;
-
-    const linhas = csvData.split('\n');
-    const headers = linhas[0].split(',');
-    
-    let inserts: string[] = [];
-
-    for (let i = 1; i < linhas.length; i++) {
-      const valores = linhas[i].split(',');
+  const processarCSV = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/FINAL.csv');
+      const csvText = await response.text();
       
-      if (valores.length < 20) continue;
+      const linhas = csvText.split('\n');
+      const inserts: string[] = [];
 
-      const userId = crypto.randomUUID();
-      const nome = valores[0]?.trim() || '';
-      const tipoDoc = valores[1]?.trim() || '';
-      const numDoc = valores[2]?.trim() || '';
-      const email = valores[3]?.trim() || '';
-      const telefone = valores[4]?.trim().replace(/[^0-9]/g, '') || '';
-      const redeFac1 = valores[5]?.trim() || '';
-      const batizado1 = valores[6]?.trim().toUpperCase() === 'SIM' ? 'true' : 'false';
-      const nomeDupla = valores[7]?.trim() || null;
-      const telefoneDupla = valores[8]?.trim().replace(/[^0-9]/g, '') || null;
-      const redeFac2 = valores[9]?.trim() || null;
-      const batizado2 = valores[10]?.trim().toUpperCase() === 'SIM' ? 'true' : 'false';
-      const nomeAnfitriao = valores[11]?.trim() || null;
-      const whatsappAnfitriao = valores[12]?.trim().replace(/[^0-9]/g, '') || null;
-      const rua = valores[13]?.trim() || '';
-      const numero = valores[14]?.trim() || '';
-      const bairro = valores[15]?.trim() || '';
-      const cep = valores[16]?.trim().replace(/[^0-9]/g, '') || '';
-      const cidade = valores[18]?.trim() || '';
-      const pontoRef = valores[19]?.trim() || null;
+      // Pular a primeira linha (cabeçalho)
+      for (let i = 1; i < linhas.length; i++) {
+        const linha = linhas[i];
+        if (!linha.trim()) continue;
 
-      // Construir endereço completo
-      const endereco = `${rua}, ${numero} - ${bairro}, ${cidade} - CEP: ${cep}`;
+        // Parse CSV com respeito a vírgulas dentro de aspas
+        const valores = [];
+        let valorAtual = '';
+        let dentroDeAspas = false;
 
-      // Valores padrão para campos obrigatórios
-      const campus = 'MINC Belo Horizonte';
-      const rede = redeFac1 || 'Sem rede';
-      const horarioReuniao = '19:00:00';
-      const diasSemana = "'{}'";
-      const geracao = 'Primeira';
+        for (let j = 0; j < linha.length; j++) {
+          const char = linha[j];
+          
+          if (char === '"') {
+            dentroDeAspas = !dentroDeAspas;
+          } else if (char === ',' && !dentroDeAspas) {
+            valores.push(valorAtual);
+            valorAtual = '';
+          } else {
+            valorAtual += char;
+          }
+        }
+        valores.push(valorAtual);
 
-      const insert = `INSERT INTO casas_fe (
+        if (valores.length < 20) continue;
+
+        const userId = crypto.randomUUID();
+        
+        // Escapar aspas simples para SQL
+        const escape = (str: string | null | undefined) => 
+          str ? str.trim().replace(/'/g, "''") : '';
+        
+        // Extrair e limpar dados
+        const nome = escape(valores[0]);
+        const tipoDoc = escape(valores[1]);
+        const numDoc = escape(valores[2]);
+        const email = escape(valores[3]);
+        const telefone = (valores[4] || '').replace(/[^0-9]/g, '');
+        const redeFac1 = escape(valores[5]);
+        const batizado1 = (valores[6] || '').toUpperCase().includes('SIM');
+        const nomeDupla = escape(valores[7]);
+        const telefoneDupla = (valores[8] || '').replace(/[^0-9]/g, '');
+        const redeFac2 = escape(valores[9]);
+        const batizado2 = (valores[10] || '').toUpperCase().includes('SIM');
+        const nomeAnfitriao = escape(valores[11]);
+        const whatsappAnfitriao = (valores[12] || '').replace(/[^0-9]/g, '');
+        const rua = escape(valores[13]);
+        const numero = escape(valores[14]);
+        const bairro = escape(valores[15]);
+        const cep = (valores[16] || '').replace(/[^0-9]/g, '');
+        const cidade = escape(valores[18]);
+        const pontoRef = escape(valores[19]);
+
+        // Construir endereço completo
+        const endereco = escape(`${rua}, ${numero} - ${bairro}, ${cidade} - CEP: ${cep}`);
+
+        // Valores padrão
+        const campus = 'MINC Belo Horizonte';
+        const rede = redeFac1 || 'Sem rede';
+        const horarioReuniao = '19:00:00';
+        const diasSemana = '{}';
+        const geracao = 'Primeira';
+
+        const insert = `INSERT INTO casas_fe (
   user_id, nome_lider, tipo_documento, numero_documento, email, telefone,
   rede_facilitador_1, facilitador_1_batizado, nome_dupla, telefone_dupla,
   rede_facilitador_2, facilitador_2_batizado, nome_anfitriao, whatsapp_anfitriao,
@@ -61,83 +88,94 @@ const ImportarCasas = () => {
   endereco, campus, rede, horario_reuniao, dias_semana, geracao
 ) VALUES (
   '${userId}',
-  ${nome ? `'${nome.replace(/'/g, "''")}'` : 'NULL'},
-  ${tipoDoc ? `'${tipoDoc.replace(/'/g, "''")}'` : 'NULL'},
-  ${numDoc ? `'${numDoc.replace(/'/g, "''")}'` : 'NULL'},
-  ${email ? `'${email.replace(/'/g, "''")}'` : 'NULL'},
+  ${nome ? `'${nome}'` : 'NULL'},
+  ${tipoDoc ? `'${tipoDoc}'` : 'NULL'},
+  ${numDoc ? `'${numDoc}'` : 'NULL'},
+  ${email ? `'${email}'` : 'NULL'},
   ${telefone ? `'${telefone}'` : 'NULL'},
-  ${redeFac1 ? `'${redeFac1.replace(/'/g, "''")}'` : 'NULL'},
+  ${redeFac1 ? `'${redeFac1}'` : 'NULL'},
   ${batizado1},
-  ${nomeDupla ? `'${nomeDupla.replace(/'/g, "''")}'` : 'NULL'},
+  ${nomeDupla ? `'${nomeDupla}'` : 'NULL'},
   ${telefoneDupla ? `'${telefoneDupla}'` : 'NULL'},
-  ${redeFac2 ? `'${redeFac2.replace(/'/g, "''")}'` : 'NULL'},
+  ${redeFac2 ? `'${redeFac2}'` : 'NULL'},
   ${batizado2},
-  ${nomeAnfitriao ? `'${nomeAnfitriao.replace(/'/g, "''")}'` : 'NULL'},
+  ${nomeAnfitriao ? `'${nomeAnfitriao}'` : 'NULL'},
   ${whatsappAnfitriao ? `'${whatsappAnfitriao}'` : 'NULL'},
-  ${rua ? `'${rua.replace(/'/g, "''")}'` : 'NULL'},
-  ${numero ? `'${numero.replace(/'/g, "''")}'` : 'NULL'},
-  ${bairro ? `'${bairro.replace(/'/g, "''")}'` : 'NULL'},
+  ${rua ? `'${rua}'` : 'NULL'},
+  ${numero ? `'${numero}'` : 'NULL'},
+  ${bairro ? `'${bairro}'` : 'NULL'},
   ${cep ? `'${cep}'` : 'NULL'},
-  ${cidade ? `'${cidade.replace(/'/g, "''")}'` : 'NULL'},
-  ${pontoRef ? `'${pontoRef.replace(/'/g, "''")}'` : 'NULL'},
-  '${endereco.replace(/'/g, "''")}',
+  ${cidade ? `'${cidade}'` : 'NULL'},
+  ${pontoRef ? `'${pontoRef}'` : 'NULL'},
+  '${endereco}',
   '${campus}',
-  '${rede.replace(/'/g, "''")}',
+  '${rede}',
   '${horarioReuniao}',
-  ${diasSemana},
+  '${diasSemana}',
   '${geracao}'
 );`;
 
-      inserts.push(insert);
-    }
+        inserts.push(insert);
+      }
 
-    const sqlCompleto = inserts.join('\n\n');
-    setSqlOutput(sqlCompleto);
-    toast.success(`${inserts.length} INSERTs gerados com sucesso!`);
+      const sqlCompleto = inserts.join('\n\n');
+      setSqlOutput(sqlCompleto);
+      toast.success(`${inserts.length} INSERTs gerados com sucesso!`);
+    } catch (error) {
+      toast.error("Erro ao processar CSV");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const copiarSQL = () => {
     navigator.clipboard.writeText(sqlOutput);
-    toast.success("SQL copiado para a área de transferência!");
+    toast.success("SQL copiado!");
   };
 
   return (
     <div className="container mx-auto p-6">
       <Card className="p-6">
-        <h1 className="text-2xl font-bold mb-4">Importar Casas de Fé</h1>
-        <p className="mb-4">
-          Este script processa o arquivo CSV e gera os comandos SQL INSERT para você colar no Supabase.
+        <h1 className="text-2xl font-bold mb-4">Importar Casas de Fé do CSV</h1>
+        <p className="mb-4 text-muted-foreground">
+          Processa o arquivo FINAL.csv e gera comandos SQL INSERT para colar no Supabase.
         </p>
         
         <div className="space-y-4">
-          <Button onClick={processarCSV}>Gerar SQL INSERT</Button>
+          <Button onClick={processarCSV} disabled={loading}>
+            {loading ? "Processando..." : "Gerar SQL INSERT"}
+          </Button>
           
           {sqlOutput && (
             <>
               <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold">SQL Gerado:</h2>
-                <Button onClick={copiarSQL} variant="outline">
+                <Button onClick={copiarSQL} variant="outline" size="sm">
                   Copiar SQL
                 </Button>
               </div>
               <Textarea
                 value={sqlOutput}
                 readOnly
-                className="font-mono text-sm h-96"
+                className="font-mono text-xs h-96"
               />
-              <div className="bg-yellow-50 p-4 rounded-md border border-yellow-200">
-                <p className="text-sm">
-                  <strong>Instruções:</strong>
-                  <br />
-                  1. Copie o SQL acima
-                  <br />
-                  2. Acesse o Supabase SQL Editor: https://supabase.com/dashboard/project/ibycvtowlvwmgyzoveef/sql/new
-                  <br />
-                  3. Cole o SQL e execute
-                  <br />
-                  <br />
-                  <strong>Nota:</strong> Os campos campus, rede, horario_reuniao e dias_semana foram preenchidos com valores padrão.
-                  Os usuários podem editar esses campos depois do login na página de Perfil.
+              <div className="bg-primary/10 p-4 rounded-lg border">
+                <h3 className="font-semibold mb-2">Instruções:</h3>
+                <ol className="text-sm space-y-1 list-decimal list-inside">
+                  <li>Clique em "Copiar SQL" acima</li>
+                  <li>Acesse o <a 
+                    href="https://supabase.com/dashboard/project/ibycvtowlvwmgyzoveef/sql/new" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-primary underline"
+                  >
+                    Supabase SQL Editor
+                  </a></li>
+                  <li>Cole o SQL e execute</li>
+                </ol>
+                <p className="text-sm mt-3 text-muted-foreground">
+                  <strong>Nota:</strong> Os campos campus, rede, horario_reuniao e dias_semana foram preenchidos com valores padrão. 
+                  Os usuários podem editar na página de Perfil após login.
                 </p>
               </div>
             </>
