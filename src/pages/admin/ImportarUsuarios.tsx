@@ -16,6 +16,7 @@ const ImportarUsersAuth = () => {
       
       const linhas = csvText.split('\n');
       const inserts: string[] = [];
+      const emailsUnicos = new Set();
 
       for (let i = 1; i < linhas.length; i++) {
         const linha = linhas[i];
@@ -43,6 +44,9 @@ const ImportarUsersAuth = () => {
 
         const userId = crypto.randomUUID();
         const email = (valores[3] || '').trim();
+          if (!email || emailsUnicos.has(email)) continue;
+  
+            emailsUnicos.add(email);
         
         if (!email) continue;
 
