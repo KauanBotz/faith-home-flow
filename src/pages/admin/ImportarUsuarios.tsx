@@ -5,8 +5,8 @@ import { toast } from "sonner";
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseAdmin = createClient(
-  'https://YOUR-PROJECT.supabase.co',
-  'YOUR-SERVICE-ROLE-KEY'
+  'https://ibycvtowlvwmgyzoveef.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlieWN2dG93bHZ3bWd5em92ZWVmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTY2NzMyOCwiZXhwIjoyMDc1MjQzMzI4fQ.LRn4OigxjhMvmYjd-DEft80Yb_CNmP8DpjK7Ug_6BE4'
 )
 
 const ImportarUsersAuth = () => {
