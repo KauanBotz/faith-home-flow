@@ -37,6 +37,7 @@ const ImportarUsersAuth = () => {
         const { error } = await supabaseAdmin.auth.admin.createUser({
           email,
           password: "123456",
+          email_confirm: true // <-- adiciona isso
         });
         if (error) {
           console.error("Erro ao criar usuário:", email, error.message);
