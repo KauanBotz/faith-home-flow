@@ -157,6 +157,8 @@ const Login = () => {
            !casa.rua_avenida || !casa.numero_casa || !casa.bairro || !casa.cidade;
   };
 
+  // No Login.tsx, trocar a parte do handleSelectCasa:
+
   const handleSelectCasa = async (casa: any) => {
     try {
       setLoading(true);
@@ -172,7 +174,7 @@ const Login = () => {
       localStorage.setItem("selected_casa_id", casa.id);
       setShowCasaSelection(false);
       
-      // Verifica se há dados pendentes
+      // ✅ Verificar se há dados pendentes
       if (verificarDadosPendentes(casa)) {
         setCasaSelecionada(casa);
         setShowCompletarDados(true);

@@ -30,19 +30,21 @@ export const CompletarDadosModal = ({ casaFe, open, onComplete }: CompletarDados
     setDadosEditaveis({ ...dadosEditaveis, [field]: formatted });
   };
 
-  const verificarDadosPendentes = () => {
-    const camposPendentes = [];
-    
-    if (!dadosEditaveis?.telefone_dupla?.trim()) camposPendentes.push("Telefone do Facilitador 2");
-    if (!dadosEditaveis?.whatsapp_anfitriao?.trim()) camposPendentes.push("WhatsApp do Anfitrião");
-    if (!dadosEditaveis?.cep?.trim()) camposPendentes.push("CEP");
-    if (!dadosEditaveis?.rua_avenida?.trim()) camposPendentes.push("Rua/Avenida");
-    if (!dadosEditaveis?.numero_casa?.trim()) camposPendentes.push("Número da Casa");
-    if (!dadosEditaveis?.bairro?.trim()) camposPendentes.push("Bairro");
-    if (!dadosEditaveis?.cidade?.trim()) camposPendentes.push("Cidade");
-    
-    return camposPendentes;
-  };
+const verificarDadosPendentes = () => {
+  const camposPendentes = [];
+  
+  if (!dadosEditaveis?.telefone_dupla?.trim()) camposPendentes.push("Telefone do Facilitador 2");
+  if (!dadosEditaveis?.whatsapp_anfitriao?.trim()) camposPendentes.push("WhatsApp do Anfitrião");
+  if (!dadosEditaveis?.cep?.trim()) camposPendentes.push("CEP");
+  if (!dadosEditaveis?.rua_avenida?.trim()) camposPendentes.push("Rua/Avenida");
+  if (!dadosEditaveis?.numero_casa?.trim()) camposPendentes.push("Número da Casa");
+  if (!dadosEditaveis?.bairro?.trim()) camposPendentes.push("Bairro");
+  if (!dadosEditaveis?.cidade?.trim()) camposPendentes.push("Cidade");
+  if (!dadosEditaveis?.dias_semana?.[0]) camposPendentes.push("Dia da Semana");
+  if (!dadosEditaveis?.horario_reuniao?.trim()) camposPendentes.push("Horário");
+  
+  return camposPendentes;
+};
 
   const handleSalvar = async () => {
     const pendentes = verificarDadosPendentes();
@@ -56,23 +58,25 @@ export const CompletarDadosModal = ({ casaFe, open, onComplete }: CompletarDados
     try {
       const enderecoCompleto = `${dadosEditaveis.rua_avenida}, ${dadosEditaveis.numero_casa} - ${dadosEditaveis.bairro}, ${dadosEditaveis.cidade} - CEP: ${dadosEditaveis.cep}`;
       
-      const { error } = await supabase
-        .from("casas_fe")
-        .update({
-          telefone_dupla: dadosEditaveis.telefone_dupla,
-          whatsapp_anfitriao: dadosEditaveis.whatsapp_anfitriao,
-          cep: dadosEditaveis.cep,
-          rua_avenida: dadosEditaveis.rua_avenida,
-          numero_casa: dadosEditaveis.numero_casa,
-          bairro: dadosEditaveis.bairro,
-          cidade: dadosEditaveis.cidade,
-          ponto_referencia: dadosEditaveis.ponto_referencia,
-          nome_anfitriao: dadosEditaveis.nome_anfitriao,
-          nome_dupla: dadosEditaveis.nome_dupla,
-          email_dupla: dadosEditaveis.email_dupla,
-          endereco: enderecoCompleto,
-        })
-        .eq("id", casaFe.id);
+  const { error } = await supabase
+    .from("casas_fe")
+    .update({
+      telefone_dupla: dadosEditaveis.telefone_dupla,
+      whatsapp_anfitriao: dadosEditaveis.whatsapp_anfitriao,
+      cep: dadosEditaveis.cep,
+      rua_avenida: dadosEditaveis.rua_avenida,
+      numero_casa: dadosEditaveis.numero_casa,
+      bairro: dadosEditaveis.bairro,
+      cidade: dadosEditaveis.cidade,
+      ponto_referencia: dadosEditaveis.ponto_referencia,
+      nome_anfitriao: dadosEditaveis.nome_anfitriao,
+      nome_dupla: dadosEditaveis.nome_dupla,
+      email_dupla: dadosEditaveis.email_dupla,
+      dias_semana: dadosEditaveis.dias_semana,
+      horario_reuniao: dadosEditaveis.horario_reuniao,
+      endereco: enderecoCompleto,
+    })
+    .eq("id", casaFe.id);
 
       if (error) throw error;
       
@@ -86,19 +90,19 @@ export const CompletarDadosModal = ({ casaFe, open, onComplete }: CompletarDados
     }
   };
 
+  if (!open) return null;
+
   return (
     <AlertDialog open={open}>
       <AlertDialogPortal>
         <AlertDialogPrimitive.Overlay 
           className="fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
-          onClick={(e) => e.preventDefault()}
         />
         <AlertDialogPrimitive.Content
           className={cn(
             "fixed left-[50%] top-[50%] z-50 grid w-full max-w-3xl translate-x-[-50%] translate-y-[-50%] gap-0 border bg-background shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
             "max-h-[90vh] p-0"
           )}
-          onEscapeKeyDown={(e) => e.preventDefault()}
         >
           <div className="p-6 pb-4 border-b">
             <AlertDialogPrimitive.Title className="text-2xl font-semibold">
@@ -253,17 +257,45 @@ export const CompletarDadosModal = ({ casaFe, open, onComplete }: CompletarDados
                     className="mt-1.5"
                   />
                 </div>
+
+                <div>
+                  <Label>Dia da Semana *</Label>
+                  <select
+                    value={dadosEditaveis?.dias_semana?.[0] || ""}
+                    onChange={(e) => setDadosEditaveis({ ...dadosEditaveis, dias_semana: [e.target.value] })}
+                    className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                  >
+                    <option value="">Selecione</option>
+                    <option value="Segunda">Segunda</option>
+                    <option value="Terça">Terça</option>
+                    <option value="Quarta">Quarta</option>
+                    <option value="Quinta">Quinta</option>
+                    <option value="Sexta">Sexta</option>
+                    <option value="Sábado">Sábado</option>
+                    <option value="Domingo">Domingo</option>
+                  </select>
+                </div>
+
+                <div>
+                  <Label>Horário *</Label>
+                  <Input
+                    type="time"
+                    value={dadosEditaveis?.horario_reuniao || ""}
+                    onChange={(e) => setDadosEditaveis({ ...dadosEditaveis, horario_reuniao: e.target.value })}
+                    className="mt-1.5"
+                  />
+                </div>
               </div>
             </div>
           </div>
         </ScrollArea>
 
-        <div className="p-6 pt-4 border-t">
+        <div className="p-10 pt-1 border-t">
           <Button 
             onClick={handleSalvar} 
             disabled={saving}
             size="lg"
-            className="w-full"
+            className="w-full gradient-primary"
           >
             {saving ? "Salvando..." : "Salvar e Continuar"}
           </Button>

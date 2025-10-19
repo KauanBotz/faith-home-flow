@@ -36,6 +36,8 @@ const Dashboard = () => {
   const [showHistoricoPalavra, setShowHistoricoPalavra] = useState(false);
   const [palavrasAnteriores, setPalavrasAnteriores] = useState<any[]>([]);
   const [palavraSelecionada, setPalavraSelecionada] = useState(null);
+  const [showCompletarDados, setShowCompletarDados] = useState(false);
+  const [casaSelecionada, setCasaSelecionada] = useState<any>(null);
 
   useEffect(() => {
     checkAuth();
@@ -75,6 +77,22 @@ const loadDashboardData = async () => {
 
     setCasaFe(casaData);
 
+    // ✅ VERIFICAR DADOS PENDENTES LOGO APÓS CARREGAR A CASA
+    const verificarDadosPendentes = (casa: any) => {
+      return !casa.telefone_dupla || !casa.whatsapp_anfitriao || !casa.cep || 
+             !casa.rua_avenida || !casa.numero_casa || !casa.bairro || !casa.cidade;
+    };
+
+    // Se houver dados pendentes, mostrar o modal IMEDIATAMENTE
+    if (verificarDadosPendentes(casaData)) {
+      setCasaSelecionada(casaData);
+      setShowCompletarDados(true);
+      // NÃO continuar carregando o resto até preencher os dados
+      setLoading(false);
+      return;
+    }
+
+    // Resto da função apenas executa se os dados estiverem completos
     if (casaData) {
       // Buscar membros
       const { data: membrosData, count } = await supabase
@@ -101,9 +119,8 @@ const loadDashboardData = async () => {
         
         setPresencasData(presencasData || []);
 
-        // Calcular relatórios pendentes de forma simplificada
+        // Calcular relatórios pendentes
         try {
-          // Buscar datas únicas de presença
           const { data: presencas } = await supabase
             .from("presencas")
             .select("data_reuniao")
@@ -114,18 +131,15 @@ const loadDashboardData = async () => {
           if (presencas && presencas.length > 0) {
             const datasPresenca = [...new Set(presencas.map(p => p.data_reuniao))];
             
-            // Buscar relatórios existentes
             const { data: relatorios } = await supabase
               .from("relatorios")
               .select("data_reuniao, notas")
               .eq("casa_fe_id", casaData.id);
 
-            // Filtrar apenas relatórios que têm conteúdo
             const datasComRelatorioPreenchido = (relatorios || [])
               .filter(r => r.notas && r.notas.trim() !== "")
               .map(r => r.data_reuniao);
             
-            // Contar pendentes
             const pendentes = datasPresenca.filter(
               data => !datasComRelatorioPreenchido.includes(data)
             ).length;
@@ -185,6 +199,14 @@ const loadDashboardData = async () => {
   } finally {
     setLoading(false);
   }
+};
+
+// Handler quando o usuário completar os dados
+const handleCompletarDadosComplete = () => {
+  setShowCompletarDados(false);
+  setCasaSelecionada(null);
+  // Recarregar tudo após completar os dados
+  loadDashboardData();
 };
 
   const handleLogout = async () => {
