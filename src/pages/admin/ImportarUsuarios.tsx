@@ -15,17 +15,17 @@ const ImportarUsersAuth = () => {
   const processarCSV = async () => {
     setLoading(true);
     try {
-      // 1. Pega UUIDs da tabela casas_fe
+      // 1. Pega user_id e email da tabela casas_fe
       const { data: casasFe, error: casasError } = await supabaseAdmin
         .from("casas_fe")
-        .select("id, email");
+        .select("user_id, email");
 
       if (casasError) throw casasError;
 
-      // Cria mapa email -> id
+      // Cria mapa email -> user_id
       const emailToId: Record<string, string> = {};
-      casasFe.forEach(c => {
-        emailToId[c.email] = c.id;
+      casasFe.forEach((c: any) => {
+        emailToId[c.email] = c.user_id;
       });
 
       // 2. Lê CSV
@@ -33,7 +33,7 @@ const ImportarUsersAuth = () => {
       const csvText = await response.text();
       const linhas = csvText.split("\n");
 
-      const emailsUnicos = new Set();
+      const emailsUnicos = new Set<string>();
       let criados = 0;
 
       for (let i = 1; i < linhas.length; i++) {
@@ -55,7 +55,7 @@ const ImportarUsersAuth = () => {
 
         // Cria usuário via Admin API
         const { error } = await supabaseAdmin.auth.admin.createUser({
-          id,
+          id: id,
           email,
           password: "123456",
           email_confirm: true
