@@ -11,10 +11,10 @@ const ImportarUsersAuth = () => {
   const processarCSV = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/FINAL.csv');
+      const response = await fetch("/FINAL.csv");
       const csvText = await response.text();
-      
-      const linhas = csvText.split('\n');
+
+      const linhas = csvText.split("\n");
       const inserts: string[] = [];
       const emailsUnicos = new Set();
 
@@ -23,17 +23,17 @@ const ImportarUsersAuth = () => {
         if (!linha.trim()) continue;
 
         const valores = [];
-        let valorAtual = '';
+        let valorAtual = "";
         let dentroDeAspas = false;
 
         for (let j = 0; j < linha.length; j++) {
           const char = linha[j];
-          
+
           if (char === '"') {
             dentroDeAspas = !dentroDeAspas;
-          } else if (char === ',' && !dentroDeAspas) {
+          } else if (char === "," && !dentroDeAspas) {
             valores.push(valorAtual);
-            valorAtual = '';
+            valorAtual = "";
           } else {
             valorAtual += char;
           }
@@ -42,44 +42,22 @@ const ImportarUsersAuth = () => {
 
         if (valores.length < 4) continue;
 
-        const userId = crypto.randomUUID();
-        const email = (valores[3] || '').trim();
-          if (!email || emailsUnicos.has(email)) continue;
-  
-            emailsUnicos.add(email);
-        
-        if (!email) continue;
+        const email = (valores[3] || "").trim();
+        if (!email || emailsUnicos.has(email)) continue;
+        emailsUnicos.add(email);
 
-        const insert = `INSERT INTO auth.users (
-  id,
-  email,
-  encrypted_password,
-  email_confirmed_at,
-  created_at,
-  updated_at,
-  raw_app_meta_data,
-  raw_user_meta_data,
-  aud,
-  role
-) VALUES (
-  '${userId}',
-  '${email}',
-  crypt('123456', gen_salt('bf')),
-  now(),
-  now(),
-  now(),
-  '{"provider":"email","providers":["email"]}'::jsonb,
-  '{}'::jsonb,
-  'authenticated',
-  'authenticated'
+        // Usa a função auth.sign_up do Supabase
+        const insert = `select auth.sign_up(
+  email := '${email}',
+  password := '123456'
 );`;
 
         inserts.push(insert);
       }
 
-      const sqlCompleto = inserts.join('\n\n');
+      const sqlCompleto = inserts.join("\n\n");
       setSqlOutput(sqlCompleto);
-      toast.success(`${inserts.length} INSERTs de usuários gerados!`);
+      toast.success(`${inserts.length} usuários prontos para criação via auth.sign_up()!`);
     } catch (error) {
       toast.error("Erro ao processar CSV");
     } finally {
@@ -97,14 +75,14 @@ const ImportarUsersAuth = () => {
       <Card className="p-6">
         <h1 className="text-2xl font-bold mb-4">Importar Users Auth do CSV</h1>
         <p className="mb-4 text-muted-foreground">
-          Gera INSERTs na tabela auth.users com senha temporária.
+          Gera comandos SQL usando <code>auth.sign_up()</code> (provider email).
         </p>
-        
+
         <div className="space-y-4">
           <Button onClick={processarCSV} disabled={loading}>
-            {loading ? "Processando..." : "Gerar SQL INSERT"}
+            {loading ? "Processando..." : "Gerar SQL auth.sign_up()"}
           </Button>
-          
+
           {sqlOutput && (
             <>
               <div className="flex justify-between items-center">
@@ -123,8 +101,8 @@ const ImportarUsersAuth = () => {
                 <ol className="text-sm space-y-1 list-decimal list-inside">
                   <li>Copie o SQL acima</li>
                   <li>Cole no Supabase SQL Editor</li>
-                  <li>Execute primeiro este script de users</li>
-                  <li>Depois execute o script das casas_fe</li>
+                  <li>Execute com a role <strong>supabase_admin</strong></li>
+                  <li>Depois rode o script das casas_fe</li>
                 </ol>
                 <p className="text-sm mt-3 text-muted-foreground">
                   <strong>Senha temporária:</strong> 123456 (usuários devem alterar no primeiro login)
