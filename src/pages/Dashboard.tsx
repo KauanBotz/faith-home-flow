@@ -85,8 +85,12 @@ const loadDashboardData = async () => {
              !casa.dias_semana || casa.dias_semana.length === 0 || !casa.horario_reuniao;
     };
 
-    // Se houver dados pendentes, mostrar o modal IMEDIATAMENTE
-    if (verificarDadosPendentes(casaData)) {
+    // Verificar se já foi marcado como completo no localStorage
+    const casasCompletas = JSON.parse(localStorage.getItem("casas_completas") || "[]");
+    const casaJaCompleta = casasCompletas.includes(casaData.id);
+
+    // Se houver dados pendentes E a casa não foi marcada como completa, mostrar o modal
+    if (verificarDadosPendentes(casaData) && !casaJaCompleta) {
       setCasaSelecionada(casaData);
       setShowCompletarDados(true);
       // NÃO continuar carregando o resto até preencher os dados
@@ -206,6 +210,14 @@ const loadDashboardData = async () => {
 // Handler quando o usuário completar os dados
 const handleCompletarDadosComplete = () => {
   setShowCompletarDados(false);
+  
+  // Marcar esta casa como completa no localStorage
+  const casasCompletas = JSON.parse(localStorage.getItem("casas_completas") || "[]");
+  if (casaSelecionada && !casasCompletas.includes(casaSelecionada.id)) {
+    casasCompletas.push(casaSelecionada.id);
+    localStorage.setItem("casas_completas", JSON.stringify(casasCompletas));
+  }
+  
   setCasaSelecionada(null);
   // Recarregar tudo após completar os dados
   loadDashboardData();

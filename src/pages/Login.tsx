@@ -96,11 +96,12 @@ const Login = () => {
           return;
         }
 
-        // Filtra as casas comparando apenas os números
+        // Filtra as casas comparando o telefone em ambos os campos
         const casasData = allCasas?.filter(casa => {
-          if (!casa.telefone) return false;
+          if (!casa.telefone && !casa.telefone_dupla) return false;
           const casaPhoneNumbers = getPhoneNumbers(casa.telefone);
-          return casaPhoneNumbers === phoneNumbers;
+          const casaDuplaPhoneNumbers = casa.telefone_dupla ? getPhoneNumbers(casa.telefone_dupla) : null;
+          return casaPhoneNumbers === phoneNumbers || casaDuplaPhoneNumbers === phoneNumbers;
         });
 
         if (!casasData || casasData.length === 0) {
