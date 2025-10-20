@@ -78,6 +78,9 @@ const Login = () => {
             setCasasFe(casasData);
             setShowCasaSelection(true);
           } else if (casasData && casasData.length === 1) {
+            localStorage.setItem("user_id", data.user.id);
+            localStorage.setItem("selected_casa_id", casasData[0].id);
+            
             // Verifica se há dados pendentes
             if (verificarDadosPendentes(casasData[0])) {
               setCasaSelecionada(casasData[0]);
@@ -154,7 +157,8 @@ const Login = () => {
   
   const verificarDadosPendentes = (casa: any) => {
     return !casa.telefone_dupla || !casa.whatsapp_anfitriao || !casa.cep || 
-           !casa.rua_avenida || !casa.numero_casa || !casa.bairro || !casa.cidade;
+           !casa.rua_avenida || !casa.numero_casa || !casa.bairro || !casa.cidade ||
+           !casa.dias_semana || casa.dias_semana.length === 0 || !casa.horario_reuniao;
   };
 
   // No Login.tsx, trocar a parte do handleSelectCasa:
