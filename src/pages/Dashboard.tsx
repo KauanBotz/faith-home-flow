@@ -9,6 +9,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { AddMembroDialog } from "@/components/admin/AddMembroDialog";
 import { TestemunhoDialog } from "@/components/dashboard/TestemunhoDialog";
 import { OracaoDialog } from "@/components/dashboard/OracaoDialog";
+import { CompletarDadosModal } from "@/components/dashboard/CompletarDadosModal";
 import ReactMarkdown from "react-markdown";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -80,7 +81,8 @@ const loadDashboardData = async () => {
     // ✅ VERIFICAR DADOS PENDENTES LOGO APÓS CARREGAR A CASA
     const verificarDadosPendentes = (casa: any) => {
       return !casa.telefone_dupla || !casa.whatsapp_anfitriao || !casa.cep || 
-             !casa.rua_avenida || !casa.numero_casa || !casa.bairro || !casa.cidade;
+             !casa.rua_avenida || !casa.numero_casa || !casa.bairro || !casa.cidade ||
+             !casa.dias_semana || casa.dias_semana.length === 0 || !casa.horario_reuniao;
     };
 
     // Se houver dados pendentes, mostrar o modal IMEDIATAMENTE
@@ -800,6 +802,14 @@ const handleCompletarDadosComplete = () => {
         casaFeId={casaFe?.id || ""}
         onSaved={loadDashboardData}
       />
+
+      {casaSelecionada && (
+        <CompletarDadosModal 
+          casaFe={casaSelecionada}
+          open={showCompletarDados}
+          onComplete={handleCompletarDadosComplete}
+        />
+      )}
     </div>
   );
 };
