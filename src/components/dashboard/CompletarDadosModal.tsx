@@ -100,27 +100,27 @@ const verificarDadosPendentes = () => {
         />
         <AlertDialogPrimitive.Content
           className={cn(
-            "fixed left-[50%] top-[50%] z-50 grid w-full max-w-3xl translate-x-[-50%] translate-y-[-50%] gap-0 border bg-background shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
-            "max-h-[90vh] p-0"
+            "fixed left-[50%] top-[50%] z-50 grid w-[calc(100%-2rem)] max-w-3xl translate-x-[-50%] translate-y-[-50%] gap-0 border bg-background shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] rounded-lg",
+            "max-h-[95vh] sm:max-h-[90vh] p-0"
           )}
         >
-          <div className="p-6 pb-4 border-b">
-            <AlertDialogPrimitive.Title className="text-2xl font-semibold">
+          <div className="p-4 sm:p-6 pb-3 sm:pb-4 border-b">
+            <AlertDialogPrimitive.Title className="text-lg sm:text-2xl font-semibold">
               Complete os Dados da Casa de Fé
             </AlertDialogPrimitive.Title>
-            <AlertDialogPrimitive.Description className="text-base text-muted-foreground mt-2">
+            <AlertDialogPrimitive.Description className="text-sm sm:text-base text-muted-foreground mt-1.5 sm:mt-2">
               Algumas informações estão pendentes. Preencha todos os campos obrigatórios abaixo.
               <br />
               <strong className="text-primary">💡 Você poderá editar esses dados depois em "Editar Casa de Fé" no menu.</strong>
             </AlertDialogPrimitive.Description>
           </div>
 
-        <ScrollArea className="h-[calc(90vh-200px)] px-6">
-          <div className="space-y-6 py-4">
+        <ScrollArea className="h-[calc(95vh-180px)] sm:h-[calc(90vh-200px)] px-4 sm:px-6">
+          <div className="space-y-4 sm:space-y-6 py-3 sm:py-4">
             {/* Facilitador 2 */}
-            <div className="space-y-4 p-4 bg-muted/30 rounded-lg">
-              <h3 className="font-semibold text-lg flex items-center gap-2">
-                <User className="w-5 h-5" />
+            <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 bg-muted/30 rounded-lg">
+              <h3 className="font-semibold text-base sm:text-lg flex items-center gap-2">
+                <User className="w-4 h-4 sm:w-5 sm:h-5" />
                 Facilitador 2 (Dupla)
               </h3>
               
@@ -157,9 +157,9 @@ const verificarDadosPendentes = () => {
             </div>
 
             {/* Anfitrião */}
-            <div className="space-y-4 p-4 bg-muted/30 rounded-lg">
-              <h3 className="font-semibold text-lg flex items-center gap-2">
-                <Home className="w-5 h-5" />
+            <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 bg-muted/30 rounded-lg">
+              <h3 className="font-semibold text-base sm:text-lg flex items-center gap-2">
+                <Home className="w-4 h-4 sm:w-5 sm:h-5" />
                 Anfitrião da Casa de Fé
               </h3>
               
@@ -186,15 +186,15 @@ const verificarDadosPendentes = () => {
             </div>
 
             {/* Endereço */}
-            <div className="space-y-4 p-4 bg-muted/30 rounded-lg">
-              <h3 className="font-semibold text-lg flex items-center gap-2">
-                <MapPin className="w-5 h-5" />
+            <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 bg-muted/30 rounded-lg">
+              <h3 className="font-semibold text-base sm:text-lg flex items-center gap-2">
+                <MapPin className="w-4 h-4 sm:w-5 sm:h-5" />
                 Endereço da Casa de Fé
               </h3>
               
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="md:col-span-2">
-                  <Label>Rua/Avenida *</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div className="sm:col-span-2">
+                  <Label className="text-sm">Rua/Avenida *</Label>
                   <Input
                     value={dadosEditaveis?.rua_avenida || ""}
                     onChange={(e) => setDadosEditaveis({ ...dadosEditaveis, rua_avenida: e.target.value })}
@@ -204,7 +204,7 @@ const verificarDadosPendentes = () => {
                 </div>
 
                 <div>
-                  <Label>Número *</Label>
+                  <Label className="text-sm">Número *</Label>
                   <Input
                     value={dadosEditaveis?.numero_casa || ""}
                     onChange={(e) => setDadosEditaveis({ ...dadosEditaveis, numero_casa: e.target.value })}
@@ -214,7 +214,7 @@ const verificarDadosPendentes = () => {
                 </div>
 
                 <div>
-                  <Label>Bairro *</Label>
+                  <Label className="text-sm">Bairro *</Label>
                   <Input
                     value={dadosEditaveis?.bairro || ""}
                     onChange={(e) => setDadosEditaveis({ ...dadosEditaveis, bairro: e.target.value })}
@@ -224,7 +224,7 @@ const verificarDadosPendentes = () => {
                 </div>
 
                 <div>
-                  <Label>CEP *</Label>
+                  <Label className="text-sm">CEP *</Label>
                   <Input
                     value={dadosEditaveis?.cep || ""}
                     onChange={(e) => {
@@ -239,7 +239,7 @@ const verificarDadosPendentes = () => {
                 </div>
 
                 <div>
-                  <Label>Cidade *</Label>
+                  <Label className="text-sm">Cidade *</Label>
                   <Input
                     value={dadosEditaveis?.cidade || ""}
                     onChange={(e) => setDadosEditaveis({ ...dadosEditaveis, cidade: e.target.value })}
@@ -248,8 +248,8 @@ const verificarDadosPendentes = () => {
                   />
                 </div>
 
-                <div className="md:col-span-2">
-                  <Label>Ponto de Referência</Label>
+                <div className="sm:col-span-2">
+                  <Label className="text-sm">Ponto de Referência</Label>
                   <Input
                     value={dadosEditaveis?.ponto_referencia || ""}
                     onChange={(e) => setDadosEditaveis({ ...dadosEditaveis, ponto_referencia: e.target.value })}
@@ -259,11 +259,11 @@ const verificarDadosPendentes = () => {
                 </div>
 
                 <div>
-                  <Label>Dia da Semana *</Label>
+                  <Label className="text-sm">Dia da Semana *</Label>
                   <select
                     value={dadosEditaveis?.dias_semana?.[0] || ""}
                     onChange={(e) => setDadosEditaveis({ ...dadosEditaveis, dias_semana: [e.target.value] })}
-                    className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                    className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
                   >
                     <option value="">Selecione</option>
                     <option value="Segunda">Segunda</option>
@@ -277,7 +277,7 @@ const verificarDadosPendentes = () => {
                 </div>
 
                 <div>
-                  <Label>Horário *</Label>
+                  <Label className="text-sm">Horário *</Label>
                   <Input
                     type="time"
                     value={dadosEditaveis?.horario_reuniao || ""}
@@ -290,12 +290,12 @@ const verificarDadosPendentes = () => {
           </div>
         </ScrollArea>
 
-        <div className="p-10 pt-1 border-t">
+        <div className="p-4 sm:p-6 border-t">
           <Button 
             onClick={handleSalvar} 
             disabled={saving}
             size="lg"
-            className="w-full gradient-primary"
+            className="w-full gradient-primary text-sm sm:text-base"
           >
             {saving ? "Salvando..." : "Salvar e Continuar"}
           </Button>
