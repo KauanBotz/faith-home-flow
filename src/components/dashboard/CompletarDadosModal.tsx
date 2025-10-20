@@ -115,7 +115,7 @@ const verificarDadosPendentes = () => {
             </AlertDialogPrimitive.Description>
           </div>
 
-        <ScrollArea className="h-[calc(95vh-180px)] sm:h-[calc(90vh-200px)] px-4 sm:px-6">
+        <ScrollArea className="h-[calc(95vh-220px)] sm:h-[calc(90vh-200px)] px-4 sm:px-6">
           <div className="space-y-4 sm:space-y-6 py-3 sm:py-4">
             {/* Facilitador 2 */}
             <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 bg-muted/30 rounded-lg">
@@ -290,12 +290,11 @@ const verificarDadosPendentes = () => {
           </div>
         </ScrollArea>
 
-        <div className="p-4 sm:p-6 border-t">
+        <div className="p-4 sm:p-6 pt-3 sm:pt-4 border-t bg-background">
           <Button 
             onClick={handleSalvar} 
             disabled={saving}
-            size="lg"
-            className="w-full gradient-primary text-sm sm:text-base"
+            className="w-full h-11 sm:h-12 gradient-primary text-sm sm:text-base font-semibold"
           >
             {saving ? "Salvando..." : "Salvar e Continuar"}
           </Button>
