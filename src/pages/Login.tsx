@@ -70,7 +70,7 @@ const Login = () => {
           const { data: casasData, error: casasError } = await supabase
             .from("casas_fe")
             .select("*")
-            .or(`email.eq.${email},email_dupla.eq.${email}`);
+            .eq("user_id", data.user.id);
 
           if (casasError) throw casasError;
 
