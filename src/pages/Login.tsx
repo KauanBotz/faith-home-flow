@@ -74,18 +74,14 @@ const Login = () => {
           // limpar seleção anterior
           localStorage.removeItem("selected_casa_id");
 
-          if (casasData && casasData.length > 1) {
-            sessionStorage.setItem("multi_casas_list", JSON.stringify(casasData));
-            navigate("/selecionar-casa");
+          if (!casasData || casasData.length === 0) {
+            toast.error("Nenhuma Casa de Fé encontrada para este email");
             return;
-          } else if (casasData && casasData.length === 1) {
-            localStorage.setItem("user_id", casasData[0].user_id);
-            localStorage.setItem("selected_casa_id", casasData[0].id);
-            navigate("/dashboard");
-          } else {
-            navigate("/dashboard");
           }
 
+          // SEMPRE ir para SelecioneCasa primeiro
+          sessionStorage.setItem("multi_casas_list", JSON.stringify(casasData));
+          navigate("/selecionar-casa");
         }
       } else {
         // Login por telefone - normaliza o número antes de buscar
