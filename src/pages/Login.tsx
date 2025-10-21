@@ -49,6 +49,9 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
 
+    // limpar seleção anterior antes de continuar
+    localStorage.removeItem("selected_casa_id");
+
     try {
       if (loginType === "email") {
         // Login por email usando Supabase Auth
@@ -67,15 +70,19 @@ const Login = () => {
           const { data: casasData, error: casasError } = await supabase
             .from("casas_fe")
             .select("*")
-            .eq("user_id", data.user.id);
+            .or(`email.eq.${email},email_dupla.eq.${email}`);
 
           if (casasError) throw casasError;
+
+          // limpar seleção anterior
+          localStorage.removeItem("selected_casa_id");
 
           if (casasData && casasData.length > 1) {
             setCasasFe(casasData);
             setShowCasaSelection(true);
+            return;
           } else if (casasData && casasData.length === 1) {
-            localStorage.setItem("user_id", data.user.id);
+            localStorage.setItem("user_id", casasData[0].user_id);
             localStorage.setItem("selected_casa_id", casasData[0].id);
             navigate("/dashboard");
           } else {
@@ -117,6 +124,7 @@ const Login = () => {
           localStorage.setItem("user_id", casasData[0].user_id);
           setCasasFe(casasData);
           setShowCasaSelection(true);
+          return;
         } else {
           // Faz login com o email da casa usando senha padrão
           const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
@@ -142,13 +150,16 @@ const Login = () => {
   const handleSelectCasa = async (casa: any) => {
     try {
       setLoading(true);
-      const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
-        email: casa.email,
-        password: "123456",
-      });
-      if (loginError) {
-        toast.error("Erro ao entrar. Verifique as credenciais.");
-        return;
+      const { data: sess } = await supabase.auth.getSession();
+      if (!sess.session) {
+        const { error: loginError } = await supabase.auth.signInWithPassword({
+          email: casa.email,
+          password: "123456",
+        });
+        if (loginError) {
+          toast.error("Erro ao entrar. Verifique as credenciais.");
+          return;
+        }
       }
       localStorage.setItem("user_id", casa.user_id);
       localStorage.setItem("selected_casa_id", casa.id);
