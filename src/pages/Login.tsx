@@ -6,8 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Mail, Lock, Sparkles, Home, Phone } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Mail, Lock, Sparkles, Phone } from "lucide-react";
 import { getPhoneNumbers } from "@/lib/phoneUtils";
 
 const Login = () => {
@@ -17,8 +16,6 @@ const Login = () => {
   const [phone, setPhone] = useState("");
   const [senha, setSenha] = useState("123456");
   const [loading, setLoading] = useState(false);
-  const [showCasaSelection, setShowCasaSelection] = useState(false);
-  const [casasFe, setCasasFe] = useState<any[]>([]);
 
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, "");
@@ -121,10 +118,8 @@ const Login = () => {
         
         // Se encontrou mais de uma casa com esse telefone
         if (casasData.length > 1) {
-          // Armazena o user_id antes de mostrar o modal
-          localStorage.setItem("user_id", casasData[0].user_id);
-          setCasasFe(casasData);
-          setShowCasaSelection(true);
+          sessionStorage.setItem("multi_casas_list", JSON.stringify(casasData));
+          navigate("/selecionar-casa");
           return;
         } else {
           // Faz login com o email da casa usando senha padrão
@@ -143,31 +138,6 @@ const Login = () => {
       }
     } catch (error: any) {
       toast.error(error.message || "Erro ao fazer login");
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  const handleSelectCasa = async (casa: any) => {
-    try {
-      setLoading(true);
-      const { data: sess } = await supabase.auth.getSession();
-      if (!sess.session) {
-        const { error: loginError } = await supabase.auth.signInWithPassword({
-          email: casa.email,
-          password: "123456",
-        });
-        if (loginError) {
-          toast.error("Erro ao entrar. Verifique as credenciais.");
-          return;
-        }
-      }
-      localStorage.setItem("user_id", casa.user_id);
-      localStorage.setItem("selected_casa_id", casa.id);
-      setShowCasaSelection(false);
-      navigate("/dashboard");
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao entrar com telefone");
     } finally {
       setLoading(false);
     }
@@ -317,34 +287,6 @@ const Login = () => {
           </p>
         </div>
       </div>
-
-      <Dialog open={showCasaSelection} onOpenChange={setShowCasaSelection}>
-        <DialogContent className="max-w-md max-h-[80vh] flex flex-col">
-          <DialogHeader>
-            <DialogTitle>Selecione uma Casa de Fé</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3 overflow-y-auto pr-2 max-h-[60vh]">
-            {casasFe.map((casa) => (
-              <Card
-                key={casa.id}
-                className="p-4 cursor-pointer hover:bg-accent/5 transition-all"
-                onClick={() => handleSelectCasa(casa)}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Home className="w-6 h-6 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-bold">{casa.nome_lider}</p>
-                    <p className="text-sm text-muted-foreground">{casa.campus} - {casa.rede}</p>
-                    <p className="text-xs text-muted-foreground">{casa.endereco}</p>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

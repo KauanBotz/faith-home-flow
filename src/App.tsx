@@ -33,7 +33,7 @@
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/cadastro" element={<Cadastro />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/selecionar-casa" element={<(await import('./pages/SelecioneCasa')).default />} />
+            <Route path="/selecionar-casa" element={<SelecioneCasa />} />
             <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/membros" element={<Membros />} />
         <Route path="/presenca" element={<Presenca />} />
