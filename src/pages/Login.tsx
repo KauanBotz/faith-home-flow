@@ -70,7 +70,7 @@ const Login = () => {
           const { data: casasData, error: casasError } = await supabase
             .from("casas_fe")
             .select("*")
-            .eq("user_id", data.user.id);
+            .or(`user_id.eq.${data.user.id},email.eq.${email},email_dupla.eq.${email}`);
 
           if (casasError) throw casasError;
 
@@ -78,8 +78,8 @@ const Login = () => {
           localStorage.removeItem("selected_casa_id");
 
           if (casasData && casasData.length > 1) {
-            setCasasFe(casasData);
-            setShowCasaSelection(true);
+            sessionStorage.setItem("multi_casas_list", JSON.stringify(casasData));
+            navigate("/selecionar-casa");
             return;
           } else if (casasData && casasData.length === 1) {
             localStorage.setItem("user_id", casasData[0].user_id);
@@ -88,6 +88,7 @@ const Login = () => {
           } else {
             navigate("/dashboard");
           }
+
         }
       } else {
         // Login por telefone - normaliza o número antes de buscar

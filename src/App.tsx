@@ -19,9 +19,10 @@
   import AdminRelatorios from "./pages/admin/Relatorios";
   import ImportarCasas from "./pages/admin/ImportarCasas";
   import ImportarUsuarios from "./pages/admin/ImportarUsuarios";
+  import SelecioneCasa from "./pages/SelecioneCasa";
 
   const queryClient = new QueryClient();
-
+ 
   const App = () => (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -32,6 +33,7 @@
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/cadastro" element={<Cadastro />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/selecionar-casa" element={<(await import('./pages/SelecioneCasa')).default />} />
             <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/membros" element={<Membros />} />
         <Route path="/presenca" element={<Presenca />} />
@@ -52,5 +54,5 @@
       </TooltipProvider>
     </QueryClientProvider>
   );
-
+ 
   export default App;
