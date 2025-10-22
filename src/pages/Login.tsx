@@ -50,7 +50,7 @@ const Login = () => {
     localStorage.removeItem("selected_casa_id");
 
     try {
-      if (loginType === "email") {
+if (loginType === "email") {
         // Login por email usando Supabase Auth
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
@@ -64,10 +64,12 @@ const Login = () => {
         if (email === "admin@mincbh.com.br") {
           navigate("/admin/dashboard");
         } else {
+          // Buscar casas por user_id OU email OU email_dupla
+          const userId = data.user.id;
           const { data: casasData, error: casasError } = await supabase
             .from("casas_fe")
             .select("*")
-            .or(`user_id.eq.${data.user.id},email.eq.${email},email_dupla.eq.${email}`);
+            .or(`user_id.eq.${userId},email.eq.${email},email_dupla.eq.${email}`);
 
           if (casasError) throw casasError;
 
@@ -79,59 +81,83 @@ const Login = () => {
             return;
           }
 
-          // SEMPRE ir para SelecioneCasa primeiro
+          // SEMPRE ir para SelecioneCasa primeiro (mesmo que seja só 1 casa)
           sessionStorage.setItem("multi_casas_list", JSON.stringify(casasData));
           navigate("/selecionar-casa");
         }
-      } else {
-        // Login por telefone - normaliza o número antes de buscar
-        const phoneNumbers = getPhoneNumbers(phone);
-        
-        // Busca todas as casas e filtra pelo telefone normalizado
-        const { data: allCasas, error: fetchError } = await supabase
-          .from("casas_fe")
-          .select("*");
+} else {
+  // Login por telefone
+  const phoneNumbers = getPhoneNumbers(phone);
+  
+  const { data: allCasas, error: fetchError } = await supabase
+    .from("casas_fe")
+    .select("*");
 
-        if (fetchError) {
-          toast.error("Erro ao buscar dados!");
-          return;
-        }
+  if (fetchError) {
+    toast.error("Erro ao buscar dados!");
+    return;
+  }
 
-        // Filtra as casas comparando o telefone em ambos os campos
-        const casasData = allCasas?.filter(casa => {
-          if (!casa.telefone && !casa.telefone_dupla) return false;
-          const casaPhoneNumbers = getPhoneNumbers(casa.telefone);
-          const casaDuplaPhoneNumbers = casa.telefone_dupla ? getPhoneNumbers(casa.telefone_dupla) : null;
-          return casaPhoneNumbers === phoneNumbers || casaDuplaPhoneNumbers === phoneNumbers;
-        });
+  const casasData = allCasas?.filter(casa => {
+    if (!casa.telefone && !casa.telefone_dupla) return false;
+    
+    const casaPhone = casa.telefone ? casa.telefone.replace(/\D/g, '') : null;
+    const casaDuplaPhone = casa.telefone_dupla ? casa.telefone_dupla.replace(/\D/g, '') : null;
+    
+    return casaPhone === phoneNumbers || casaDuplaPhone === phoneNumbers;
+  });
 
-        if (!casasData || casasData.length === 0) {
-          toast.error("Telefone não encontrado!");
-          return;
-        }
+  if (!casasData || casasData.length === 0) {
+    toast.error("Telefone não encontrado!");
+    return;
+  }
 
-        toast.success("Login realizado. Graça e paz!");
-        
-        // Se encontrou mais de uma casa com esse telefone
-        if (casasData.length > 1) {
-          sessionStorage.setItem("multi_casas_list", JSON.stringify(casasData));
-          navigate("/selecionar-casa");
-          return;
-        } else {
-          // Faz login com o email da casa usando senha padrão
-          const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
-            email: casasData[0].email,
-            password: "123456",
-          });
-          if (loginError) {
-            toast.error("Erro ao entrar. Verifique as credenciais.");
-            return;
-          }
-          localStorage.setItem("user_id", casasData[0].user_id);
-          localStorage.setItem("selected_casa_id", casasData[0].id);
-          navigate("/dashboard");
-        }
-      }
+  // FAZ LOGIN COM A PRIMEIRA CASA
+  const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+    email: casasData[0].email,
+    password: "123456",
+  });
+  
+  if (loginError) {
+    toast.error("Erro ao entrar. Verifique as credenciais.");
+    return;
+  }
+
+  toast.success("Login realizado. Graça e paz!");
+
+  // BUSCA TODAS as casas COM autenticação
+  const userId = loginData.user.id;
+  const { data: todasCasas, error: casasError } = await supabase
+    .from("casas_fe")
+    .select("*")
+    .eq("user_id", userId);
+
+  if (casasError) throw casasError;
+
+  // FILTRA de novo só as que têm o telefone digitado
+  const casasAutenticadas = todasCasas?.filter(casa => {
+    if (!casa.telefone && !casa.telefone_dupla) return false;
+    
+    const casaPhone = casa.telefone ? casa.telefone.replace(/\D/g, '') : null;
+    const casaDuplaPhone = casa.telefone_dupla ? casa.telefone_dupla.replace(/\D/g, '') : null;
+    
+    return casaPhone === phoneNumbers || casaDuplaPhone === phoneNumbers;
+  });
+
+  if (!casasAutenticadas || casasAutenticadas.length === 0) {
+    toast.error("Erro ao carregar casas!");
+    return;
+  }
+
+  if (casasAutenticadas.length > 1) {
+    sessionStorage.setItem("multi_casas_list", JSON.stringify(casasAutenticadas));
+    navigate("/selecionar-casa");
+  } else {
+    localStorage.setItem("user_id", casasAutenticadas[0].user_id);
+    localStorage.setItem("selected_casa_id", casasAutenticadas[0].id);
+    navigate("/dashboard");
+  }
+}
     } catch (error: any) {
       toast.error(error.message || "Erro ao fazer login");
     } finally {
