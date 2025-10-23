@@ -4,31 +4,50 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Mail, Lock, Sparkles, Phone } from "lucide-react";
-import { getPhoneNumbers } from "@/lib/phoneUtils";
+import { Mail, Lock, Sparkles, FileText } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
-  const [loginType, setLoginType] = useState<"email" | "phone">("email");
+  const [loginType, setLoginType] = useState<"email" | "documento">("email");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const [tipoDocumento, setTipoDocumento] = useState("CPF");
+  const [numeroDocumento, setNumeroDocumento] = useState("");
   const [senha, setSenha] = useState("123456");
   const [loading, setLoading] = useState(false);
 
-  const formatPhone = (value: string) => {
+  const tiposDocumento = ["CPF", "RG", "CNH", "Passaporte", "Outro"];
+
+  const formatDocumento = (value: string, tipo: string) => {
     const numbers = value.replace(/\D/g, "");
-    
-    if (numbers.length <= 2) return `+${numbers}`;
-    if (numbers.length <= 4) return `+${numbers.slice(0, 2)} (${numbers.slice(2)}`;
-    if (numbers.length <= 9) return `+${numbers.slice(0, 2)} (${numbers.slice(2, 4)}) ${numbers.slice(4)}`;
-    return `+${numbers.slice(0, 2)} (${numbers.slice(2, 4)}) ${numbers.slice(4, 9)}-${numbers.slice(9, 13)}`;
+    let formatted = value;
+
+    if (tipo === "CPF") {
+      if (numbers.length <= 11) {
+        formatted = numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+      }
+    } else if (tipo === "RG") {
+      if (numbers.length <= 9) {
+        formatted = numbers.replace(/(\d{2})(\d{3})(\d{3})(\d{1})/, "$1.$2.$3-$4");
+      }
+    } else if (tipo === "CNH") {
+      formatted = numbers.slice(0, 11);
+    } else if (tipo === "Passaporte") {
+      const letters = value.replace(/[^A-Za-z]/g, "").slice(0, 2).toUpperCase();
+      const nums = numbers.slice(0, 6);
+      formatted = letters + nums;
+    } else {
+      formatted = value;
+    }
+
+    return formatted;
   };
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatPhone(e.target.value);
-    setPhone(formatted);
+  const handleDocumentoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatDocumento(e.target.value, tipoDocumento);
+    setNumeroDocumento(formatted);
   };
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,12 +65,10 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
 
-    // limpar seleção anterior antes de continuar
     localStorage.removeItem("selected_casa_id");
 
     try {
-if (loginType === "email") {
-        // Login por email usando Supabase Auth
+      if (loginType === "email") {
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password: senha
@@ -64,7 +81,6 @@ if (loginType === "email") {
         if (email === "admin@mincbh.com.br") {
           navigate("/admin/dashboard");
         } else {
-          // Buscar casas por user_id OU email OU email_dupla
           const userId = data.user.id;
           const { data: casasData, error: casasError } = await supabase
             .from("casas_fe")
@@ -73,7 +89,6 @@ if (loginType === "email") {
 
           if (casasError) throw casasError;
 
-          // limpar seleção anterior
           localStorage.removeItem("selected_casa_id");
 
           if (!casasData || casasData.length === 0) {
@@ -81,83 +96,82 @@ if (loginType === "email") {
             return;
           }
 
-          // SEMPRE ir para SelecioneCasa primeiro (mesmo que seja só 1 casa)
           sessionStorage.setItem("multi_casas_list", JSON.stringify(casasData));
           navigate("/selecionar-casa");
         }
-} else {
-  // Login por telefone
-  const phoneNumbers = getPhoneNumbers(phone);
-  
-  const { data: allCasas, error: fetchError } = await supabase
-    .from("casas_fe")
-    .select("*");
+      } else {
+        // Login por documento
+        const docLimpo = numeroDocumento.replace(/\D/g, "");
+        
+        const { data: allCasas, error: fetchError } = await supabase
+          .from("casas_fe")
+          .select("*");
 
-  if (fetchError) {
-    toast.error("Erro ao buscar dados!");
-    return;
-  }
+        if (fetchError) {
+          toast.error("Erro ao buscar dados!");
+          return;
+        }
 
-  const casasData = allCasas?.filter(casa => {
-    if (!casa.telefone && !casa.telefone_dupla) return false;
-    
-    const casaPhone = casa.telefone ? casa.telefone.replace(/\D/g, '') : null;
-    const casaDuplaPhone = casa.telefone_dupla ? casa.telefone_dupla.replace(/\D/g, '') : null;
-    
-    return casaPhone === phoneNumbers || casaDuplaPhone === phoneNumbers;
-  });
+        const casasData = allCasas?.filter(casa => {
+          if (!casa.numero_documento && !casa.numero_documento_dupla) return false;
+          
+          const casaDoc = casa.numero_documento ? casa.numero_documento.replace(/\D/g, "") : null;
+          const casaDuplaDoc = casa.numero_documento_dupla ? casa.numero_documento_dupla.replace(/\D/g, "") : null;
+          
+          return casaDoc === docLimpo || casaDuplaDoc === docLimpo;
+        });
 
-  if (!casasData || casasData.length === 0) {
-    toast.error("Telefone não encontrado!");
-    return;
-  }
+        if (!casasData || casasData.length === 0) {
+          toast.error("Documento não encontrado!");
+          return;
+        }
 
-  // FAZ LOGIN COM A PRIMEIRA CASA
-  const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
-    email: casasData[0].email,
-    password: "123456",
-  });
-  
-  if (loginError) {
-    toast.error("Erro ao entrar. Verifique as credenciais.");
-    return;
-  }
+        // Login com a primeira casa encontrada
+        const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+          email: casasData[0].email,
+          password: "123456",
+        });
+        
+        if (loginError) {
+          toast.error("Erro ao entrar. Verifique as credenciais.");
+          return;
+        }
 
-  toast.success("Login realizado. Graça e paz!");
+        toast.success("Login realizado. Graça e paz!");
 
-  // BUSCA TODAS as casas COM autenticação
-  const userId = loginData.user.id;
-  const { data: todasCasas, error: casasError } = await supabase
-    .from("casas_fe")
-    .select("*")
-    .eq("user_id", userId);
+        // Busca todas as casas autenticadas
+        const userId = loginData.user.id;
+        const { data: todasCasas, error: casasError } = await supabase
+          .from("casas_fe")
+          .select("*")
+          .eq("user_id", userId);
 
-  if (casasError) throw casasError;
+        if (casasError) throw casasError;
 
-  // FILTRA de novo só as que têm o telefone digitado
-  const casasAutenticadas = todasCasas?.filter(casa => {
-    if (!casa.telefone && !casa.telefone_dupla) return false;
-    
-    const casaPhone = casa.telefone ? casa.telefone.replace(/\D/g, '') : null;
-    const casaDuplaPhone = casa.telefone_dupla ? casa.telefone_dupla.replace(/\D/g, '') : null;
-    
-    return casaPhone === phoneNumbers || casaDuplaPhone === phoneNumbers;
-  });
+        // Filtra novamente só as que têm o documento
+        const casasAutenticadas = todasCasas?.filter(casa => {
+          if (!casa.numero_documento && !casa.numero_documento_dupla) return false;
+          
+          const casaDoc = casa.numero_documento ? casa.numero_documento.replace(/\D/g, "") : null;
+          const casaDuplaDoc = casa.numero_documento_dupla ? casa.numero_documento_dupla.replace(/\D/g, "") : null;
+          
+          return casaDoc === docLimpo || casaDuplaDoc === docLimpo;
+        });
 
-  if (!casasAutenticadas || casasAutenticadas.length === 0) {
-    toast.error("Erro ao carregar casas!");
-    return;
-  }
+        if (!casasAutenticadas || casasAutenticadas.length === 0) {
+          toast.error("Erro ao carregar casas!");
+          return;
+        }
 
-  if (casasAutenticadas.length > 1) {
-    sessionStorage.setItem("multi_casas_list", JSON.stringify(casasAutenticadas));
-    navigate("/selecionar-casa");
-  } else {
-    localStorage.setItem("user_id", casasAutenticadas[0].user_id);
-    localStorage.setItem("selected_casa_id", casasAutenticadas[0].id);
-    navigate("/dashboard");
-  }
-}
+        if (casasAutenticadas.length > 1) {
+          sessionStorage.setItem("multi_casas_list", JSON.stringify(casasAutenticadas));
+          navigate("/selecionar-casa");
+        } else {
+          localStorage.setItem("user_id", casasAutenticadas[0].user_id);
+          localStorage.setItem("selected_casa_id", casasAutenticadas[0].id);
+          navigate("/dashboard");
+        }
+      }
     } catch (error: any) {
       toast.error(error.message || "Erro ao fazer login");
     } finally {
@@ -198,12 +212,12 @@ if (loginType === "email") {
             </Button>
             <Button
               type="button"
-              variant={loginType === "phone" ? "default" : "ghost"}
+              variant={loginType === "documento" ? "default" : "ghost"}
               className="flex-1"
-              onClick={() => setLoginType("phone")}
+              onClick={() => setLoginType("documento")}
             >
-              <Phone className="w-4 h-4 mr-2" />
-              Telefone
+              <FileText className="w-4 h-4 mr-2" />
+              Documento
             </Button>
           </div>
 
@@ -225,22 +239,43 @@ if (loginType === "email") {
                 </div>
               </div>
             ) : (
-              <div className="space-y-2">
-                <Label htmlFor="phone" className="text-base font-semibold">Telefone</Label>
-                <div className="relative group">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="+55 (31) 9XXXX-XXXX"
-                    value={phone}
-                    onChange={handlePhoneChange}
-                    className="pl-11 h-12 text-base border-primary/20 focus:border-primary transition-all"
-                    maxLength={19}
-                    required
-                  />
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="tipoDoc" className="text-base font-semibold">Tipo de Documento</Label>
+                  <Select value={tipoDocumento} onValueChange={setTipoDocumento}>
+                    <SelectTrigger className="h-12 border-primary/20">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tiposDocumento.map((tipo) => (
+                        <SelectItem key={tipo} value={tipo}>
+                          {tipo}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="documento" className="text-base font-semibold">Número do Documento</Label>
+                  <div className="relative group">
+                    <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                    <Input
+                      id="documento"
+                      type="text"
+                      placeholder={
+                        tipoDocumento === "CPF" ? "000.000.000-00" :
+                        tipoDocumento === "RG" ? "00.000.000-0" :
+                        tipoDocumento === "CNH" ? "00000000000" :
+                        tipoDocumento === "Passaporte" ? "AA000000" : "Digite o documento"
+                      }
+                      value={numeroDocumento}
+                      onChange={handleDocumentoChange}
+                      className="pl-11 h-12 text-base border-primary/20 focus:border-primary transition-all"
+                      required
+                    />
+                  </div>
+                </div>
+              </>
             )}
 
             {shouldShowPasswordField && (

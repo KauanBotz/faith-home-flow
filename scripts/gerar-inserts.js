@@ -92,6 +92,3 @@ records.forEach((row, index) => {
 // Escrever para arquivo
 const sqlOutput = inserts.join('\n\n');
 fs.writeFileSync('./inserts-casas-fe.sql', sqlOutput);
-
-console.log(`✅ ${inserts.length} INSERTs gerados com sucesso!`);
-console.log('📁 Arquivo salvo em: inserts-casas-fe.sql');
