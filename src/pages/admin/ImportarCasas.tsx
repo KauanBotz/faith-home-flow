@@ -17,10 +17,8 @@ const ImportarCasas = () => {
   const processarCSV = async () => {
     setLoading(true);
     try {
-      console.log('🚀 Iniciando processamento do CSV...');
       
       // Buscar TODOS os usuários (com paginação)
-      console.log('👥 Buscando todos os usuários da auth (com paginação)...');
       const emailToUid = new Map<string, string>();
       let page = 1;
       let hasMore = true;
@@ -37,7 +35,6 @@ const ImportarCasas = () => {
           return;
         }
         
-        console.log(`📄 Página ${page}: ${pageUsers?.length || 0} usuários`);
         
         pageUsers?.forEach(user => {
           if (user.email && user.id) {
@@ -50,11 +47,6 @@ const ImportarCasas = () => {
         page++;
       }
       
-      console.log(`✅ Total de ${emailToUid.size} usuários carregados de ${page - 1} páginas`);
-      console.log('📧 Primeiros 5 emails:', 
-        Array.from(emailToUid.entries()).slice(0, 5)
-      );
-      
       const response = await fetch('/versao2.csv');
       
       if (!response.ok) {
@@ -62,10 +54,8 @@ const ImportarCasas = () => {
       }
       
       const csvText = await response.text();
-      console.log('✅ CSV carregado, tamanho:', csvText.length, 'caracteres');
       
       const linhas = csvText.split('\n');
-      console.log('📋 Total de linhas:', linhas.length);
       
       const inserts: string[] = [];
       const erros: string[] = [];
@@ -95,7 +85,6 @@ const ImportarCasas = () => {
         valores.push(valorAtual);
 
         if (valores.length < 20) {
-          console.warn(`⚠️ Linha ${i + 1}: Campos insuficientes (${valores.length}/20)`);
           continue;
         }
 
@@ -108,7 +97,6 @@ const ImportarCasas = () => {
         let userId = crypto.randomUUID(); // fallback caso não encontre
         
         if (i <= 5) { // Log detalhado das primeiras 5 linhas
-          console.log(`🔍 Linha ${i + 1}: Email do CSV = "${emailRaw}"`);
         }
         
         if (emailRaw) {
@@ -118,24 +106,19 @@ const ImportarCasas = () => {
           if (foundUid) {
             userId = foundUid;
             if (i <= 5) {
-              console.log(`✅ Linha ${i + 1}: Match! "${emailLower}" → ${userId}`);
             }
           } else {
             if (i <= 5) {
-              console.log(`⚠️ Linha ${i + 1}: Não encontrado "${emailLower}"`);
-              console.log(`🔎 Buscando similar...`);
               // Mostrar emails parecidos
               const similares = Array.from(emailToUid.keys())
                 .filter(e => e.includes(emailLower.split('@')[0].substring(0, 5)))
                 .slice(0, 3);
               if (similares.length > 0) {
-                console.log(`   Similares no banco:`, similares);
               }
             }
           }
         } else {
           if (i <= 5) {
-            console.log(`⚠️ Linha ${i + 1}: Email vazio`);
           }
         }
         
@@ -207,10 +190,6 @@ const ImportarCasas = () => {
 
         inserts.push(insert);
       }
-
-      console.log(`✅ Processamento concluído!`);
-      console.log(`📊 Total de INSERTs gerados: ${inserts.length}`);
-      console.log(`❌ Total de erros: ${erros.length}`);
 
       const sqlCompleto = inserts.join('\n\n');
       setSqlOutput(sqlCompleto);
