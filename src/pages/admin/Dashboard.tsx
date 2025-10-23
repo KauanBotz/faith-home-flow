@@ -464,26 +464,26 @@ const AdminDashboard = () => {
         </div>
 
         {/* Gráficos de Análise */}
-        <div className="grid gap-6 lg:grid-cols-2 mb-8">
-          {/* Gráfico de Pizza - Proporção por Campus */}
-          <Card className="p-6 shadow-medium">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-              <Home className="w-6 h-6 text-primary" />
-              Distribuição por Campus
-            </h2>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={casasPorCampus}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ campus, total, percent }: any) => `${campus}: ${total} (${(percent * 100).toFixed(0)}%)`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="total"
-                  nameKey="campus"
-                >
+          <div className="grid gap-6 mb-8">
+            {/* Gráfico de Pizza - Proporção por Campus - FULL WIDTH */}
+            <Card className="p-6 shadow-medium">
+              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                <Home className="w-6 h-6 text-primary" />
+                Distribuição por Campus
+              </h2>
+              <ResponsiveContainer width="100%" height={500}>
+                <PieChart>
+                  <Pie
+                    data={casasPorCampus}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={false}
+                    outerRadius={150}
+                    fill="#8884d8"
+                    dataKey="total"
+                    nameKey="campus"
+                  >
                   {casasPorCampus.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}

@@ -326,11 +326,22 @@ const Login = () => {
                   Criar Casa de Fé
                 </Button>
               </Link>
+              <p className="text-xs text-gray-500">
+                Dificuldade para acessar ou encontrou algum problema?<br></br>{" "}
+                <a 
+                  href="https://wa.me/5531975410027" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline font-medium transition-colors"
+                >
+                  Fale com a Secretaria MINC
+                </a>
+              </p>
             </div>
           </form>
         </Card>
 
-        <div className="mt-8 text-center">
+        <div className="mt-5 text-center">
           <p className="text-xs text-muted-foreground/70">
             Feito com 💛 por{" "}
             <a 
