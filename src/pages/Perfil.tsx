@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Save, User, MapPin, Users, Home, Phone, Mail, CreditCard, Calendar } from "lucide-react";
 import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const Perfil = () => {
   const navigate = useNavigate();
@@ -69,6 +70,11 @@ const Perfil = () => {
           nome_dupla: casaFe.nome_dupla,
           telefone_dupla: casaFe.telefone_dupla,
           email_dupla: casaFe.email_dupla,
+          rede_minc_facilitador_2: casaFe.rede_minc_facilitador_2,
+          
+          // Reunião
+          horario_reuniao: casaFe.horario_reuniao,
+          dias_semana: casaFe.dias_semana,
         })
         .eq("id", casaFe.id);
 
@@ -307,8 +313,9 @@ const Perfil = () => {
                 <Label className="text-base">MINC do Facilitador 2</Label>
                 <Input
                   value={casaFe?.rede_minc_facilitador_2 || ""}
-                  disabled
-                  className="mt-2 h-11 bg-muted cursor-not-allowed"
+                  onChange={(e) => setCasaFe({ ...casaFe, rede_minc_facilitador_2: e.target.value })}
+                  placeholder="Ex: MINC Pampulha"
+                  className="mt-2 h-11"
                 />
               </div>
 
@@ -471,25 +478,34 @@ const Perfil = () => {
               <div>
                 <Label className="text-base">Horário das Reuniões</Label>
                 <Input
+                  type="time"
                   value={casaFe?.horario_reuniao || ""}
-                  disabled
-                  className="mt-2 h-11 bg-muted cursor-not-allowed"
+                  onChange={(e) => setCasaFe({ ...casaFe, horario_reuniao: e.target.value })}
+                  className="mt-2 h-11"
                 />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Não editável
-                </p>
               </div>
 
               <div>
-                <Label className="text-base">Dias das Reuniões</Label>
-                <Input
-                  value={casaFe?.dias_semana?.join(", ") || ""}
-                  disabled
-                  className="mt-2 h-11 bg-muted cursor-not-allowed"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Não editável
-                </p>
+                <Label className="text-base mb-3 block">Dias das Reuniões</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  {["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"].map((dia) => (
+                    <div key={dia} className="flex items-center gap-2">
+                      <Checkbox
+                        id={dia}
+                        checked={casaFe?.dias_semana?.includes(dia) || false}
+                        onCheckedChange={(checked) => {
+                          const novosDias = checked
+                            ? [...(casaFe?.dias_semana || []), dia]
+                            : (casaFe?.dias_semana || []).filter((d) => d !== dia);
+                          setCasaFe({ ...casaFe, dias_semana: novosDias });
+                        }}
+                      />
+                      <Label htmlFor={dia} className="cursor-pointer text-sm font-normal">
+                        {dia}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </Card>
