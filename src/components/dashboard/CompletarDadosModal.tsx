@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { User, Phone, Mail, MapPin, Home } from "lucide-react";
 import { formatPhone } from "@/lib/phoneUtils";
 import { cn } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface CompletarDadosModalProps {
   casaFe: any;
@@ -72,6 +73,8 @@ const verificarDadosPendentes = () => {
       nome_anfitriao: dadosEditaveis.nome_anfitriao,
       nome_dupla: dadosEditaveis.nome_dupla,
       email_dupla: dadosEditaveis.email_dupla,
+      rede_minc_facilitador_2: dadosEditaveis.rede_minc_facilitador_2,
+      rede_facilitador_2: dadosEditaveis.rede_facilitador_2,
       dias_semana: dadosEditaveis.dias_semana,
       horario_reuniao: dadosEditaveis.horario_reuniao,
       endereco: enderecoCompleto,
@@ -154,6 +157,57 @@ const verificarDadosPendentes = () => {
                   className="mt-1.5"
                 />
               </div>
+
+              <div>
+                <Label>MINC do Facilitador 2</Label>
+                <Select
+                  value={dadosEditaveis?.rede_minc_facilitador_2 || ""}
+                  onValueChange={(value) => {
+                    setDadosEditaveis({ 
+                      ...dadosEditaveis, 
+                      rede_minc_facilitador_2: value,
+                      rede_facilitador_2: value === "MINC Pampulha" ? dadosEditaveis?.rede_facilitador_2 : ""
+                    });
+                  }}
+                >
+                  <SelectTrigger className="mt-1.5">
+                    <SelectValue placeholder="Selecione a MINC" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="MINC Pampulha">MINC Pampulha</SelectItem>
+                    <SelectItem value="MINC Lagoa Santa">MINC Lagoa Santa</SelectItem>
+                    <SelectItem value="MINC São José da Lapa">MINC São José da Lapa</SelectItem>
+                    <SelectItem value="MINC Ribeirão das Neves">MINC Ribeirão das Neves</SelectItem>
+                    <SelectItem value="MINC Rio">MINC Rio</SelectItem>
+                    <SelectItem value="MINC São Paulo">MINC São Paulo</SelectItem>
+                    <SelectItem value="MINC Juiz de Fora">MINC Juiz de Fora</SelectItem>
+                    <SelectItem value="MINC Online">MINC Online</SelectItem>
+                    <SelectItem value="MINC Sinop">MINC Sinop</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {dadosEditaveis?.rede_minc_facilitador_2 === "MINC Pampulha" && (
+                <div>
+                  <Label>Rede do Facilitador 2</Label>
+                  <Select
+                    value={dadosEditaveis?.rede_facilitador_2 || ""}
+                    onValueChange={(value) => setDadosEditaveis({ ...dadosEditaveis, rede_facilitador_2: value })}
+                  >
+                    <SelectTrigger className="mt-1.5">
+                      <SelectValue placeholder="Selecione a Rede" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Gerar">Gerar</SelectItem>
+                      <SelectItem value="Gerações">Gerações</SelectItem>
+                      <SelectItem value="Ative">Ative</SelectItem>
+                      <SelectItem value="Avance">Avance</SelectItem>
+                      <SelectItem value="Nexo">Nexo</SelectItem>
+                      <SelectItem value="Plug">Plug</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
 
             {/* Anfitrião */}

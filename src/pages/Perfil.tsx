@@ -8,7 +8,8 @@ import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Save, User, MapPin, Users, Home, Phone, Mail, CreditCard, Calendar } from "lucide-react";
 import { toast } from "sonner";
-import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const Perfil = () => {
   const navigate = useNavigate();
@@ -71,6 +72,7 @@ const Perfil = () => {
           telefone_dupla: casaFe.telefone_dupla,
           email_dupla: casaFe.email_dupla,
           rede_minc_facilitador_2: casaFe.rede_minc_facilitador_2,
+          rede_facilitador_2: casaFe.rede_facilitador_2,
           
           // Reunião
           horario_reuniao: casaFe.horario_reuniao,
@@ -311,22 +313,52 @@ const Perfil = () => {
 
               <div>
                 <Label className="text-base">MINC do Facilitador 2</Label>
-                <Input
+                <Select
                   value={casaFe?.rede_minc_facilitador_2 || ""}
-                  onChange={(e) => setCasaFe({ ...casaFe, rede_minc_facilitador_2: e.target.value })}
-                  placeholder="Ex: MINC Pampulha"
-                  className="mt-2 h-11"
-                />
+                  onValueChange={(value) => {
+                    setCasaFe({ 
+                      ...casaFe, 
+                      rede_minc_facilitador_2: value,
+                      rede_facilitador_2: value === "MINC Pampulha" ? casaFe?.rede_facilitador_2 : ""
+                    });
+                  }}
+                >
+                  <SelectTrigger className="mt-2 h-11">
+                    <SelectValue placeholder="Selecione a MINC" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="MINC Pampulha">MINC Pampulha</SelectItem>
+                    <SelectItem value="MINC Lagoa Santa">MINC Lagoa Santa</SelectItem>
+                    <SelectItem value="MINC São José da Lapa">MINC São José da Lapa</SelectItem>
+                    <SelectItem value="MINC Ribeirão das Neves">MINC Ribeirão das Neves</SelectItem>
+                    <SelectItem value="MINC Rio">MINC Rio</SelectItem>
+                    <SelectItem value="MINC São Paulo">MINC São Paulo</SelectItem>
+                    <SelectItem value="MINC Juiz de Fora">MINC Juiz de Fora</SelectItem>
+                    <SelectItem value="MINC Online">MINC Online</SelectItem>
+                    <SelectItem value="MINC Sinop">MINC Sinop</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {casaFe?.rede_minc_facilitador_2 === "MINC Pampulha" && (
                 <div>
                   <Label className="text-base">Rede do Facilitador 2</Label>
-                  <Input
+                  <Select
                     value={casaFe?.rede_facilitador_2 || ""}
-                    disabled
-                    className="mt-2 h-11 bg-muted cursor-not-allowed"
-                  />
+                    onValueChange={(value) => setCasaFe({ ...casaFe, rede_facilitador_2: value })}
+                  >
+                    <SelectTrigger className="mt-2 h-11">
+                      <SelectValue placeholder="Selecione a Rede" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Gerar">Gerar</SelectItem>
+                      <SelectItem value="Gerações">Gerações</SelectItem>
+                      <SelectItem value="Ative">Ative</SelectItem>
+                      <SelectItem value="Avance">Avance</SelectItem>
+                      <SelectItem value="Nexo">Nexo</SelectItem>
+                      <SelectItem value="Plug">Plug</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               )}
 
@@ -486,26 +518,21 @@ const Perfil = () => {
               </div>
 
               <div>
-                <Label className="text-base mb-3 block">Dias das Reuniões</Label>
-                <div className="grid grid-cols-2 gap-3">
+                <Label className="text-base mb-3 block">Dia da Reunião</Label>
+                <RadioGroup
+                  value={casaFe?.dias_semana?.[0] || ""}
+                  onValueChange={(value) => setCasaFe({ ...casaFe, dias_semana: [value] })}
+                  className="grid grid-cols-2 gap-3"
+                >
                   {["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"].map((dia) => (
                     <div key={dia} className="flex items-center gap-2">
-                      <Checkbox
-                        id={dia}
-                        checked={casaFe?.dias_semana?.includes(dia) || false}
-                        onCheckedChange={(checked) => {
-                          const novosDias = checked
-                            ? [...(casaFe?.dias_semana || []), dia]
-                            : (casaFe?.dias_semana || []).filter((d) => d !== dia);
-                          setCasaFe({ ...casaFe, dias_semana: novosDias });
-                        }}
-                      />
+                      <RadioGroupItem value={dia} id={dia} />
                       <Label htmlFor={dia} className="cursor-pointer text-sm font-normal">
                         {dia}
                       </Label>
                     </div>
                   ))}
-                </div>
+                </RadioGroup>
               </div>
             </div>
           </Card>
