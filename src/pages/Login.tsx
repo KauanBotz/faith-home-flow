@@ -113,12 +113,11 @@ const Login = () => {
         }
 
         const casasData = allCasas?.filter(casa => {
-          if (!casa.numero_documento && !casa.numero_documento_dupla) return false;
+          if (!casa.numero_documento) return false;
           
-          const casaDoc = casa.numero_documento ? casa.numero_documento.replace(/\D/g, "") : null;
-          const casaDuplaDoc = casa.numero_documento_dupla ? casa.numero_documento_dupla.replace(/\D/g, "") : null;
+          const casaDoc = casa.numero_documento.replace(/\D/g, "");
           
-          return casaDoc === docLimpo || casaDuplaDoc === docLimpo;
+          return casaDoc === docLimpo;
         });
 
         if (!casasData || casasData.length === 0) {
@@ -150,12 +149,11 @@ const Login = () => {
 
         // Filtra novamente só as que têm o documento
         const casasAutenticadas = todasCasas?.filter(casa => {
-          if (!casa.numero_documento && !casa.numero_documento_dupla) return false;
+          if (!casa.numero_documento) return false;
           
-          const casaDoc = casa.numero_documento ? casa.numero_documento.replace(/\D/g, "") : null;
-          const casaDuplaDoc = casa.numero_documento_dupla ? casa.numero_documento_dupla.replace(/\D/g, "") : null;
+          const casaDoc = casa.numero_documento.replace(/\D/g, "");
           
-          return casaDoc === docLimpo || casaDuplaDoc === docLimpo;
+          return casaDoc === docLimpo;
         });
 
         if (!casasAutenticadas || casasAutenticadas.length === 0) {

@@ -36,11 +36,13 @@ const ImportarCasas = () => {
         }
         
         
-        pageUsers?.forEach(user => {
-          if (user.email && user.id) {
-            emailToUid.set(user.email.toLowerCase(), user.id);
-          }
-        });
+        if (pageUsers) {
+          pageUsers.forEach((user: any) => {
+            if (user.email && user.id) {
+              emailToUid.set(user.email.toLowerCase(), user.id);
+            }
+          });
+        }
         
         // Se retornou menos que 1000, não tem mais páginas
         hasMore = (pageUsers?.length || 0) === 1000;
@@ -94,7 +96,7 @@ const ImportarCasas = () => {
 
         // Buscar UID pelo email na tabela users_auth
         const emailRaw = valores[3]?.trim();
-        let userId = crypto.randomUUID(); // fallback caso não encontre
+        let userId: string = self.crypto.randomUUID(); // fallback caso não encontre
         
         if (i <= 5) { // Log detalhado das primeiras 5 linhas
         }

@@ -217,14 +217,6 @@ const Cadastro = () => {
   };
 
   const handleSubmit = async () => {
-    const dataLimite = new Date("2025-10-25");
-    const hoje = new Date();
-    
-    if (hoje >= dataLimite) {
-      toast.error("O período de cadastro de novas Casas de Fé foi encerrado em 25/10/2025.");
-      return;
-    }
-
     try {
       let finalUserId = userId;
 
@@ -603,7 +595,18 @@ const Cadastro = () => {
       </div>
 
       {/* Footer Responsivo */}
-      <footer className="p-3 sm:p-5 text-center text-xs sm:text-sm text-muted-foreground">
+      <footer className="p-3 sm:p-5 text-center text-xs sm:text-sm text-muted-foreground space-y-2">
+        <p>
+          Dificuldade para acessar ou encontrou algum problema?{" "}
+          <a 
+            href="https://wa.me/5531975410027" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-primary hover:underline font-medium"
+          >
+            Fale com a Secretaria MINC
+          </a>
+        </p>
         <p>MINC - Minha Igreja Na Cidade © 2025</p>
       </footer>
     </div>
